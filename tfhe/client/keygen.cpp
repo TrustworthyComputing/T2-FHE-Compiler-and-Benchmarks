@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
       std::endl << "\tlambda: Desired security level in bits" << std::endl;
     return EXIT_FAILURE;
   } else {
-    int lambda = atoi(argv[4]);
+    int lambda = atoi(argv[3]);
     if (lambda < 80) {
       std::cerr << "Security parameter should be at least 80 bits" << std::endl;
       return EXIT_FAILURE;

@@ -38,8 +38,7 @@ In this class we have the `Factorial`, `Fibonacci` and `Private Information Retr
 
 <!-- 1. __[Factorial](Microbenchmarks/factorial)__ [(link)](http://mathworld.wolfram.com/Factorial.html) -->
 
-<!-- 1. __[Fibonacci](Microbenchmarks/fibonacci)__ [(link)](http://mathworld.wolfram.com/FibonacciNumber.html) -->
+1. __[Fibonacci](Microbenchmarks/fibonacci)__ [(link)](http://mathworld.wolfram.com/FibonacciNumber.html)
 
 #### Other Algorithms
 <!-- 1. __[Number Occurrences](OtherAlgorithms/numOccurrences)__ -->
-

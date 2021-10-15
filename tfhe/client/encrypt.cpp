@@ -51,7 +51,6 @@ int main(int argc, char** argv) {
   // The first line of ptxt_file contains the number of lines.
   ptxt_file >> input_len;
   ctxt_out << input_len;
-  // ctxt_out << '\n';
   LweSample* ctxt_in[input_len];
   uint64_t curr_input = 0;
   for (int i = 0; i < input_len; i++) {
