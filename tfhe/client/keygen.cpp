@@ -6,19 +6,23 @@
 #include <tfhe/tfhe_generic_streams.h>
 
 int main(int argc, char** argv) {
+  TFheGateBootstrappingParameterSet* params = nullptr;
   // Argument sanity checks.
-  if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " secret_key cloud_key" << std::endl <<
-      "\tsecret_key: Path to export the secret key" << std::endl <<
-      "\tcloud_key: Path to export the cloud key" << std::endl;
+  if (argc < 4) {
+    std::cerr << "Usage: " << argv[0] << " secret_key cloud_key lambda" <<
+      std::endl << "\tsecret_key: Path to export the secret key" <<
+      std::endl << "\tcloud_key: Path to export the cloud key" <<
+      std::endl << "\tlambda: Desired security level in bits" << std::endl;
     return EXIT_FAILURE;
+  } else {
+    int lambda = atoi(argv[4]);
+    if (lambda < 80) {
+      std::cerr << "Security parameter should be at least 80 bits" << std::endl;
+      return EXIT_FAILURE;
+    }
+    // Generate a keyset.
+    params = new_default_gate_bootstrapping_parameters(lambda);
   }
-
-  // Generate a keyset.
-  const int minimum_lambda = 80;
-  TFheGateBootstrappingParameterSet* params =
-    new_default_gate_bootstrapping_parameters(minimum_lambda);
-
   // Read 12 bytes from /dev/urandom.
   FILE* urandom = fopen("/dev/urandom", "r");
   uint8_t rdata[13];
