@@ -15,7 +15,7 @@ all: client
 
 client: keygen encrypt decrypt
 
-benchmarks: fibonacci
+benchmarks: fibonacci factorial
 
 keygen: $(BIN)/keygen.o
 	$(CXX) $(CPPFLAGS) $(BIN)/keygen.o -o $(BIN)/keygen.out $(LIBS)
@@ -29,6 +29,9 @@ decrypt: $(BIN)/decrypt.o $(BIN)/helper.o
 fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/fibonacci.o $(BIN)/helper.o -o $(BIN)/fibonacci.out $(LIBS)
 
+factorial: $(BIN)/factorial.o $(BIN)/helper.o
+	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/helper.o -o $(BIN)/factorial.out $(LIBS)
+
 $(BIN)/keygen.o: client/keygen.cpp
 	$(CXX) -c client/keygen.cpp -o $(BIN)/keygen.o
 
@@ -40,6 +43,9 @@ $(BIN)/decrypt.o: client/decrypt.cpp
 
 $(BIN)/fibonacci.o: Microbenchmarks/fibonacci/fibonacci.cpp
 	$(CXX) -c Microbenchmarks/fibonacci/fibonacci.cpp -o $(BIN)/fibonacci.o
+
+$(BIN)/factorial.o: Microbenchmarks/factorial/factorial.cpp
+	$(CXX) -c Microbenchmarks/factorial/factorial.cpp -o $(BIN)/factorial.o
 
 $(BIN)/helper.o: helper.cpp helper.hpp
 	$(CXX) -c helper.cpp -o $(BIN)/helper.o
