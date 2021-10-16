@@ -8,7 +8,7 @@
 #include "../../helper.hpp"
 
 // Compute and return the enc_idx fibonacci number. Run until max_id.
-LweSample* fib(const LweSample* enc_idx, const uint32_t max_idx, 
+LweSample* fib(const LweSample* enc_idx, const uint32_t max_idx,
                const uint32_t word_sz,
                const TFheGateBootstrappingCloudKeySet* bk) {
   // Compute fibonacci numbers in the ptxt domain.
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   std::ifstream cloud_key, ctxt_file;
   int word_sz = 0, max_index = 0;
   if (argc < 5) {
-    std::cerr << "Usage: " << argv[0] << 
+    std::cerr << "Usage: " << argv[0] <<
       " cloud_key ctxt_filename wordsize max_index" << std::endl <<
       "\tcloud_key: Path to the secret key" <<  std::endl <<
       "\tctxt_filename: Path to the ciphertext file" << std::endl <<
@@ -74,37 +74,29 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
   }
-  TFheGateBootstrappingCloudKeySet* bk = 
+  TFheGateBootstrappingCloudKeySet* bk =
     new_tfheGateBootstrappingCloudKeySet_fromStream(cloud_key);
   cloud_key.close();
 
   // If necessary, the params are inside the key.
   const TFheGateBootstrappingParameterSet* params = bk->params;
-  
-  // Number of encrypted integers to return.
-  // TODO(@jimouris): After we copy it to other benchmarks, remove the array.
-  uint32_t output_len = 1;
 
   // Read the ciphertext objects.
-  uint32_t num_ctxts = 0;
+  uint32_t num_ctxts = 1;
   ctxt_file >> num_ctxts;
-  LweSample* user_data[num_ctxts];
-  for (int i = 0; i < num_ctxts; i++) {
-    user_data[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
-    for (int j = 0; j < word_sz; j++) {
-      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, 
-                                                      &user_data[i][j], params);
-    }
+  LweSample* user_data =
+    new_gate_bootstrapping_ciphertext_array(word_sz, params);
+  for (int j = 0; j < word_sz; j++) {
+    import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, &user_data[j], params);
   }
   ctxt_file.close();
-  
-  // LweSample* enc_result[output_len];
-  LweSample* enc_result = fib(user_data[0], max_index, word_sz, bk);
+
+  LweSample* enc_result = fib(user_data, max_index, word_sz, bk);
 
   // Output result(s) to file.
   std::ofstream ctxt_out("output.ctxt");
   // The first line of ptxt_file contains the number of lines.
-  ctxt_out << output_len;
+  ctxt_out << 1;
   for (int j = 0; j < word_sz; j++) {
     export_lweSample_toStream(ctxt_out, &enc_result[j], params->in_out_params);
   }
@@ -112,9 +104,7 @@ int main(int argc, char** argv) {
   ctxt_out.close();
 
   // Clean up all pointers.
-  for (int i = 0; i < num_ctxts; i++) {
-    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i]);
-  }
+  delete_gate_bootstrapping_ciphertext_array(word_sz, user_data);
   delete_gate_bootstrapping_cloud_keyset(bk);
   return EXIT_SUCCESS;
 }
