@@ -14,7 +14,6 @@ LweSample* fact(const LweSample* enc_idx, const uint32_t max_idx,
   // Initialize result to Enc(0).
   LweSample* result =
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
-  // Initialize with 1.
   bootsCONSTANT(&result[0], 1, bk);
   for (int i = 1; i < word_sz; i++) {
     bootsCONSTANT(&result[i], 0, bk);
@@ -27,7 +26,7 @@ LweSample* fact(const LweSample* enc_idx, const uint32_t max_idx,
     LweSample* fact_ctxt = enc_cloud(fact, word_sz, bk);
     LweSample* control = cmp(curr_idx, enc_idx, word_sz, bk);
     for (int j = 0; j < word_sz; j++) {
-      bootsMUX(&result[j], &control[0], &result[j], &fact_ctxt[j], bk);
+      bootsMUX(&result[j], &control[0], &fact_ctxt[j], &result[j], bk);
     }
   }
   return result;

@@ -18,6 +18,7 @@ LweSample* fib(const LweSample* enc_idx, const uint32_t max_idx,
   for (int i = 2; i < max_idx; i++) {
     fib_seq[i] = fib_seq[i - 1] + fib_seq[i - 2];
   }
+
   // Initialize result to Enc(0).
   LweSample* result =
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
@@ -29,7 +30,7 @@ LweSample* fib(const LweSample* enc_idx, const uint32_t max_idx,
     LweSample* curr_ctxt = enc_cloud(fib_seq[i], word_sz, bk);
     LweSample* control = cmp(curr_idx, enc_idx, word_sz, bk);
     for (int j = 0; j < word_sz; j++) {
-      bootsMUX(&result[j], &control[0], &result[j], &curr_ctxt[j], bk);
+      bootsMUX(&result[j], &control[0], &curr_ctxt[j], &result[j], bk);
     }
   }
   return result;

@@ -28,8 +28,8 @@ LweSample* cmp(const LweSample* a, const LweSample* b, const uint32_t word_sz,
   LweSample* lt = new_gate_bootstrapping_ciphertext_array(1, bk->params);
   LweSample* result = new_gate_bootstrapping_ciphertext_array(1, bk->params);
   // Initialize cascading inputs.
-  bootsCONSTANT(gt, 1, bk);
-  bootsCONSTANT(&lt[0], 1, bk);
+  bootsCONSTANT(&gt[0], 0, bk);
+  bootsCONSTANT(&lt[0], 0, bk);
   bootsCONSTANT(&result[0], 1, bk);
   // Run 1 bit comparators.
   for (int i = word_sz - 1; i >= 0; i--) {
