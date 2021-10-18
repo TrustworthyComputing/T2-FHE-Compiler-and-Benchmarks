@@ -14,12 +14,14 @@ LweSample* fact(const LweSample* enc_idx, const uint32_t max_idx,
   // Initialize result to Enc(0).
   LweSample* result =
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
-  for (int i = 0; i < word_sz; i++) {
+  // Initialize with 1.
+  bootsCONSTANT(&result[0], 1, bk);
+  for (int i = 1; i < word_sz; i++) {
     bootsCONSTANT(&result[i], 0, bk);
   }
-  // TODO(@cgouert): maybe this sould be more than 32 bits?
+  // TODO(@cgouert): maybe this should be more than 32 bits?
   uint32_t fact = 1;
-  for (int i = 1; i < max_idx; i++) {
+  for (int i = 1; i <= max_idx; i++) {
     fact *= i;
     LweSample* curr_idx = enc_cloud(i, word_sz, bk);
     LweSample* fact_ctxt = enc_cloud(fact, word_sz, bk);

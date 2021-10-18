@@ -15,7 +15,7 @@ all: client
 
 client: keygen encrypt decrypt
 
-benchmarks: fibonacci Factorial
+benchmarks: fibonacci factorial
 
 keygen: $(BIN)/keygen.o
 	$(CXX) $(CPPFLAGS) $(BIN)/keygen.o -o $(BIN)/keygen.out $(LIBS)
