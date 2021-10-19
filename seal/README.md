@@ -1,5 +1,12 @@
 ## List of Terminator Suite 2 Benchmarks for SEAL
 
+SEAL: https://github.com/microsoft/SEAL
+
+```
+cmake .
+make -j
+```
+
 #### Synthetic Category
 <!-- In this class we have the `NQueens` and `Tak` algorithms, which evaluate the universality of the underlying abstract machine using recursion. -->
 
