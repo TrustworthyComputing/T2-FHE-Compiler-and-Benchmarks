@@ -11,6 +11,17 @@ bool is_pow_of_2(int n);
 LweSample* enc_cloud(uint32_t ptxt_val, uint32_t word_sz,
                      const TFheGateBootstrappingCloudKeySet* bk);
 
+// Adder circuit: result = a + b.
+void adder(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+
+// Multiplier circuit: result = a * b.
+LweSample* multiplier(const LweSample* a, const LweSample* b, 
+  const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+
+// Incrementer circuit: result = a + 1.
+LweSample* incrementer(const LweSample* a, const int nb_bits, 
+  const TFheGateBootstrappingCloudKeySet* bk);
+
 // Equality comparator: result = (a == b).
 LweSample* cmp(const LweSample* a, const LweSample* b, const uint32_t word_sz,
                const TFheGateBootstrappingCloudKeySet* bk);

@@ -7,42 +7,34 @@
 
 #include "../../helper.hpp"
 
-// Compute and return the enc_idx factorial number. Run until max_id.
-LweSample* fact(const LweSample* enc_idx, const uint32_t max_idx,
-                const uint32_t word_sz,
-                const TFheGateBootstrappingCloudKeySet* bk) {
+// Compute and return the Nth factorial.
+LweSample* fact(LweSample* prev_fact_, LweSample* start_num_,
+  const uint32_t N, const uint32_t word_sz, 
+  const TFheGateBootstrappingCloudKeySet* bk) {
   // Initialize result to Enc(0).
-  LweSample* result =
+  LweSample* result_ =
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
-  bootsCONSTANT(&result[0], 1, bk);
-  for (int i = 1; i < word_sz; i++) {
-    bootsCONSTANT(&result[i], 0, bk);
+  for (int i = 0; i < word_sz; i++) {
+    bootsCOPY(&result_[i], &prev_fact_[i], bk);
   }
-  // TODO(@cgouert): maybe this should be more than 32 bits?
-  uint32_t fact = 1;
-  for (int i = 1; i <= max_idx; i++) {
-    fact *= i;
-    LweSample* curr_idx = enc_cloud(i, word_sz, bk);
-    LweSample* fact_ctxt = enc_cloud(fact, word_sz, bk);
-    LweSample* control = cmp(curr_idx, enc_idx, word_sz, bk);
-    for (int j = 0; j < word_sz; j++) {
-      bootsMUX(&result[j], &control[0], &fact_ctxt[j], &result[j], bk);
-    }
+  for (int i = 0; i < N; i++) {
+    result_ = multiplier(result_, start_num_, word_sz, bk);
+    start_num_ = incrementer(start_num_, word_sz, bk);
   }
-  return result;
+  return result_;
 }
 
 int main(int argc, char** argv) {
   // Argument sanity checks.
   std::ifstream cloud_key, ctxt_file;
-  int word_sz = 0, max_index = 0;
+  int word_sz = 0, N = 0;
   if (argc < 5) {
     std::cerr << "Usage: " << argv[0] <<
       " cloud_key ctxt_filename wordsize max_index" << std::endl <<
       "\tcloud_key: Path to the secret key" <<  std::endl <<
       "\tctxt_filename: Path to the ciphertext file" << std::endl <<
       "\twordsize: Number of bits per encrypted int" << std::endl <<
-      "\tmax_index: Maximum number of iterations" << std::endl;
+      "\tN: Number of iterations" << std::endl;
     return EXIT_FAILURE;
   } else {
     // Check if secret key file exists.
@@ -65,8 +57,8 @@ int main(int argc, char** argv) {
       return EXIT_FAILURE;
     }
     // Check max index.
-    max_index = atoi(argv[4]);
-    if (max_index < 0 || max_index > 1000) {
+    N = atoi(argv[4]);
+    if (N < 0 || N > 1000) {
       std::cerr << "Maximum iterations should be in [0, 1000]"<< std::endl;
       return EXIT_FAILURE;
     }
@@ -81,14 +73,16 @@ int main(int argc, char** argv) {
   // Read the ciphertext objects.
   uint32_t num_ctxts = 1;
   ctxt_file >> num_ctxts;
-  LweSample* user_data =
-    new_gate_bootstrapping_ciphertext_array(word_sz, params);
-  for (int j = 0; j < word_sz; j++) {
-    import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, &user_data[j], params);
+  LweSample* user_data[num_ctxts];
+  for (int i = 0; i < num_ctxts; i++) {
+    user_data[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+    for (int j = 0; j < word_sz; j++) {
+      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, &user_data[i][j], params);
+    }
   }
   ctxt_file.close();
 
-  LweSample* enc_result = fact(user_data, max_index, word_sz, bk);
+  LweSample* enc_result = fact(user_data[0], user_data[1], N, word_sz, bk);
 
   // Output result(s) to file.
   std::ofstream ctxt_out("output.ctxt");
@@ -101,7 +95,9 @@ int main(int argc, char** argv) {
   ctxt_out.close();
 
   // Clean up all pointers.
-  delete_gate_bootstrapping_ciphertext_array(word_sz, user_data);
+  for (int i = 0; i < num_ctxts; i++) {
+    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i]);
+  }
   delete_gate_bootstrapping_cloud_keyset(bk);
   return EXIT_SUCCESS;
 }
