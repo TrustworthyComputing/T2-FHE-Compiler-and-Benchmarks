@@ -18,8 +18,8 @@ LweSample* fact(LweSample* prev_fact_, LweSample* start_num_,
     bootsCOPY(&result_[i], &prev_fact_[i], bk);
   }
   for (int i = 0; i < N; i++) {
-    result_ = multiplier(result_, start_num_, word_sz, bk);
-    start_num_ = incrementer(start_num_, word_sz, bk);
+    mult_inplace(result_, start_num_, word_sz, bk);
+    inc_inplace(start_num_, word_sz, bk);
   }
   return result_;
 }
