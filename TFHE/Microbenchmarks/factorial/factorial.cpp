@@ -9,7 +9,7 @@
 
 // Compute and return the Nth factorial.
 LweSample* fact(LweSample* prev_fact_, LweSample* start_num_,
-  const uint32_t N, const uint32_t word_sz, 
+  const uint32_t N, const uint32_t word_sz,
   const TFheGateBootstrappingCloudKeySet* bk) {
   // Initialize result to Enc(0).
   LweSample* result_ =
@@ -82,7 +82,10 @@ int main(int argc, char** argv) {
   }
   ctxt_file.close();
 
+  TIC(auto t1);
   LweSample* enc_result = fact(user_data[0], user_data[1], N, word_sz, bk);
+  auto enc_time_ms = TOC_US(t1);
+  std::cout << "Encrypted execution time " << enc_time_ms << " us" << std::endl;
 
   // Output result(s) to file.
   std::ofstream ctxt_out("output.ctxt");

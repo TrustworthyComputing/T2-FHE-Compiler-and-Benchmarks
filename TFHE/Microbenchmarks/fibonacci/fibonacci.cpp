@@ -82,7 +82,10 @@ int main(int argc, char** argv) {
   }
   ctxt_file.close();
 
+  TIC(auto t1);
   LweSample* enc_result = fib(user_data[0], user_data[1], iter, word_sz, bk);
+  auto enc_time_ms = TOC_US(t1);
+  std::cout << "Encrypted execution time " << enc_time_ms << " us" << std::endl;
 
   // Output result(s) to file.
   std::ofstream ctxt_out("output.ctxt");

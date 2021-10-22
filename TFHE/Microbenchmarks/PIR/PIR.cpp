@@ -6,10 +6,10 @@
 
 #include "../../helper.hpp"
 
-LweSample* pir(LweSample** db_, const LweSample* query_, int word_sz, 
+LweSample* pir(LweSample** db_, const LweSample* query_, int word_sz,
                int num_entries, const TFheGateBootstrappingCloudKeySet* bk) {
   // Initialize output ctxt to 0 and declare temp var for equality.
-  LweSample* result_ = new_gate_bootstrapping_ciphertext_array(word_sz, 
+  LweSample* result_ = new_gate_bootstrapping_ciphertext_array(word_sz,
     bk->params);
   LweSample* control_ = new_gate_bootstrapping_ciphertext(bk->params);
   for (int i = 0; i < word_sz; i++) {
@@ -23,7 +23,7 @@ LweSample* pir(LweSample** db_, const LweSample* query_, int word_sz,
       bootsMUX(&result_[j], control_, &db_[i*2+1][j], &result_[j], bk);
     }
   }
-  
+
   return result_;
 }
 
@@ -90,16 +90,19 @@ int main(int argc, char** argv) {
   // Read encrypted query.
   uint32_t num_queries = 1;
   query_file >> num_queries;
-  assert(("This benchmark only supports one query at a time", 
+  assert(("This benchmark only supports one query at a time",
     num_queries == 1));
   LweSample* query_ = new_gate_bootstrapping_ciphertext_array(word_sz, params);
   for (int i = 0; i < word_sz; i++) {
-    import_gate_bootstrapping_ciphertext_fromStream(query_file, 
+    import_gate_bootstrapping_ciphertext_fromStream(query_file,
       &query_[i], params);
   }
   query_file.close();
 
+  TIC(auto t1);
   LweSample* enc_result = pir(user_data, query_, word_sz, num_ctxts/2, bk);
+  auto enc_time_ms = TOC_US(t1);
+  std::cout << "Encrypted execution time " << enc_time_ms << " us" << std::endl;
 
   // Output result(s) to file.
   std::ofstream ctxt_out("output.ctxt");

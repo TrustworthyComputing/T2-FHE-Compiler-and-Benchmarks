@@ -8,10 +8,11 @@ else
 $(info Compiling with spqlios)
  	LIBS = -ltfhe-spqlios-fma
 endif
-BIN = bin
+BIN = ./bin
 RM = rm -f
+MKDIR_P = mkdir -p
 
-all: client
+all: directories client
 
 client: keygen encrypt decrypt
 
@@ -31,7 +32,7 @@ fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 
 factorial: $(BIN)/factorial.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/helper.o -o $(BIN)/factorial.out $(LIBS)
-	
+
 pir: $(BIN)/pir.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/helper.o -o $(BIN)/pir.out $(LIBS)
 
@@ -55,6 +56,11 @@ $(BIN)/pir.o: Microbenchmarks/PIR/PIR.cpp
 
 $(BIN)/helper.o: helper.cpp helper.hpp
 	$(CXX) -c helper.cpp -o $(BIN)/helper.o
+
+directories: ${BIN}
+
+${BIN}:
+	${MKDIR_P} ${BIN}
 
 clean:
 	$(RM) $(BIN)/*.o $(BIN)/*.out $(BIN)/*.key

@@ -14,12 +14,12 @@ int main(int argc, char** argv) {
   int word_sz = 0;
   int db = 0;
   std::string output_filename;
-  if (argc < 5) {
+  if (argc < 6) {
     std::cerr << "Usage: " << argv[0] << " secret_key ptxt_filename wordsize db output_filename" <<
-      std::endl << "\tsecret_key: Path to the secret key" << 
+      std::endl << "\tsecret_key: Path to the secret key" <<
       std::endl << "\tptxt_filename: Path to the plaintext file" <<
       std::endl << "\twordsize: Number of bits per encrypted int" <<
-      std::endl << "\tdb: 1 for KV format, 0 otherwise (no db)" << 
+      std::endl << "\tdb: 1 for KV format, 0 otherwise (no db)" <<
       std::endl << "\toutput_filename: the name of the output ciphertext file" << std::endl;
     return EXIT_FAILURE;
   } else {
