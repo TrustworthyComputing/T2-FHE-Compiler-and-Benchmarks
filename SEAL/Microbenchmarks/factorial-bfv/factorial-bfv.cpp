@@ -47,11 +47,14 @@ int main(int argc, char** argv) {
   encryptor.encrypt(tmp, n_);
 
   // Server: Run factorial for iter iterations.
+  TIC(auto t1);
   for (int i = 0; i < iter; ++i) {
     evaluator.multiply_inplace(fact_, n_);  // fact_ *= n_
     evaluator.relinearize_inplace(fact_, relin_keys);
     evaluator.add_plain_inplace(n_, one);   // n_ += Enc(1)
   }
+  auto enc_time_ms = TOC_US(t1);
+  cout << "Encrypted execution time " << enc_time_ms << " us" << endl;
 
   // Client: Decrypt.
   Plaintext result;

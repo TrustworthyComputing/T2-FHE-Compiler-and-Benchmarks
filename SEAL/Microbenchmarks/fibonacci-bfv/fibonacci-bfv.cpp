@@ -42,23 +42,24 @@ int main(int argc, char** argv) {
     f1 = f2;
     f2 = fib;
   }
-  Plaintext one("1"), tmp;
+  Plaintext tmp;
   Ciphertext f1_, f2_, fib_, n_;
   tmp = uint64_to_hex_string(f1);
   encryptor.encrypt(tmp, f1_);
   tmp = uint64_to_hex_string(f2);
   encryptor.encrypt(tmp, f2_);
-  tmp = uint64_to_hex_string(fib);
-  encryptor.encrypt(tmp, fib_);
   tmp = uint64_to_hex_string(n);
   encryptor.encrypt(tmp, n_);
 
   // Server: Run Fibonacci for iter iterations.
+  TIC(auto t1);
   for (int i = 0; i < iter; ++i) {
     evaluator.add(f1_, f2_, fib_);  // fib_ = f1_ + f2_
     f1_ = f2_;
     f2_ = fib_;
   }
+  auto enc_time_ms = TOC_US(t1);
+  cout << "Encrypted execution time " << enc_time_ms << " us" << endl;
 
   // Client: Decrypt.
   Plaintext result;
