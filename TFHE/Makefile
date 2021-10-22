@@ -31,6 +31,9 @@ fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 
 factorial: $(BIN)/factorial.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/helper.o -o $(BIN)/factorial.out $(LIBS)
+	
+pir: $(BIN)/pir.o $(BIN)/helper.o
+	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/helper.o -o $(BIN)/pir.out $(LIBS)
 
 $(BIN)/keygen.o: client/keygen.cpp
 	$(CXX) -c client/keygen.cpp -o $(BIN)/keygen.o
@@ -46,6 +49,9 @@ $(BIN)/fibonacci.o: Microbenchmarks/fibonacci/fibonacci.cpp
 
 $(BIN)/factorial.o: Microbenchmarks/factorial/factorial.cpp
 	$(CXX) -c Microbenchmarks/factorial/factorial.cpp -o $(BIN)/factorial.o
+
+$(BIN)/pir.o: Microbenchmarks/PIR/PIR.cpp
+	$(CXX) -c Microbenchmarks/PIR/PIR.cpp -o $(BIN)/pir.o
 
 $(BIN)/helper.o: helper.cpp helper.hpp
 	$(CXX) -c helper.cpp -o $(BIN)/helper.o

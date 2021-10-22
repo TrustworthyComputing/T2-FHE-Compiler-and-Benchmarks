@@ -104,7 +104,6 @@ void inc_inplace(LweSample* a, const size_t nb_bits,
   inc(a, a, nb_bits, bk);
 }
 
-// TODO(@cgouert): Add lte() plus more efficient equality check.
 void cmp(LweSample* result, const LweSample* a, const LweSample* b,
          const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* not_a = new_gate_bootstrapping_ciphertext_array(1, bk->params);
