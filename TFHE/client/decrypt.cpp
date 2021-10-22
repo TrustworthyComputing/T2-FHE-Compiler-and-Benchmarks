@@ -49,14 +49,14 @@ int main(int argc, char** argv) {
   uint32_t num_ctxts = 0;
   ctxt_file >> num_ctxts;
   LweSample* answer[num_ctxts];
-  int int_answer[num_ctxts] = { 0 };
+  uint64_t int_answer[num_ctxts] = { 0 };
   for (int i = 0; i < num_ctxts; i++) {
     answer[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
     for (int j = 0; j < word_sz; j++) {
       import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, 
                                                       &answer[i][j], params);
-      int ai = bootsSymDecrypt(&answer[i][j], key) > 0;
-      int_answer[i] |= (ai << j);                                               
+      uint64_t ai = bootsSymDecrypt(&answer[i][j], key) > 0;
+      int_answer[i] |= (uint64_t)(ai << j);                                               
     }
     std::cout << "Answer " << i << ": " << int_answer[i] << std::endl;
   }

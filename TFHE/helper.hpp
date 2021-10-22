@@ -67,4 +67,7 @@ void eq(LweSample* result, const LweSample* a, const LweSample* b,
 void leq(LweSample* result, const LweSample* a, const LweSample* b,
          const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
 
+void rotate_inplace(LweSample* result, int dir, int amt, const size_t word_sz, 
+                    const TFheGateBootstrappingCloudKeySet* bk);
+
 #endif  // HELPER_HPP_

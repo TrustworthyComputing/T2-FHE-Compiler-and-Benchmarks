@@ -95,10 +95,10 @@ int main(int argc, char** argv) {
     ctxt_out << input_len;
     LweSample* ctxt_in[input_len];
     uint64_t curr_input = 0;
-    for (int i = 0; i < input_len; i++) {
+    for (uint64_t i = 0; i < input_len; i++) {
       ctxt_in[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
       ptxt_file >> curr_input;
-      for (int j = 0; j < word_sz; j++) {
+      for (uint64_t j = 0; j < word_sz; j++) {
         bootsSymEncrypt(&ctxt_in[i][j], (curr_input >> j) & 1, key);
         export_lweSample_toStream(ctxt_out, &ctxt_in[i][j], params->in_out_params);
       }

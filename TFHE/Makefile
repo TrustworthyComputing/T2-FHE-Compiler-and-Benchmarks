@@ -36,6 +36,9 @@ factorial: $(BIN)/factorial.o $(BIN)/helper.o
 pir: $(BIN)/pir.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/helper.o -o $(BIN)/pir.out $(LIBS)
 
+simon: $(BIN)/simon.o $(BIN)/helper.o
+	$(CXX) $(CPPFLAGS) $(BIN)/simon.o $(BIN)/helper.o -o $(BIN)/simon.out $(LIBS)
+
 $(BIN)/keygen.o: client/keygen.cpp
 	$(CXX) -c client/keygen.cpp -o $(BIN)/keygen.o
 
@@ -53,6 +56,9 @@ $(BIN)/factorial.o: Microbenchmarks/factorial/factorial.cpp
 
 $(BIN)/pir.o: Microbenchmarks/PIR/PIR.cpp
 	$(CXX) -c Microbenchmarks/PIR/PIR.cpp -o $(BIN)/pir.o
+
+$(BIN)/simon.o: Crypto/Simon/simon.cpp
+	$(CXX) -c Crypto/Simon/simon.cpp -o $(BIN)/simon.o
 
 $(BIN)/helper.o: helper.cpp helper.hpp
 	$(CXX) -c helper.cpp -o $(BIN)/helper.o
