@@ -1,6 +1,4 @@
 #include "helper.hpp"
-#include <iostream>
-#include <assert.h>
 
 bool is_pow_of_2(int n) {
   int count = 0;
@@ -21,10 +19,10 @@ LweSample* enc_cloud(uint32_t ptxt_val, size_t word_sz,
 }
 
 /// Ripple carry adder for nb_bits bits. result = a + b
-void add(LweSample* result, const LweSample* a, const LweSample* b, 
+void add(LweSample* result, const LweSample* a, const LweSample* b,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
-  LweSample* carry = 
+  LweSample* carry =
     new_gate_bootstrapping_ciphertext_array(nb_bits+1, bk->params);
   LweSample* temp = new_gate_bootstrapping_ciphertext_array(1, bk->params);
   // Initialize first carry to 0.
@@ -50,12 +48,12 @@ void add_inplace(LweSample* a, const LweSample* b, const size_t nb_bits,
 }
 
 /// multiply for nb_bits bits. result = a * b
-void mult(LweSample* result, const LweSample* a, const LweSample* b, 
+void mult(LweSample* result, const LweSample* a, const LweSample* b,
           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
-  LweSample* tmp_array = 
+  LweSample* tmp_array =
     new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
-  LweSample* sum = 
+  LweSample* sum =
     new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   // initialize temp values to 0
   for (int i = 0; i < nb_bits; ++i) {
@@ -83,9 +81,9 @@ void mult_inplace(LweSample* a, const LweSample* b, const size_t nb_bits,
 }
 
 /// Increment ciphertext a by 1. result = a + 1.
-void inc(LweSample* result, const LweSample* a, const size_t nb_bits, 
+void inc(LweSample* result, const LweSample* a, const size_t nb_bits,
          const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* carry = 
+  LweSample* carry =
     new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   bootsCONSTANT(&carry[0], 1, bk);
   LweSample* temp = new_gate_bootstrapping_ciphertext(bk->params);
@@ -101,7 +99,7 @@ void inc(LweSample* result, const LweSample* a, const size_t nb_bits,
 }
 
 /// Increment ciphertext a by 1 and store result to a. a++.
-void inc_inplace(LweSample* a, const size_t nb_bits, 
+void inc_inplace(LweSample* a, const size_t nb_bits,
                  const TFheGateBootstrappingCloudKeySet* bk) {
   inc(a, a, nb_bits, bk);
 }
@@ -154,7 +152,8 @@ void cmp(LweSample* result, const LweSample* a, const LweSample* b,
 /// Equality check. result = a == b
 void eq(LweSample* result_, const LweSample* a, const LweSample* b,
         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk) {
-  assert(result_ != a && result_ != b);
+  assert(("Result ciphertext should not be any of the equality arguments",
+          result_ != a && result_ != b));
   LweSample* tmp_ = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
   // Compute XNORs across a and b and AND all results together.
   bootsCONSTANT(&result_[0], 1, bk);
@@ -170,7 +169,8 @@ void leq(LweSample* result_, const LweSample* a, const LweSample* b,
   LweSample* n1_ = new_gate_bootstrapping_ciphertext(bk->params);
   LweSample* n2_ = new_gate_bootstrapping_ciphertext(bk->params);
   LweSample* n1_AND_n2_ = new_gate_bootstrapping_ciphertext(bk->params);
-  assert(result_ != a && result_ != b);
+  assert(("Result ciphertext should not be any of the equality arguments",
+          result_ != a && result_ != b));
   bootsCONSTANT(result_, 0, bk);
   for (int i = 0; i < word_sz; ++i) {
     bootsXOR(n1_, result_, &a[i], bk);

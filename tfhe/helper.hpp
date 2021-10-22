@@ -1,6 +1,9 @@
 #ifndef HELPER_HPP_
 #define HELPER_HPP_
 
+#include <iostream>
+#include <cassert>
+
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
 
@@ -20,7 +23,7 @@ void add_inplace(LweSample* a, const LweSample* b, const size_t nb_bits,
                  const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Multiplier circuit: result = a * b.
-void mult(LweSample* result, const LweSample* a, const LweSample* b, 
+void mult(LweSample* result, const LweSample* a, const LweSample* b,
           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Multiplier circuit: a *= b.
@@ -28,11 +31,11 @@ void mult_inplace(LweSample* a, const LweSample* b, const size_t nb_bits,
                   const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Incrementer circuit: result = a + 1.
-void inc(LweSample* result, const LweSample* a, const size_t nb_bits, 
+void inc(LweSample* result, const LweSample* a, const size_t nb_bits,
          const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Increment ciphertext a by 1 and store result to a. a++.
-void inc_inplace(LweSample* a, const size_t nb_bits, 
+void inc_inplace(LweSample* a, const size_t nb_bits,
                  const TFheGateBootstrappingCloudKeySet* bk);
 
 /// General comparator: result = (a == b).
