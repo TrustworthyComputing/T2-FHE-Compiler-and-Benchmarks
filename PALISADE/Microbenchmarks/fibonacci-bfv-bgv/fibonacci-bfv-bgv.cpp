@@ -1,38 +1,45 @@
-#include <stdio.h>
-#include <string.h>
-#include <iostream>
-#include <fstream>
-
-#include <vector>
-
-#include "palisade.h"
+#include "../../helper.hpp"
 
 using namespace std;
 using namespace lbcrypto;
 
 int main(int argc, char** argv) {
-  if (argc < 4) {
-    cerr << "Usage: " << argv[0] << " n iter poly_modulus_degree plaintext_modulus" <<
+  if (argc < 5) {
+    cerr << "Usage: " << argv[0] << " n iter plaintext_modulus scheme" <<
       endl << "\tn: plaintext number to calculate Fibonacci" <<
       endl << "\titer: number of iterations" <<
-      endl << "\tplaintext_modulus: range of plaintext values" << endl;
+      endl << "\tplaintext_modulus: range of plaintext values" <<
+      endl << "\tscheme: bfv, bgv" << endl;
     return EXIT_FAILURE;
   }
   size_t n = atoi(argv[1]);
   size_t iter = atoi(argv[2]);
   size_t plaintext_modulus = atoi(argv[3]); // 786433
+  scheme_t scheme = NONE;
+  if (strcmp(argv[4], "bfv") == 0) {
+    scheme = BFV;
+  } else if (strcmp(argv[4], "bgv") == 0) {
+    scheme = BGV;
+  } else {
+    cerr << "Choose either bgv or bfv" << endl;
+    return EXIT_FAILURE;
+  }
 
-  uint32_t multDepth = 3;
+  uint32_t depth = 3;
   double sigma = 3.2;
   SecurityLevel securityLevel = HEStd_128_classic;
 
   cout << "plaintext_modulus " << plaintext_modulus << endl;
 
   // Instantiate the crypto context.
-  CryptoContext<DCRTPoly> cc =
-  CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
-    plaintext_modulus, securityLevel, sigma, 0, multDepth, 0, OPTIMIZED);
-
+  CryptoContext<DCRTPoly> cc;
+  if (scheme == BFV) {
+    cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
+          plaintext_modulus, securityLevel, sigma, 0, depth, 0, OPTIMIZED);
+  } else { // BGV
+    cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBGVrns(
+          depth, plaintext_modulus, securityLevel, sigma, depth, OPTIMIZED, BV);
+  }
   // Enable features that you wish to use
   cc->Enable(ENCRYPTION);
   cc->Enable(SHE);

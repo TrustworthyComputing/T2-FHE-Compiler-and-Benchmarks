@@ -23,7 +23,14 @@ link_libraries( ${PALISADE_LIBRARIES} )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_executable(fibonacci-bfv.out)
-target_sources(fibonacci-bfv.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/fibonacci-bfv/fibonacci-bfv.cpp
+add_executable(fibonacci-bfv-bgv.out)
+target_sources(fibonacci-bfv-bgv.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/fibonacci-bfv-bgv/fibonacci-bfv-bgv.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)
+
+add_executable(factorial-bfv-bgv.out)
+target_sources(factorial-bfv-bgv.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/factorial-bfv-bgv/factorial-bfv-bgv.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
 )
