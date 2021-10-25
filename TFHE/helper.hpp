@@ -24,6 +24,8 @@
 #define TOC_US(t) duration_us(timeNow() - t)
 #define TOC_MS(t) duration_ms(timeNow() - t)
 
+typedef enum rotation_t { LEFT = 0, RIGHT } rotation_t;
+
 /// Check if n is a power of 2.
 bool is_pow_of_2(int n);
 
@@ -67,7 +69,8 @@ void eq(LweSample* result, const LweSample* a, const LweSample* b,
 void leq(LweSample* result, const LweSample* a, const LweSample* b,
          const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
 
-void rotate_inplace(LweSample* result, int dir, int amt, const size_t word_sz, 
+void rotate_inplace(LweSample* result, rotation_t dir, int amt,
+                    const size_t word_sz, 
                     const TFheGateBootstrappingCloudKeySet* bk);
 
 #endif  // HELPER_HPP_

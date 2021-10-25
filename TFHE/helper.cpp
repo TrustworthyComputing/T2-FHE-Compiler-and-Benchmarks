@@ -18,21 +18,21 @@ LweSample* enc_cloud(uint32_t ptxt_val, size_t word_sz,
   return result;
 }
 
-void rotate_inplace(LweSample* result, int dir, int amt, const size_t word_sz, 
+void rotate_inplace(LweSample* result, rotation_t dir, int amt,
+                    const size_t word_sz, 
                     const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmp = 
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
 
-  // rotate left
-  if (dir == 0) {
+  if (dir == LEFT) {
+    // rotate left
     for (int i = 0; i < word_sz; i++) {
-      bootsCOPY(&tmp[i], &result[(i-amt)%word_sz], bk);
+      bootsCOPY(&tmp[i], &result[(i-amt) % word_sz], bk);
     }
-  }
-  // rotate right
-  else {
+  } else {
+    // rotate right
     for (int i = 0; i < word_sz; i++) {
-      bootsCOPY(&tmp[i], &result[(i+amt)%word_sz], bk);
+      bootsCOPY(&tmp[i], &result[(i+amt) % word_sz], bk);
     }
   }
 
