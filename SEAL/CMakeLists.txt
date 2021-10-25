@@ -26,3 +26,10 @@ target_sources(fibonacci-bfv.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/fibonacci-bfv/fibonacci-bfv.cpp
   ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
 )
+
+add_executable(simon-bfv.out)
+target_sources(simon-bfv.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/Crypto/simon-bfv/simon-bfv.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)

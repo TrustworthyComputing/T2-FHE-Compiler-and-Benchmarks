@@ -34,6 +34,18 @@
 #define TOC_US(t) duration_us(timeNow() - t)
 #define TOC_MS(t) duration_ms(timeNow() - t)
 
+
+/// Encrypt an integer to a vector of encryptions of zero and one
+std::vector<seal::Ciphertext> encrypt_num_to_binary_array(
+    seal::Encryptor& encryptor, uint64_t number, size_t word_sz);
+
+// /// Encrypt an integer to a binary vector batched
+// seal::Ciphertext encrypt_num_to_binary_array_batch(
+//     seal::Encryptor& encryptor, uint64_t number, size_t word_sz);
+
+uint64_t decrypt_binary_array(seal::Decryptor& decryptor,
+                              std::vector<seal::Ciphertext>& ctxt);
+
 /// Helper function: Prints the name of the example in a fancy banner.
 inline void print_example_banner(std::string title) {
   if (!title.empty()) {
