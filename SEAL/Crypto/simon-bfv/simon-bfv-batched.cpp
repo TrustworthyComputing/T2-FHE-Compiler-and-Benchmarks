@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   std::ifstream ptxt_file, ctxt_file, key_file;
   if (argc < 5) {
     std::cerr << "Usage: " << argv[0] <<
-      " ptxt_filename ctxt_filename rkey_filename" << std::endl <<
+      " ptxt_filename ctxt_filename rkey_filename poly_modulus_degree" << std::endl <<
       "\tptxt_filename: Path to the expected ptxt (to verify)" <<  std::endl <<
       "\tctxt_filename: Path to the Simon ciphertext file" << std::endl <<
       "\trkey_filename: Path to the Simon round key file" << std::endl <<
@@ -47,80 +47,98 @@ int main(int argc, char** argv) {
   parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
   parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, 20));
   SEALContext context(parms);
+  auto qualifiers = context.first_context_data()->qualifiers();
+  assert(("Batching enabled", qualifiers.using_batching == 1));
   print_parameters(context);
   KeyGenerator keygen(context);
   SecretKey secret_key = keygen.secret_key();
   PublicKey public_key;
   RelinKeys relin_keys;
+  GaloisKeys galois_keys;
+  keygen.create_galois_keys(galois_keys);
   keygen.create_public_key(public_key);
   keygen.create_relin_keys(relin_keys);
   Encryptor encryptor(context, public_key);
   Evaluator evaluator(context);
   Decryptor decryptor(context, secret_key);
+  BatchEncoder batch_encoder(context);
 
   // Client: Encrypt Simon ciphertext and round keys.
-  vector<vector<Ciphertext>> ctxt_(2);
+  vector<Ciphertext> ctxt_(2);
+  size_t padding = (poly_modulus_degree / 2) / (word_sz);
   uint64_t curr_ctxt = 0;
   ctxt_file >> curr_ctxt;
-  ctxt_[0] = encrypt_num_to_binary_array(encryptor, curr_ctxt, word_sz);
+  ctxt_[0] = encrypt_num_to_binary_array_batch(encryptor, batch_encoder,
+                                               curr_ctxt, word_sz,
+                                               poly_modulus_degree / 2, padding);
   ctxt_file >> curr_ctxt;
-  ctxt_[1] = encrypt_num_to_binary_array(encryptor, curr_ctxt, word_sz);
+  ctxt_[1] = encrypt_num_to_binary_array_batch(encryptor, batch_encoder, 
+                                               curr_ctxt, word_sz,
+                                               poly_modulus_degree / 2, padding);
 
-  vector<vector<Ciphertext>> rkeys_(rounds);
+  vector<Ciphertext> rkeys_(rounds);
   for (int i = 0; i < rounds; i++) {
     uint64_t curr_input = 0;
     key_file >> curr_input;
-    rkeys_[i] = encrypt_num_to_binary_array(encryptor, curr_input, word_sz);
+    rkeys_[i] = encrypt_num_to_binary_array_batch(encryptor, batch_encoder,
+                                                  curr_input, word_sz,
+                                                  poly_modulus_degree / 2,
+                                                  padding);
   }
   key_file.close();
 
   // Server: Run Simon decryption algorithm.
   TIC(auto t1);
-  vector<vector<Ciphertext>> temp_(4);
+  vector<Ciphertext> temp_(4);
   for (int i = rounds-1; i >= 0; i--) {
     cout << "Starting round " << i << endl;
-    for (int j = 0; j < 4; j++) {
-      temp_[j] = ctxt_[1];
-    }
+    temp_[0] = ctxt_[1]; // ROL-1
+    temp_[1] = ctxt_[1]; // ROL-8
+    temp_[2] = ctxt_[1]; // ROL-2
+    temp_[3] = ctxt_[1]; // tmp
     // Generate rotations.
-    rotate(temp_[0].begin(), temp_[0].begin() + 1, temp_[0].end());  // ROL-1
-    rotate(temp_[1].begin(), temp_[1].begin() + 8, temp_[1].end());  // ROL-8
-    rotate(temp_[2].begin(), temp_[2].begin() + 2, temp_[2].end());  // ROL-2
+    evaluator.rotate_rows_inplace(temp_[0], -1*padding, galois_keys); // ROL-1
+    evaluator.rotate_rows_inplace(temp_[1], -8*padding, galois_keys); // ROL-8
+    evaluator.rotate_rows_inplace(temp_[2], -2*padding, galois_keys); // ROL-2
 
     // Compute AND and XOR operations.
-    for (int j = 0; j < word_sz; j++) {
-      // ROL-1 & ROL-8
-      evaluator.multiply_inplace(temp_[0][j], temp_[1][j]);
-      evaluator.relinearize_inplace(temp_[0][j], relin_keys);
-      // (ROL-1 & ROL-8) ^ Ct[0]
-      evaluator.add_inplace(temp_[0][j], ctxt_[0][j]);
-      // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2
-      evaluator.add_inplace(temp_[0][j], temp_[2][j]);
-      // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2 ^ RKEY
-      evaluator.add(temp_[0][j], rkeys_[i][j], ctxt_[1][j]);
-    }
-    cout << "Noise budget in ctxt_1: " << decryptor.invariant_noise_budget(ctxt_[1][0]) << " bits" << endl;
+    // ROL-1 & ROL-8
+    evaluator.multiply_inplace(temp_[0], temp_[1]);
+    evaluator.relinearize_inplace(temp_[0], relin_keys);
+    // (ROL-1 & ROL-8) ^ Ct[0]
+    temp_[0] = xor_batch(temp_[0], ctxt_[0], evaluator, relin_keys);
+    // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2
+    temp_[0] = xor_batch(temp_[0], temp_[2], evaluator, relin_keys);
+    // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2 ^ RKEY
+    ctxt_[1] = xor_batch(temp_[0], rkeys_[i], evaluator, relin_keys);
+
+    cout << "Noise budget in ctxt_1: "
+         << decryptor.invariant_noise_budget(ctxt_[1]) << " bits" << endl;
 
     // Do Feistel Swap
     ctxt_[0] = temp_[3];
 
     vector<uint64_t> ptxt(2);
-    ptxt[0] = decrypt_binary_array(decryptor, ctxt_[0]);
-    ptxt[1] = decrypt_binary_array(decryptor, ctxt_[1]);
+    ptxt[0] = decrypt_binary_array_batch(decryptor, batch_encoder, ctxt_[0],
+                                         word_sz, padding);
+    ptxt[1] = decrypt_binary_array_batch(decryptor, batch_encoder, ctxt_[1],
+                                        word_sz, padding);
     cout << "ptxt[0]: " << ptxt[0] << endl;
     cout << "ptxt[1]: " << ptxt[1] << endl;
-
   }
   auto enc_time_ms = TOC_US(t1);
   cout << "Encrypted execution time " << enc_time_ms << " us" << endl;
 
   // Client: Decrypt and verify. 
+
   vector<uint64_t> ptxt(2), expected_ptxt(2);
   ctxt_file >> expected_ptxt[0];
   ctxt_file >> expected_ptxt[1];
 
-  ptxt[0] = decrypt_binary_array(decryptor, ctxt_[0]);
-  ptxt[1] = decrypt_binary_array(decryptor, ctxt_[1]);
+  ptxt[0] = decrypt_binary_array_batch(decryptor, batch_encoder, ctxt_[0],
+                                       word_sz, padding);
+  ptxt[1] = decrypt_binary_array_batch(decryptor, batch_encoder, ctxt_[1],
+                                       word_sz, padding);
   cout << "ptxt[0]: " << ptxt[0] << endl;
   cout << "ptxt[1]: " << ptxt[1] << endl;
 
