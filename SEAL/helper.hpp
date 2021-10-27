@@ -17,6 +17,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <cassert>
 
 #define duration(a) \
   std::chrono::duration_cast<std::chrono::milliseconds>(a).count()
@@ -35,16 +36,35 @@
 #define TOC_MS(t) duration_ms(timeNow() - t)
 
 
-/// Encrypt an integer to a vector of encryptions of zero and one
+/// Encrypt/Decrypt an integer to a vector of encryptions of zero and one
 std::vector<seal::Ciphertext> encrypt_num_to_binary_array(
     seal::Encryptor& encryptor, uint64_t number, size_t word_sz);
 
-// /// Encrypt an integer to a binary vector batched
-// seal::Ciphertext encrypt_num_to_binary_array_batch(
-//     seal::Encryptor& encryptor, uint64_t number, size_t word_sz);
+uint64_t decrypt_binary_array(
+    seal::Decryptor& decryptor, std::vector<seal::Ciphertext>& encrypted_vec);
 
-uint64_t decrypt_binary_array(seal::Decryptor& decryptor,
-                              std::vector<seal::Ciphertext>& ctxt);
+/// Encrypt/Decrypt an integer to a binary vector batched
+seal::Ciphertext encrypt_num_to_binary_array_batch(
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    uint64_t number, size_t word_sz, size_t slots, size_t padding = 1);
+
+uint64_t decrypt_binary_array_batch(
+    seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
+    seal::Ciphertext encrypted_vec, size_t word_sz, size_t padding = 1);
+
+/// Encrypt/Decrypt a vector of integers to a batched ciphertext
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
+    size_t num_elems, size_t slots, size_t padding /* = 1 */);
+
+std::vector<uint64_t> decrypt_array_batch_to_nums(
+    seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
+    seal::Ciphertext encrypted_vec, size_t slots, size_t padding /* = 1 */);
+
+/// XOR between two batched binary ciphertexts
+seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2, 
+                           seal::Evaluator& evaluator, 
+                           const seal::RelinKeys& relinKeys);
 
 /// Helper function: Prints the name of the example in a fancy banner.
 inline void print_example_banner(std::string title) {

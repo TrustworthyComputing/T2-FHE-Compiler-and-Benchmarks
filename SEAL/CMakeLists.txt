@@ -33,3 +33,17 @@ target_sources(simon-bfv.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
   ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
 )
+
+add_executable(simon-bfv-batched.out)
+target_sources(simon-bfv-batched.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/Crypto/simon-bfv/simon-bfv-batched.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)
+
+add_executable(lr-bfv-batched.out)
+target_sources(lr-bfv-batched.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/ML-Inference/lr/lr-bfv-batched.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)
