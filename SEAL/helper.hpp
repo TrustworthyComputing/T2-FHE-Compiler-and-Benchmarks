@@ -55,11 +55,11 @@ uint64_t decrypt_binary_array_batch(
 /// Encrypt/Decrypt a vector of integers to a batched ciphertext
 seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
     seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
-    size_t num_elems, size_t slots, size_t padding /* = 1 */);
+    size_t num_elems, size_t slots, size_t padding = 1);
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(
     seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
-    seal::Ciphertext encrypted_vec, size_t slots, size_t padding /* = 1 */);
+    seal::Ciphertext encrypted_vec, size_t slots, size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
 seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2, 

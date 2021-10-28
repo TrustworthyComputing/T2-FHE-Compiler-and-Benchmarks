@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   EncryptionParameters parms(scheme_type::bfv);
   parms.set_poly_modulus_degree(poly_modulus_degree);
   parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-  parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, 
+  parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree,
                                                  ptxt_mod_size));
   SEALContext context(parms);
   auto qualifiers = context.first_context_data()->qualifiers();
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   double curr_input = 0.0;
   for (int i = 0; i < num_attributes; i++) {
     weights_file >> curr_input;
-    weights[i] = 
+    weights[i] =
       uint64_to_hex_string(static_cast<uint64_t>(curr_input * scale_factor));
   }
   weights_file.close();
@@ -77,32 +77,30 @@ int main(int argc, char** argv) {
   data_file >> num_attributes;
   bool batch_attr = false;
   size_t slots = poly_modulus_degree / 2;
-  size_t padding = slots / num_inferences;
-  // Batching: 
+  // Batching:
   // 1) Multiple classifications at once would yield higher throughput.
   // 2) Batching attributes would yield lower latency.
   vector<Ciphertext> ctxt_(num_attributes);
   if (!batch_attr) {
-    assert(("Number of inferences must not be greater than number of slots", 
+    assert(("Number of inferences must not be greater than number of slots",
             slots > num_inferences));
-    vector<vector<uint64_t>> lr_inputs(num_attributes, 
+    vector<vector<uint64_t>> lr_inputs(num_attributes,
                                        vector<uint64_t>(num_inferences, 0));
     for (size_t i = 0; i < num_inferences; ++i) {
       for (size_t j = 0; j < num_attributes; ++j) {
-        data_file >> curr_input; 
+        data_file >> curr_input;
         lr_inputs[j][i] = static_cast<uint64_t>(curr_input * scale_factor);
       }
     }
     for (size_t i = 0; i < num_attributes; i++) {
       ctxt_[i] = encrypt_nums_to_array_batch(encryptor, batch_encoder,
                                              lr_inputs[i], num_inferences,
-                                             slots, padding);
+                                             slots);
     }
   }
 
-  // Server: Run LR regression with ptxt weights 
+  // Server: Run LR regression with ptxt weights
   TIC(auto t1);
-
   Plaintext twelve("12");
   Plaintext twenty_four("24");
   Plaintext zero("0");
@@ -110,39 +108,11 @@ int main(int argc, char** argv) {
   encryptor.encrypt(zero, accum_);
 
   // Hypothesis: 
-// TODO(@chaz): add some explanation here...
+  // Multiply all attributes by the pre-trained weights and accumulate.
   for (size_t i = 0; i < num_attributes; ++i) {
-    Plaintext result;
-    cout << "W[" <<i<<"]: \t" << weights[i] << endl;
-
-    vector<uint64_t> res_vec =
-        decrypt_array_batch_to_nums(decryptor, batch_encoder, ctxt_[i], slots, padding);
-    cout << "C[" <<i<<"]: \t";
-    for (int j = 0; j < res_vec.size(); j++) {
-      cout << res_vec[j] / scale_factor << " \t";
-    }
-    cout << endl;
-    
     // ctxt[i] *= Enc(weights[i])
     evaluator.multiply_plain(ctxt_[i], weights[i], ctxt_[i]);
-
-    res_vec = 
-        decrypt_array_batch_to_nums(decryptor, batch_encoder, ctxt_[i], slots, padding);
-    cout << "C*W[" <<i<<"]: \t";
-    for (int j = 0; j < res_vec.size(); j++) {
-      cout << res_vec[j] << " \t";
-    }
-    cout << endl;
-    // evaluator.relinearize_inplace(ctxt_[i], relin_keys);
     evaluator.add_inplace(accum_, ctxt_[i]);
-
-    res_vec = 
-        decrypt_array_batch_to_nums(decryptor, batch_encoder, accum_, slots, padding);
-    cout << "A[" <<i<<"]: \t";
-    for (int j = 0; j < res_vec.size(); j++) {
-      cout << res_vec[j] << " \t";
-    }
-    cout << endl << endl;
   }
 
   cout << "Hypothesis Noise Check: "
@@ -161,21 +131,18 @@ int main(int argc, char** argv) {
   evaluator.add_inplace(accum_, tmp_);
   // Calculate x^3 + 12x + 24.
   evaluator.add_plain_inplace(accum_, twenty_four);
-
   cout << "Sigmoid Noise Check: "
         << decryptor.invariant_noise_budget(accum_) << " bits" << endl;
-        
   auto enc_time_ms = TOC_US(t1);
   cout << "Encrypted execution time " << enc_time_ms << " us" << endl;
 
-  // Client: Decrypt and verify. 
+  // Client: Decrypt and verify.
   vector<uint64_t> ptxt = decrypt_array_batch_to_nums(decryptor, batch_encoder,
-                                                      accum_, slots, padding);
+                                                      accum_, slots);
   cout << "Result: \t";
-  for (int i = 0; i < ptxt.size(); ++i) {
+  for (int i = 0; i < num_inferences; ++i) {
     cout << ptxt[i] / scale_factor << " \t";
   }
   cout << endl;
-
   return EXIT_SUCCESS;
 }
