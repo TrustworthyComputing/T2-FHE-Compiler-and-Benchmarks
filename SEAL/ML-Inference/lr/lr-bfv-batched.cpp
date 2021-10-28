@@ -75,29 +75,25 @@ int main(int argc, char** argv) {
   // Read and encrypt data.
   data_file >> num_inferences;
   data_file >> num_attributes;
-  bool batch_attr = false;
   size_t slots = poly_modulus_degree / 2;
-  // Batching:
-  // 1) Multiple classifications at once would yield higher throughput.
-  // 2) Batching attributes would yield lower latency.
+  // Batching: Multiple classifications at once would yield higher throughput.
   vector<Ciphertext> ctxt_(num_attributes);
-  if (!batch_attr) {
-    assert(("Number of inferences must not be greater than number of slots",
-            slots > num_inferences));
-    vector<vector<uint64_t>> lr_inputs(num_attributes,
-                                       vector<uint64_t>(num_inferences, 0));
-    for (size_t i = 0; i < num_inferences; ++i) {
-      for (size_t j = 0; j < num_attributes; ++j) {
-        data_file >> curr_input;
-        lr_inputs[j][i] = static_cast<uint64_t>(curr_input * scale_factor);
-      }
-    }
-    for (size_t i = 0; i < num_attributes; i++) {
-      ctxt_[i] = encrypt_nums_to_array_batch(encryptor, batch_encoder,
-                                             lr_inputs[i], num_inferences,
-                                             slots);
+  assert(("Number of inferences must not be greater than number of slots",
+          slots > num_inferences));
+  vector<vector<uint64_t>> lr_inputs(num_attributes,
+                                     vector<uint64_t>(num_inferences, 0));
+  for (size_t i = 0; i < num_inferences; ++i) {
+    for (size_t j = 0; j < num_attributes; ++j) {
+      data_file >> curr_input;
+      lr_inputs[j][i] = static_cast<uint64_t>(curr_input * scale_factor);
     }
   }
+  for (size_t i = 0; i < num_attributes; i++) {
+    ctxt_[i] = encrypt_nums_to_array_batch(encryptor, batch_encoder,
+                                           lr_inputs[i], num_inferences,
+                                           slots);
+  }
+  data_file.close();
 
   // Server: Run LR regression with ptxt weights
   TIC(auto t1);

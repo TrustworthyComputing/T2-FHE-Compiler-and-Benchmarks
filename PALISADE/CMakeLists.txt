@@ -34,3 +34,10 @@ target_sources(factorial-bfv-bgv.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/factorial-bfv-bgv/factorial-bfv-bgv.cpp
   ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
 )
+
+add_executable(lr-bfv-bgv-batched.out)
+target_sources(lr-bfv-bgv-batched.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/ML-Inference/lr/lr-bfv-bgv-batched.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)
