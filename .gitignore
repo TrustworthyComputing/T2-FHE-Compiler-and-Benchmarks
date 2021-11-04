@@ -28,4 +28,16 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+*-jtb.jj
+*.iml
 .vscode/*
+.idea/*
+.project
+.settings/*
+target/*
+
+src/main/java/org/twc/terminator/hejava2spiglet/hejavavisitor/*.java
+src/main/java/org/twc/terminator/hejava2spiglet/hejavasyntaxtree/*.java
+src/main/java/org/twc/terminator/hejava2spiglet/hejavaparser/*.java
+
+src/test/resources/*.cpp

@@ -1,0 +1,380 @@
+options {
+  JAVA_UNICODE_ESCAPE = true;
+}
+
+PARSER_BEGIN(HEJavaParser)
+  package org.twc.terminator.hejava2spiglet.hejavaparser;
+  public class HEJavaParser {}
+PARSER_END(HEJavaParser)
+
+SKIP : /* WHITE SPACE */
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+SPECIAL_TOKEN : /* COMMENTS */
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+TOKEN :
+{
+  < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < LSQPAREN: "[" >
+  | < RSQPAREN: "]" >
+  | < LBRACE: "{" >
+  | < RBRACE: "}" >
+  | < SEMICOLON: ";" >
+  | < DOT: "." >
+  | < ASSIGN: "=" >
+  | < LT: "<" >
+  | < LTE: "<=" >
+  | < GT: ">" >
+  | < GTE: ">=" >
+  | < EQ: "==" >
+  | < NEQ: "!=" >
+  | < NOT : "!" >
+  | < PLUS: "+" >
+  | < MINUS: "-" >
+  | < TIMES: "*" >
+  | < DIV: "/" >
+  | < MOD: "%" >
+  | < AND : "&&" >
+  | < OR : "||" >
+  | < BINAND : "&" >
+  | < BINOR : "|" >
+  | < BINXOR : "^" >
+  | < SLL : "<<" >
+  | < SRL : ">>" >
+  | < BINNOT : "~" >
+  | < BOOLEAN: "boolean" >
+  | < CLASS: "class" >
+  | < INTERFACE: "interface" >
+  | < ELSE: "else" >
+  | < EXTENDS: "extends" >
+  | < FALSE: "false" >
+  | < IF: "if" >
+  | < WHILE: "while" >
+  | < FOR: "for" >
+  | < INTEGER: "int" >
+  | < ENCRYPTED_INTEGER: "EncInt" >
+  | < MAIN: "main" >
+  | < NEW: "new" >
+  | < PUBLIC: "public" >
+  | < RETURN: "return" >
+  | < STATIC: "static" >
+  | < STRING: "String" >
+  | < TRUE: "true" >
+  | < PRINT: "System.out.println" >
+  | < VOID: "void" >
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL: ( ["1"-"9"] (["0"-"9"])* | "0" ) >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+    [
+    "\u0024",
+    "\u0041"-"\u005a",
+    "\u005f",
+    "\u0061"-"\u007a",
+    "\u00c0"-"\u00d6",
+    "\u00d8"-"\u00f6",
+    "\u00f8"-"\u00ff",
+    "\u0100"-"\u1fff",
+    "\u3040"-"\u318f",
+    "\u3300"-"\u337f",
+    "\u3400"-"\u3d2d",
+    "\u4e00"-"\u9fff",
+    "\uf900"-"\ufaff"
+    ]
+  >
+|
+  < #DIGIT:
+    [
+    "\u0030"-"\u0039",
+    "\u0660"-"\u0669",
+    "\u06f0"-"\u06f9",
+    "\u0966"-"\u096f",
+    "\u09e6"-"\u09ef",
+    "\u0a66"-"\u0a6f",
+    "\u0ae6"-"\u0aef",
+    "\u0b66"-"\u0b6f",
+    "\u0be7"-"\u0bef",
+    "\u0c66"-"\u0c6f",
+    "\u0ce6"-"\u0cef",
+    "\u0d66"-"\u0d6f",
+    "\u0e50"-"\u0e59",
+    "\u0ed0"-"\u0ed9",
+    "\u1040"-"\u1049"
+    ]
+  >
+}
+
+/***************************
+ * The Grammar Starts Here *
+ ***************************/
+
+void Goal() : {} {
+  MainClass()
+  <EOF>
+}
+
+void MainClass() : {} {
+  "int" "main" "(" "void" ")" "{"
+    ( LOOKAHEAD(2) VarDeclaration() )* ( Statement() )*
+    "return" Expression() ";"
+  "}"
+}
+
+void VarDeclaration() : {} {
+  Type() Identifier() ( VarDeclarationRest() )* ";"
+}
+
+void VarDeclarationRest() : {} {
+  "," Identifier()
+}
+
+void Type() : {} {
+  LOOKAHEAD(3)
+  ArrayType()
+|   LOOKAHEAD(3)
+    EncryptedArrayType()
+|   BooleanType()
+|   IntegerType()
+|   EncryptedIntegerType()
+|   Identifier()
+}
+
+void ArrayType() : {} {
+  "int" "[" "]"
+}
+
+void EncryptedArrayType() : {} {
+  "EncInt" "[" "]"
+}
+
+void BooleanType() : {} {
+  "boolean"
+}
+
+void IntegerType() : {} {
+  "int"
+}
+
+void EncryptedIntegerType() : {} {
+  "EncInt"
+}
+
+void Statement() : {} {
+  Block()
+|   LOOKAHEAD(2)
+  AssignmentStatement() ";"
+|   LOOKAHEAD(2)
+  IncrementAssignmentStatement() ";"
+|   LOOKAHEAD(2)
+  DecrementAssignmentStatement() ";"
+|   LOOKAHEAD(2)
+  CompoundAssignmentStatement() ";"
+|   LOOKAHEAD(2)
+  ArrayAssignmentStatement() ";"
+|   IfStatement()
+|   WhileStatement()
+|   ForStatement()
+|   LOOKAHEAD(3)
+  PrintStatement() ";"
+|   LOOKAHEAD(3)
+  PrintLineStatement() ";"
+}
+
+void Block() : {} {
+  "{" ( Statement() )* "}"
+}
+
+void AssignmentStatement() : {} {
+  Identifier() "=" Expression()
+}
+
+void IncrementAssignmentStatement() : {} {
+  Identifier() "++"
+}
+
+void DecrementAssignmentStatement() : {} {
+  Identifier() "--"
+}
+
+void CompoundAssignmentStatement() : {} {
+  Identifier() CompoundOperator() Expression()
+}
+
+void CompoundOperator() : {} {
+  "+="
+|   "-="
+|   "*="
+|   "/="
+|   "%="
+|   "<<="
+|   ">>="
+|   "&="
+|   "|="
+|   "^="
+}
+
+void ArrayAssignmentStatement() : {} {
+  Identifier() "[" Expression() "]" "=" Expression()
+}
+
+void IfStatement() : {} {
+  LOOKAHEAD(IfthenElseStatement())
+  IfthenElseStatement()
+|   IfthenStatement()
+}
+
+void IfthenStatement() : {} {
+  "if" "(" Expression() ")" Statement()
+}
+void IfthenElseStatement() : {} {
+  "if" "(" Expression() ")" Statement() "else" Statement()
+}
+
+void WhileStatement() : {} {
+  "while" "(" Expression() ")" Statement()
+}
+
+void ForStatement() : {} {
+  "for" "("
+      VarDeclaration()
+      Expression() ";"
+      ( LOOKAHEAD(2) AssignmentStatement() | LOOKAHEAD(2) IncrementAssignmentStatement() | LOOKAHEAD(2) DecrementAssignmentStatement() | LOOKAHEAD(2) CompoundAssignmentStatement() )
+    ")"
+    Statement()
+}
+
+void PrintStatement() : {} {
+  <PRINT> "(" Expression() ")"
+}
+
+void PrintLineStatement() : {} {
+  <PRINT> "(" ")"
+}
+
+void Expression() : {} {
+  LOOKAHEAD( Clause() "&&" )
+  LogicalAndExpression()
+|   LOOKAHEAD( Clause() "||" )
+  LogicalOrExpression()
+|   LOOKAHEAD( PrimaryExpression() BinOperator() )
+  BinaryExpression()
+|   LOOKAHEAD( "~" PrimaryExpression() )
+  BinNotExpression()
+|  LOOKAHEAD( PrimaryExpression() "[" )
+  ArrayLookup()
+|  LOOKAHEAD( "(" Expression() ")" "?" )
+  TernaryExpression()
+|   Clause()
+}
+
+void LogicalAndExpression() : {} {
+  Clause() "&&" Clause()
+}
+
+void LogicalOrExpression() : {} {
+  Clause() "||" Clause()
+}
+
+void BinaryExpression() : {} {
+  PrimaryExpression() BinOperator() PrimaryExpression()
+}
+
+void BinOperator() : {} {
+  "&"
+|  "|"
+|  "^"
+|  "<<"
+|  ">>"
+|  "+"
+|  "-"
+|  "*"
+|  "/"
+|  "%"
+|  "=="
+|  "!="
+|  "<"
+|  "<="
+|  ">"
+|  ">="
+}
+
+void BinNotExpression() : {} {
+  "~" PrimaryExpression()
+}
+
+void ArrayLookup() : {} {
+  PrimaryExpression() "[" PrimaryExpression() "]"
+}
+
+void TernaryExpression() : {} {
+  "(" Expression() ")" "?" Expression() ":" Expression()
+}
+
+void Clause() : {} {
+  NotExpression()
+|   PrimaryExpression()
+}
+
+void PrimaryExpression() : {} {
+  IntegerLiteral()
+|   TrueLiteral()
+|   FalseLiteral()
+|   Identifier()
+|   LOOKAHEAD(3)
+  ArrayAllocationExpression()
+|   LOOKAHEAD(3)
+  EncryptedArrayAllocationExpression()
+|   BracketExpression()
+}
+
+void IntegerLiteral() : {} {
+  <INTEGER_LITERAL>
+}
+
+void TrueLiteral() : {} {
+  "true"
+}
+
+void FalseLiteral() : {} {
+  "false"
+}
+
+void Identifier() : {} {
+  <IDENTIFIER>
+}
+
+void ArrayAllocationExpression() : {} {
+  "new" "int" "[" Expression() "]"
+}
+
+void EncryptedArrayAllocationExpression() : {} {
+  "new" "EncInt" "[" Expression() "]"
+}
+
+void NotExpression() : {} {
+  "!" Clause()
+}
+
+void BracketExpression() : {} {
+  "(" Expression() ")"
+}
