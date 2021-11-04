@@ -2,10 +2,10 @@ options {
   JAVA_UNICODE_ESCAPE = true;
 }
 
-PARSER_BEGIN(HEJavaParser)
-  package org.twc.terminator.hejava2spiglet.hejavaparser;
-  public class HEJavaParser {}
-PARSER_END(HEJavaParser)
+PARSER_BEGIN(T2DSLParser)
+  package org.twc.terminator.t2dsl_compiler.T2DSLparser;
+public class T2DSLParser {}
+PARSER_END(T2DSLParser)
 
 SKIP : /* WHITE SPACE */
 {

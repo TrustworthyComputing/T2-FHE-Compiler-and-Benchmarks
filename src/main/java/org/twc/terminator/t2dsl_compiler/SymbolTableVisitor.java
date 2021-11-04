@@ -1,8 +1,9 @@
-package org.twc.terminator.hejava2spiglet;
+package org.twc.terminator.t2dsl_compiler;
 
-import org.twc.terminator.hejava2spiglet.hejavasyntaxtree.*;
-import org.twc.terminator.hejava2spiglet.hejavavisitor.GJNoArguDepthFirst;
-import org.twc.terminator.basetype.*;
+import org.twc.terminator.SymbolTable;
+import org.twc.terminator.Var_t;
+import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
+import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
 import java.util.List;
 import java.util.ArrayList;

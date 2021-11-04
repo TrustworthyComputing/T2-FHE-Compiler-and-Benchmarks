@@ -1,12 +1,11 @@
 package org.twc.terminator;
 
-import org.twc.terminator.basetype.SymbolTable;
-import org.twc.terminator.hejava2spiglet.SymbolTableVisitor;
-import org.twc.terminator.hejava2spiglet.TypeCheckVisitor;
-import org.twc.terminator.hejava2spiglet.HEJava2Spiglet;
-import org.twc.terminator.hejava2spiglet.hejavaparser.ParseException;
-import org.twc.terminator.hejava2spiglet.hejavaparser.HEJavaParser;
-import org.twc.terminator.hejava2spiglet.hejavasyntaxtree.Goal;
+import org.twc.terminator.t2dsl_compiler.SymbolTableVisitor;
+import org.twc.terminator.t2dsl_compiler.TypeCheckVisitor;
+import org.twc.terminator.t2dsl_compiler.T2DSL_Compiler;
+import org.twc.terminator.t2dsl_compiler.T2DSLparser.ParseException;
+import org.twc.terminator.t2dsl_compiler.T2DSLparser.T2DSLParser;
+import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.Goal;
 
 import java.io.*;
 import java.util.*;
@@ -39,11 +38,11 @@ public class Main {
         System.out.println("===================================================================================");
         System.out.println("Compiling file \"" + arg + "\"");
         input_stream = new FileInputStream(arg);
-        // hejava typechecking
-        HEJavaParser hejava_parser = new HEJavaParser(input_stream);
-        Goal hejava_root = hejava_parser.Goal();
+        // typechecking
+        T2DSLParser dslParser = new T2DSLParser(input_stream);
+        Goal t2dsl_goal = dslParser.Goal();
         SymbolTableVisitor symtable_visit = new SymbolTableVisitor();
-        hejava_root.accept(symtable_visit);
+        t2dsl_goal.accept(symtable_visit);
         SymbolTable symbol_table = symtable_visit.getSymbolTable();
         if (debug_) {
           System.out.println();
@@ -51,21 +50,22 @@ public class Main {
         }
         System.out.println("[ 2/3 ] Class members and methods info collection phase completed");
         TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
-        hejava_root.accept(type_checker);
+        t2dsl_goal.accept(type_checker);
         System.out.println("[ 3/3 ] Type checking phase completed");
         System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed");
 
-        // generate Spiglet code
-        HEJava2Spiglet hejava2spiglet = new HEJava2Spiglet(symbol_table);
-        hejava_root.accept(hejava2spiglet);
-        String code = hejava2spiglet.getASM();
-        String spiglet_output_path = path + ".spg";
-        writer = new PrintWriter(spiglet_output_path);
+        // generate SEAL code
+        T2DSL_Compiler dsl_compiler = new T2DSL_Compiler(symbol_table);
+        t2dsl_goal.accept(dsl_compiler);
+        String code = dsl_compiler.getASM();
+        String seal_out = path + ".cpp";
+        writer = new PrintWriter(seal_out);
         writer.print(code);
         writer.close();
         System.out.println(code);
-        System.out.println("[ \033[0;32m \u2713 \033[0m ] Spiglet code generated to \"" + spiglet_output_path + "\"");
-        input_stream = new FileInputStream(spiglet_output_path);
+        System.out.println("[ \033[0;32m \u2713 \033[0m ] SEAL code generated" +
+                           " to \"" + seal_out + "\"");
+        input_stream = new FileInputStream(seal_out);
       } catch (ParseException | FileNotFoundException ex) {
         ex.printStackTrace();
       } catch (Exception ex) {

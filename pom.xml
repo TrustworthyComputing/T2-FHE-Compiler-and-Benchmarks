@@ -21,9 +21,9 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.3.2</version>
         <executions>
-          <!-- hejava -->
+          <!-- T2DSL -->
           <execution>
-            <id>generate-hejava-visitors</id>
+            <id>generate-t2dsl-visitors</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
@@ -31,21 +31,21 @@
             <configuration>
               <skip>${gen.sources.skip}</skip>
               <executable>java</executable>
-              <workingDirectory>src/main/java/org/twc/terminator/hejava2spiglet</workingDirectory>
+              <workingDirectory>src/main/java/org/twc/terminator/t2dsl_compiler</workingDirectory>
               <arguments>
                 <argument>-jar</argument>
                 <argument>${basedir}/lib/jtb132di.jar</argument>
                 <argument>-te</argument>
-                <argument>./hejavaparser/HEJava.jj</argument>
+                <argument>./T2DSLparser/T2DSL.jj</argument>
                 <argument>-np</argument>
-                <argument>org.twc.terminator.hejava2spiglet.hejavasyntaxtree</argument>
+                <argument>org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree</argument>
                 <argument>-vp</argument>
-                <argument>org.twc.terminator.hejava2spiglet.hejavavisitor</argument>
+                <argument>org.twc.terminator.t2dsl_compiler.T2DSLvisitor</argument>
               </arguments>
             </configuration>
           </execution>
           <execution>
-            <id>generate-hejava-parser</id>
+            <id>generate-t2dsl-parser</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>exec</goal>
@@ -53,9 +53,9 @@
             <configuration>
               <skip>${gen.sources.skip}</skip>
               <executable>javacc</executable>
-              <workingDirectory>src/main/java/org/twc/terminator/hejava2spiglet/hejavaparser</workingDirectory>
+              <workingDirectory>src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLparser</workingDirectory>
               <arguments>
-                <argument>HEJava-jtb.jj</argument>
+                <argument>T2DSL-jtb.jj</argument>
               </arguments>
             </configuration>
           </execution>
@@ -104,42 +104,38 @@
         <version>3.1.0</version>
         <configuration>
           <filesets>
-            <!-- hejava -->
+            <!-- T2DSL -->
             <fileset>
-              <directory>${basedir}/src/main/java/org/twc/terminator/hejava2spiglet/hejavasyntaxtree</directory>
+              <directory>${basedir}/src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLsyntaxtree</directory>
               <includes>
                 <include>**</include>
               </includes>
               <followSymlinks>false</followSymlinks>
             </fileset>
             <fileset>
-              <directory>${basedir}/src/main/java/org/twc/terminator/hejava2spiglet/hejavavisitor</directory>
+              <directory>${basedir}/src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLvisitor</directory>
               <includes>
                 <include>**</include>
               </includes>
               <followSymlinks>false</followSymlinks>
             </fileset>
             <fileset>
-              <directory>${basedir}/src/main/java/org/twc/terminator/hejava2spiglet/hejavaparser</directory>
+              <directory>${basedir}/src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLparser</directory>
               <includes>
                 <include>**/*.java</include>
               </includes>
               <excludes>
-                <exclude>**/HEJava.jj</exclude>
+                <exclude>**/T2DSL.jj</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
             <fileset>
               <directory>${basedir}/src/test/resources</directory>
               <includes>
-                <include>**/*.spg</include>
-                <include>**/*.kg</include>
-                <include>**/*.asm</include>
+                <include>**/*.cpp</include>
               </includes>
               <excludes>
-                <exclude>**/*.java</exclude>
-                <exclude>**/*.pubtape</exclude>
-                <exclude>**/*.auxtape</exclude>
+                <exclude>**/*.t2</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>

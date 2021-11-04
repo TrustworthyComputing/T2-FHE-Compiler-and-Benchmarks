@@ -1,17 +1,18 @@
-package org.twc.terminator.hejava2spiglet;
+package org.twc.terminator.t2dsl_compiler;
 
-import org.twc.terminator.hejava2spiglet.hejavasyntaxtree.*;
-import org.twc.terminator.basetype.*;
-import org.twc.terminator.hejava2spiglet.hejavavisitor.GJNoArguDepthFirst;
+import org.twc.terminator.SymbolTable;
+import org.twc.terminator.Var_t;
+import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
+import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
-public class HEJava2Spiglet extends GJNoArguDepthFirst<Var_t> {
+public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   private SymbolTable st_;
 
   private StringBuilder asm_;
   private int indent_, tmp_cnt_;
 
-  public HEJava2Spiglet(SymbolTable st) {
+  public T2DSL_Compiler(SymbolTable st) {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;

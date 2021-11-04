@@ -1,4 +1,4 @@
-package org.twc.terminator.basetype;
+package org.twc.terminator;
 
 import java.util.List;
 
