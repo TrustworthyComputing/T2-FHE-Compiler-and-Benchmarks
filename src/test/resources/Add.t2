@@ -1,13 +1,14 @@
 int main(void) {
-  int sum, x, y;
-  EncInt ex, ey;
-  x = 7;
-  ex = 1234; // encrypt
-  ey = ex;
-  ey = x + ex;
-  ey++;
-
-//  sum += 10;
-//  System.out.println(sum);
+  EncInt enc_sum_, enc_num_;
+  int x;
+  x = 2;
+  enc_num_ = 100; // encrypt
+  enc_sum_ = enc_num_;
+  enc_sum_ = enc_num_ + enc_num_;
+  enc_sum_++;
+  enc_sum_ = enc_sum_ * x;
+  enc_sum_ = x * enc_sum_;
+  enc_sum_ = enc_sum_ - x;
+  enc_sum_ = x - enc_sum_;
   return 0;
 }

@@ -29,6 +29,13 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_.append(str);
   }
 
+  private String newCtxtTemp() {
+    tmp_cnt_++;
+    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
+    append2asm("Ciphertext " + ctxt_tmp_ + ";\n");
+    return ctxt_tmp_;
+  }
+
   private void appendSEALkeygen() {
     this.asm_.append(
       "  size_t poly_modulus_degree = 16384;\n" +
@@ -223,7 +230,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     if (id_type.equals("EncInt") && rhs_type.equals("int")) {
       append2asm("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs.getName());
-      this.asm_.append(")\n");
+      this.asm_.append(");\n");
       append2asm("encryptor.encrypt(tmp, ");
       this.asm_.append(id.getName()).append(");\n");
     } else {
@@ -488,35 +495,52 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       }
     // INT Operator ENCINT
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
-      String op_str;
-      if ("+".equals(op)) op_str = "add_inplace";
-      else if ("-".equals(op)) op_str = "sub_inplace";
-      else if ("*".equals(op)) op_str = "multiply_inplace";
-      else throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      String res_ = newCtxtTemp();
       append2asm("tmp = uint64_to_hex_string(" + lhs.getName() + ");\n");
-      append2asm("encryptor.encrypt(tmp, tmp_);\n");
-      append2asm("evaluator." + op_str + "(tmp_, " + rhs.getName() + ");\n");
-      return new Var_t("EncInt", "tmp_");
-    // ENCINT Operator INT
+      switch (op) {
+        case "+":
+          append2asm("evaluator.add_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          break;
+        case "*":
+          append2asm("evaluator.multiply_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          break;
+        case "-":
+          append2asm("encryptor.encrypt(tmp, tmp_);\n");
+          append2asm("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
+          break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      return new Var_t("EncInt", res_);
+      // ENCINT Operator INT
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-
+      String res_ = newCtxtTemp();
+      String op_str;
+      switch (op) {
+        case "+": op_str = "add_plain"; break;
+        case "*": op_str = "multiply_plain"; break;
+        case "-": op_str = "sub_plain"; break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      append2asm("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
+      append2asm("evaluator." + op_str + "(" + lhs.getName() + ", tmp, " + res_ + ");\n");
+      return new Var_t("EncInt", res_);
     // ENCINT Operator ENCINT
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
-
+      String res_ = newCtxtTemp();
+      String op_str;
+      switch (op) {
+        case "+": op_str = "add"; break;
+        case "*": op_str = "multiply"; break;
+        case "-": op_str = "sub"; break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      append2asm("evaluator." + op_str + "(" + lhs.getName() + ", " +
+                 rhs.getName() + ", " + res_ + ");\n");
+      return new Var_t("EncInt", res_);
     }
-//    } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-//            "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
-//      if (lhs_type.equals("boolean") && rhs_type.equals("boolean")) {
-//        return new Var_t("boolean", null);
-//      } else if (lhs_type.equals("int") && rhs_type.equals("int")) {
-//        return new Var_t("boolean", null);
-//      } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
-//        return new Var_t("EncInt", null);
-//      } else if (lhs_type.equals("EncInt") && rhs_type.equals("int") || lhs_type.equals("int")
-//              && rhs_type.equals("EncInt")) {
-//        return new Var_t("EncInt", null);
-//      }
-//    }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
   }
 
