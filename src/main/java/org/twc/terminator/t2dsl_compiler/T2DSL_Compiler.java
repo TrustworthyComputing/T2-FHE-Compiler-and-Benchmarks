@@ -151,7 +151,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> "]"
    */
   public Var_t visit(ArrayType n) throws Exception {
-    this.asm_.append("int[]");
     return new Var_t("int[]", null);
   }
 
@@ -645,7 +644,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f0 -> <INTEGER_LITERAL>
    */
   public Var_t visit(IntegerLiteral n) throws Exception {
-//    this.asm_.append(n.f0.toString());
     return new Var_t("int", n.f0.toString());
   }
 
@@ -653,7 +651,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f0 -> "true"
    */
   public Var_t visit(TrueLiteral n) throws Exception {
-//    this.asm_.append(n.f0.toString());
     return new Var_t("bool", "true");
   }
 
@@ -661,7 +658,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f0 -> "false"
    */
   public Var_t visit(FalseLiteral n) throws Exception {
-//    this.asm_.append(n.f0.toString());
     return new Var_t("bool", "false");
   }
 
@@ -680,10 +676,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f4 -> "]"
    */
   public Var_t visit(ArrayAllocationExpression n) throws Exception {
-    this.asm_.append("new int[");
-    n.f3.accept(this);
-    this.asm_.append("]");
-    return null;
+    String size = n.f3.accept(this).getName();
+    return new Var_t("int[]", "new int[" + size + "]");
   }
 
   /**
@@ -694,10 +688,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f4 -> "]"
    */
   public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
-    this.asm_.append("new EncInt[");
-    n.f3.accept(this);
-    this.asm_.append("]");
-    return null;
+    String size = n.f3.accept(this).getName();
+    return new Var_t("EncInt[]", "new EncInt[" + size + "]");
   }
 
   /**
