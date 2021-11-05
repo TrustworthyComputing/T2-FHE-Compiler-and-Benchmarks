@@ -181,6 +181,12 @@ void EncryptedIntegerType() : {} {
 
 void Statement() : {} {
   Block()
+|   LOOKAHEAD(6)
+  ArrayAssignmentStatement() ";"
+|   LOOKAHEAD(3)
+  BatchAssignmentStatement() ";"
+|   LOOKAHEAD(6)
+  BatchArrayAssignmentStatement() ";"
 |   LOOKAHEAD(2)
   AssignmentStatement() ";"
 |   LOOKAHEAD(2)
@@ -189,8 +195,6 @@ void Statement() : {} {
   DecrementAssignmentStatement() ";"
 |   LOOKAHEAD(2)
   CompoundAssignmentStatement() ";"
-|   LOOKAHEAD(2)
-  ArrayAssignmentStatement() ";"
 |   IfStatement()
 |   WhileStatement()
 |   ForStatement()
@@ -235,6 +239,19 @@ void CompoundOperator() : {} {
 
 void ArrayAssignmentStatement() : {} {
   Identifier() "[" Expression() "]" "=" Expression()
+}
+
+void BatchAssignmentStatement() : {} {
+  Identifier() "=" "{" Expression() ( BatchAssignmentStatementRest() )* "}"
+}
+
+void BatchArrayAssignmentStatement() : {} {
+  Identifier() "[" Expression() "]" "=" "{" Expression() (
+    BatchAssignmentStatementRest() )* "}"
+}
+
+void BatchAssignmentStatementRest() : {} {
+  "," Expression()
 }
 
 void IfStatement() : {} {

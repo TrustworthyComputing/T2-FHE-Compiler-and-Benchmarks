@@ -186,11 +186,13 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   /**
    * f0 -> Block()
+   *       | ArrayAssignmentStatement() ";"
+   *       | BatchAssignmentStatement() ";"
+   *       | BatchArrayAssignmentStatement() ";"
    *       | AssignmentStatement() ";"
    *       | IncrementAssignmentStatement() ";"
    *       | DecrementAssignmentStatement() ";"
    *       | CompoundAssignmentStatement() ";"
-   *       | ArrayAssignmentStatement() ";"
    *       | IfStatement()
    *       | WhileStatement()
    *       | ForStatement()
@@ -319,13 +321,127 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f5 -> Expression()
    */
   public Var_t visit(ArrayAssignmentStatement n) throws Exception {
-    n.f0.accept(this);
-    this.asm_.append("[");
-    n.f2.accept(this);
-    this.asm_.append("] = ");
-    n.f5.accept(this);
-    this.asm_.append(";\n");
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t idx = n.f2.accept(this);
+    Var_t val = n.f5.accept(this);
+    String idx_type = st_.findType(idx);
+    String val_type = st_.findType(val);
+    switch (id_type) {
+      case "int[]":
+        append2asm(id.getName());
+        this.asm_.append("[").append(idx.getName()).append("] = ");
+        this.asm_.append(val.getName()).append(";\n");
+        break;
+      case "EncInt[]":
+        if (val_type.equals("EncInt")) {
+          append2asm(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("] = ");
+          this.asm_.append(val.getName()).append(";\n");
+          break;
+        } else if (val_type.equals("int")) {
+          append2asm("tmp = uint64_to_hex_string(");
+          this.asm_.append(val.getName());
+          this.asm_.append(");\n");
+          append2asm("encryptor.encrypt(tmp, ");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
+          break;
+        }
+      default:
+        throw new Exception("error in array assignment");
+    }
     return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "="
+   * f2 -> "{"
+   * f3 -> Expression()
+   * f4 -> ( BatchAssignmentStatementRest() )*
+   * f5 -> "}"
+   */
+  public Var_t visit(BatchAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t exp = n.f3.accept(this);
+// TODO:
+    switch (id_type) {
+      case "int":
+//        tmp_cnt_++;
+//        String tmp_vec = "tmp_vec_" + tmp_cnt_;
+//        append2asm("vector<uint64_t> " + tmp_vec + " = { ");
+//// TODO: should have been defined as Plaintext, not int.
+//        this.asm_.append(" };\n");
+//        append2asm("batch_encoder.encode(" + tmp_vec + ", " + exp.getName() + ");");
+        break;
+      case "EncInt":
+        tmp_cnt_++;
+        String tmp_vec = "tmp_vec_" + tmp_cnt_;
+        append2asm("vector<uint64_t> ");
+        this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+          }
+        }
+        this.asm_.append(" };\n");
+        append2asm("batch_encoder.encode(");
+        this.asm_.append(tmp_vec).append(", tmp);\n");
+        append2asm("encryptor.encrypt(tmp, ");
+        this.asm_.append(id.getName()).append(");\n");
+        break;
+      default:
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
+   * f4 -> "="
+   * f5 -> "{"
+   * f6 -> Expression()
+   * f7 -> ( BatchAssignmentStatementRest() )*
+   * f8 -> "}"
+   */
+  public Var_t visit(BatchArrayAssignmentStatement n) throws Exception {
+  //    TODO: Fix arrays first and then this...
+    Var_t id = n.f0.accept(this);
+    Var_t index = n.f2.accept(this);
+    Var_t exp = n.f6.accept(this);
+    String id_type = st_.findType(id);
+    String index_type = st_.findType(index);
+    String exp_type_first = st_.findType(exp);
+    if (!index_type.equals("int")) {
+      throw new Exception("array index type mismatch: " + index_type);
+    }
+    if (!(id_type.equals("int[]") && exp_type_first.equals("int") ||
+          id_type.equals("EncInt[]") && exp_type_first.equals("EncInt") ||
+          id_type.equals("EncInt[]") && exp_type_first.equals("int"))) {
+      throw new Exception("Error in batching assignment between different " +
+              "types: " + id_type + " " + exp_type_first);
+    }
+    if (n.f7.present()) {
+      for (int i = 0; i < n.f7.size(); i++) {
+        String exp_type = st_.findType((n.f7.nodes.get(i).accept(this)));
+        if (exp_type_first != exp_type) {
+          throw new Exception("Error in batching assignment types mismatch: " +
+                  exp_type_first + " " + exp_type);
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> ","
+   * f1 -> Expression()
+   */
+  public Var_t visit(BatchAssignmentStatementRest n) throws Exception {
+    return n.f1.accept(this);
   }
 
   /**

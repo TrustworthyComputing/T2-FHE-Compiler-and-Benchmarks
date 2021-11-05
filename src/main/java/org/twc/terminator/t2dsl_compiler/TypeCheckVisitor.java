@@ -5,6 +5,9 @@ import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
 
   private SymbolTable st_;
@@ -150,16 +153,18 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
 
   /**
    * f0 -> Block()
-   * | AssignmentStatement() ";"
-   * | IncrementAssignmentStatement() ";"
-   * | DecrementAssignmentStatement() ";"
-   * | CompoundAssignmentStatement() ";"
-   * | ArrayAssignmentStatement() ";"
-   * | IfStatement()
-   * | WhileStatement()
-   * | ForStatement()
-   * | PrintStatement() ";"
-   * | PrintLineStatement() ";"
+   *       | ArrayAssignmentStatement() ";"
+   *       | BatchAssignmentStatement() ";"
+   *       | BatchArrayAssignmentStatement() ";"
+   *       | AssignmentStatement() ";"
+   *       | IncrementAssignmentStatement() ";"
+   *       | DecrementAssignmentStatement() ";"
+   *       | CompoundAssignmentStatement() ";"
+   *       | IfStatement()
+   *       | WhileStatement()
+   *       | ForStatement()
+   *       | PrintStatement() ";"
+   *       | PrintLineStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     return n.f0.accept(this);
@@ -184,11 +189,8 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     Var_t t1 = n.f0.accept(this);
     n.f1.accept(this);
     Var_t t2 = n.f2.accept(this);
-    System.out.println(t1.getName());
-    System.out.println(t2.getName());
     String t1_type = st_.findType(t1);
     String t2_type = st_.findType(t2);
-    // check for methods (extended or not) and for non-extended vars
     if (t1_type.equals(t2_type) ||
         (t1_type.equals("EncInt") && t2_type.equals("int"))) {
       return null;
@@ -280,15 +282,95 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     Var_t val = n.f5.accept(this);
     String idx_type = st_.findType(idx);
     String val_type = st_.findType(val);
-    if (array_type.equals("int[]") && idx_type.equals("int") &&
-        val_type.equals("int")) {
+    if (!idx_type.equals("int")) {
+      throw new Exception("Array index should be an integer: " + idx_type);
+    }
+    if (array_type.equals("int[]") && val_type.equals("int")) {
       return null;
-    } else if (array_type.equals("EncInt[]") && idx_type.equals("int") &&
+    } else if (array_type.equals("EncInt[]") &&
                 (val_type.equals("EncInt") || val_type.equals("int"))) {
       return null;
     }
     throw new Exception("Error: assignment in " + array_type + " array an "
                         + val_type + " type");
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "="
+   * f2 -> "{"
+   * f3 -> Expression()
+   * f4 -> ( BatchAssignmentStatementRest() )*
+   * f5 -> "}"
+   */
+  public Var_t visit(BatchAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    Var_t exp = n.f3.accept(this);
+    String id_type = st_.findType(id);
+    String exp_type_first = st_.findType(exp);
+    if (!(id_type.equals("int") && exp_type_first.equals("int") ||
+          id_type.equals("EncInt") && exp_type_first.equals("EncInt") ||
+          id_type.equals("EncInt") && exp_type_first.equals("int"))) {
+      throw new Exception("Error in batching assignment between different " +
+                          "types: " + id_type + " " + exp_type_first);
+    }
+    if (n.f4.present()) {
+      for (int i = 0; i < n.f4.size(); i++) {
+        String exp_type = st_.findType((n.f4.nodes.get(i).accept(this)));
+        if (exp_type_first != exp_type) {
+          throw new Exception("Error in batching assignment types mismatch: " +
+                              exp_type_first + " " + exp_type);
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
+   * f4 -> "="
+   * f5 -> "{"
+   * f6 -> Expression()
+   * f7 -> ( BatchAssignmentStatementRest() )*
+   * f8 -> "}"
+   */
+  public Var_t visit(BatchArrayAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    Var_t index = n.f2.accept(this);
+    Var_t exp = n.f6.accept(this);
+    String id_type = st_.findType(id);
+    String index_type = st_.findType(index);
+    String exp_type_first = st_.findType(exp);
+    if (!index_type.equals("int")) {
+      throw new Exception("array index type mismatch: " + index_type);
+    }
+    if (!(id_type.equals("int[]") && exp_type_first.equals("int") ||
+          id_type.equals("EncInt[]") && exp_type_first.equals("EncInt") ||
+          id_type.equals("EncInt[]") && exp_type_first.equals("int"))) {
+      throw new Exception("Error in batching assignment between different " +
+              "types: " + id_type + " " + exp_type_first);
+    }
+    if (n.f7.present()) {
+      for (int i = 0; i < n.f7.size(); i++) {
+        String exp_type = st_.findType((n.f7.nodes.get(i).accept(this)));
+        if (exp_type_first != exp_type) {
+          throw new Exception("Error in batching assignment types mismatch: " +
+                  exp_type_first + " " + exp_type);
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> ","
+   * f1 -> Expression()
+   */
+  public Var_t visit(BatchAssignmentStatementRest n) throws Exception {
+    return n.f1.accept(this);
   }
 
   /**
