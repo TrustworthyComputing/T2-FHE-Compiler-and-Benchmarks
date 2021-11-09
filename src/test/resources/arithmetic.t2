@@ -1,0 +1,15 @@
+int main(void) {
+  EncInt enc_sum_, enc_num_;
+  int x;
+  x = 2;
+  enc_num_ = 100; // encrypt
+  enc_sum_ = enc_num_;
+  enc_sum_ = enc_num_ + enc_num_;
+  enc_sum_++; // addition with plaintext 1
+  enc_sum_ = enc_sum_ * x; // plain mult
+  enc_sum_ = x * enc_sum_; // plain mult
+  enc_sum_ = enc_sum_ - x; // plain sub
+  enc_sum_ = x - enc_sum_; // encrypt x and sub
+
+  return 0;
+}

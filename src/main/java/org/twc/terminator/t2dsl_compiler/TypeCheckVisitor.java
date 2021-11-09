@@ -308,11 +308,12 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     Var_t exp = n.f3.accept(this);
     String id_type = st_.findType(id);
     String exp_type_first = st_.findType(exp);
-    if (!(id_type.equals("int") && exp_type_first.equals("int") ||
-          id_type.equals("EncInt") && exp_type_first.equals("EncInt") ||
-          id_type.equals("EncInt") && exp_type_first.equals("int"))) {
+    if (!((id_type.equals("int[]") && exp_type_first.equals("int")) ||
+          (id_type.equals("EncInt") && exp_type_first.equals("int")) ||
+          (id_type.equals("EncInt[]") && exp_type_first.equals("int")) ||
+          (id_type.equals("EncInt[]") && exp_type_first.equals("EncInt")) )) {
       throw new Exception("Error in batching assignment between different " +
-                          "types: " + id_type + " " + exp_type_first);
+                          "types: " + id_type + " {" + exp_type_first + "}");
     }
     if (n.f4.present()) {
       for (int i = 0; i < n.f4.size(); i++) {
@@ -347,11 +348,9 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     if (!index_type.equals("int")) {
       throw new Exception("array index type mismatch: " + index_type);
     }
-    if (!(id_type.equals("int[]") && exp_type_first.equals("int") ||
-          id_type.equals("EncInt[]") && exp_type_first.equals("EncInt") ||
-          id_type.equals("EncInt[]") && exp_type_first.equals("int"))) {
+    if (!(id_type.equals("EncInt[]") && exp_type_first.equals("int"))) {
       throw new Exception("Error in batching assignment between different " +
-              "types: " + id_type + " " + exp_type_first);
+              "types: " + id_type + " {" + exp_type_first + "}");
     }
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {

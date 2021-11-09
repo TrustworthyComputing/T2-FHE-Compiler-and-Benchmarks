@@ -5,6 +5,9 @@ import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   private SymbolTable st_;
@@ -108,8 +111,20 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(VarDeclaration n) throws Exception {
     append2asm("");
-    Var_t type = n.f0.accept(this);
-    this.asm_.append(type.getType());
+    String type = n.f0.accept(this).getType();
+    switch (type) {
+      case "int[]":
+        this.asm_.append("vector<int>");
+        break;
+      case "EncInt":
+        this.asm_.append("Ciphertext");
+        break;
+      case "EncInt[]":
+        this.asm_.append("vector<Ciphertext>");
+        break;
+      default:
+        this.asm_.append(type);
+    }
     this.asm_.append(" ");
     Var_t id = n.f1.accept(this);
     this.asm_.append(id.getName());
@@ -181,7 +196,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f0 -> "EncInt"
    */
   public Var_t visit(EncryptedIntegerType n) throws Exception {
-    return new Var_t("Ciphertext", null);
+    return new Var_t("EncInt", null);
   }
 
   /**
@@ -227,17 +242,23 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     String id_type = st_.findType(id);
     Var_t rhs = n.f2.accept(this);
     String rhs_type = st_.findType(rhs);
+    String rhs_name = rhs.getName();
     // if EncInt <- int
     if (id_type.equals("EncInt") && rhs_type.equals("int")) {
       append2asm("tmp = uint64_to_hex_string(");
-      this.asm_.append(rhs.getName());
+      this.asm_.append(rhs_name);
       this.asm_.append(");\n");
       append2asm("encryptor.encrypt(tmp, ");
       this.asm_.append(id.getName()).append(");\n");
     } else {
+//TODO
       append2asm(id.getName());
-      this.asm_.append(" = ");
-      this.asm_.append(rhs.getName()).append(";\n");
+      if (rhs_name.startsWith("resize(")) {
+        this.asm_.append(".");
+      } else {
+        this.asm_.append(" = ");
+      }
+      this.asm_.append(rhs_name).append(";\n");
     }
     return null;
   }
@@ -365,15 +386,17 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t exp = n.f3.accept(this);
-// TODO:
+    String exp_type = st_.findType(exp);
     switch (id_type) {
-      case "int":
-//        tmp_cnt_++;
-//        String tmp_vec = "tmp_vec_" + tmp_cnt_;
-//        append2asm("vector<uint64_t> " + tmp_vec + " = { ");
-//// TODO: should have been defined as Plaintext, not int.
-//        this.asm_.append(" };\n");
-//        append2asm("batch_encoder.encode(" + tmp_vec + ", " + exp.getName() + ");");
+      case "int[]":
+        append2asm(id.getName());
+        this.asm_.append(" = { ").append(exp.getName());
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+          }
+        }
+        this.asm_.append(" };\n");
         break;
       case "EncInt":
         tmp_cnt_++;
@@ -390,6 +413,38 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
         this.asm_.append(tmp_vec).append(", tmp);\n");
         append2asm("encryptor.encrypt(tmp, ");
         this.asm_.append(id.getName()).append(");\n");
+        break;
+      case "EncInt[]":
+        String exp_var;
+        if (exp_type.equals("int")) {
+          exp_var = newCtxtTemp();
+          append2asm("tmp = uint64_to_hex_string(" + exp.getName() + ");\n");
+          append2asm("encryptor.encrypt(tmp, ");
+          this.asm_.append(exp_var).append(");\n");
+        } else { // exp type is EncInt
+          exp_var = exp.getName();
+        }
+        List<String> inits = new ArrayList<>();
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            String init = (n.f4.nodes.get(i).accept(this)).getName();
+            if (exp_type.equals("int")) {
+              String tmp_ = newCtxtTemp();
+              append2asm("tmp = uint64_to_hex_string(" + init + ");\n");
+              append2asm("encryptor.encrypt(tmp, ");
+              this.asm_.append(tmp_).append(");\n");
+              inits.add(tmp_);
+            } else { // exp type is EncInt
+              inits.add(init);
+            }
+          }
+        }
+        append2asm(id.getName());
+        this.asm_.append(" = { ").append(exp_var);
+        for (String init : inits) {
+          this.asm_.append(", ").append(init);
+        }
+        this.asm_.append(" };\n");
         break;
       default:
     }
@@ -408,31 +463,26 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f8 -> "}"
    */
   public Var_t visit(BatchArrayAssignmentStatement n) throws Exception {
-  //    TODO: Fix arrays first and then this...
     Var_t id = n.f0.accept(this);
     Var_t index = n.f2.accept(this);
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
+    assert(id_type.equals("EncInt[]"));
     String index_type = st_.findType(index);
-    String exp_type_first = st_.findType(exp);
-    if (!index_type.equals("int")) {
-      throw new Exception("array index type mismatch: " + index_type);
-    }
-    if (!(id_type.equals("int[]") && exp_type_first.equals("int") ||
-          id_type.equals("EncInt[]") && exp_type_first.equals("EncInt") ||
-          id_type.equals("EncInt[]") && exp_type_first.equals("int"))) {
-      throw new Exception("Error in batching assignment between different " +
-              "types: " + id_type + " " + exp_type_first);
-    }
+    tmp_cnt_++;
+    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    append2asm("vector<uint64_t> ");
+    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {
-        String exp_type = st_.findType((n.f7.nodes.get(i).accept(this)));
-        if (exp_type_first != exp_type) {
-          throw new Exception("Error in batching assignment types mismatch: " +
-                  exp_type_first + " " + exp_type);
-        }
+        this.asm_.append(", ").append((n.f7.nodes.get(i).accept(this)).getName());
       }
     }
+    this.asm_.append(" };\n");
+    append2asm("batch_encoder.encode(");
+    this.asm_.append(tmp_vec).append(", tmp);\n");
+    append2asm("encryptor.encrypt(tmp, ");
+    this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
     return null;
   }
 
@@ -745,12 +795,12 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   /**
    * f0 -> IntegerLiteral()
-   * | TrueLiteral()
-   * | FalseLiteral()
-   * | Identifier()
-   * | ThisExpression()
-   * | ArrayAllocationExpression()
-   * | BracketExpression()
+   *       | TrueLiteral()
+   *       | FalseLiteral()
+   *       | Identifier()
+   *       | ArrayAllocationExpression()
+   *       | EncryptedArrayAllocationExpression()
+   *       | BracketExpression()
    */
   public Var_t visit(PrimaryExpression n) throws Exception {
     return n.f0.accept(this);
@@ -793,7 +843,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(ArrayAllocationExpression n) throws Exception {
     String size = n.f3.accept(this).getName();
-    return new Var_t("int[]", "new int[" + size + "]");
+    return new Var_t("int[]", "resize(" + size + ")");
   }
 
   /**
@@ -805,7 +855,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
     String size = n.f3.accept(this).getName();
-    return new Var_t("EncInt[]", "new EncInt[" + size + "]");
+//    v.resize(5, 10);
+    return new Var_t("EncInt[]", "resize(" + size + ")");
   }
 
   /**
