@@ -60,6 +60,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       "  Encryptor encryptor(context, public_key);\n" +
       "  Evaluator evaluator(context);\n" +
       "  Decryptor decryptor(context, secret_key);\n" +
+      "  BatchEncoder batch_encoder(context);\n" +
       "  Plaintext tmp;\n" +
       "  Ciphertext tmp_\n\n");
   }
@@ -243,15 +244,32 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     Var_t rhs = n.f2.accept(this);
     String rhs_type = st_.findType(rhs);
     String rhs_name = rhs.getName();
-    // if EncInt <- int
     if (id_type.equals("EncInt") && rhs_type.equals("int")) {
+      // if EncInt <- int
       append2asm("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs_name);
       this.asm_.append(");\n");
       append2asm("encryptor.encrypt(tmp, ");
       this.asm_.append(id.getName()).append(");\n");
-    } else {
-//TODO
+    } else if (id_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
+      // if EncInt[] <- int[]
+      tmp_cnt_++;
+      String tmp_i = "i_" + tmp_cnt_;
+      append2asm(id.getName());
+      this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
+      append2asm("for (size_t ");
+      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(") {\n");
+      this.indent_ += 2;
+      append2asm("tmp = uint64_to_hex_string(");
+      this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
+      append2asm("encryptor.encrypt(tmp, ");
+      this.asm_.append(id.getName()).append("[").append(tmp_i).append("]);\n");
+      this.indent_ -= 2;
+      append2asm("}\n");
+    } else if (id_type.equals(rhs_type)) {
+      // if the destination has the same type as the source.
       append2asm(id.getName());
       if (rhs_name.startsWith("resize(")) {
         this.asm_.append(".");
@@ -259,6 +277,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
         this.asm_.append(" = ");
       }
       this.asm_.append(rhs_name).append(";\n");
+    } else {
+      throw new Exception("Error assignment statement between different types");
     }
     return null;
   }
