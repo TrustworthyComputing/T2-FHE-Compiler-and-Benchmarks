@@ -239,23 +239,23 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> Expression()
    */
   public Var_t visit(AssignmentStatement n) throws Exception {
-    Var_t id = n.f0.accept(this);
-    String id_type = st_.findType(id);
+    Var_t lhs = n.f0.accept(this);
+    String lhs_type = st_.findType(lhs);
     Var_t rhs = n.f2.accept(this);
     String rhs_type = st_.findType(rhs);
     String rhs_name = rhs.getName();
-    if (id_type.equals("EncInt") && rhs_type.equals("int")) {
+    if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
       append2asm("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs_name);
       this.asm_.append(");\n");
       append2asm("encryptor.encrypt(tmp, ");
-      this.asm_.append(id.getName()).append(");\n");
-    } else if (id_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
+      this.asm_.append(lhs.getName()).append(");\n");
+    } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
-      append2asm(id.getName());
+      append2asm(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       append2asm("for (size_t ");
       this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
@@ -265,12 +265,12 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       append2asm("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
       append2asm("encryptor.encrypt(tmp, ");
-      this.asm_.append(id.getName()).append("[").append(tmp_i).append("]);\n");
+      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
       this.indent_ -= 2;
       append2asm("}\n");
-    } else if (id_type.equals(rhs_type)) {
+    } else if (lhs_type.equals(rhs_type)) {
       // if the destination has the same type as the source.
-      append2asm(id.getName());
+      append2asm(lhs.getName());
       if (rhs_name.startsWith("resize(")) {
         this.asm_.append(".");
       } else {
@@ -278,7 +278,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       }
       this.asm_.append(rhs_name).append(";\n");
     } else {
-      throw new Exception("Error assignment statement between different types");
+      throw new Exception("Error assignment statement between different " +
+              "types: " + lhs_type + ", " + rhs_type);
     }
     return null;
   }
@@ -325,13 +326,38 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> Expression()
    */
   public Var_t visit(CompoundAssignmentStatement n) throws Exception {
-    append2asm("");
-    Var_t id = n.f0.accept(this);
-    this.asm_.append(id.getName()).append(" ");
-    n.f1.accept(this);
-    this.asm_.append(" ");
-    n.f2.accept(this);
-    this.asm_.append(";\n");
+    Var_t lhs = n.f0.accept(this);
+    String op = n.f1.accept(this).getName();
+    Var_t rhs = n.f2.accept(this);
+    String lhs_type = st_.findType(lhs);
+    String rhs_type = st_.findType(rhs);
+    if (lhs_type.equals("int") && rhs_type.equals("int")) {
+      append2asm(lhs.getName());
+      this.asm_.append(" ").append(op).append(" ");
+      this.asm_.append(rhs.getName()).append(";\n");
+    } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+      append2asm("evaluator.");
+      switch (op) {
+        case "+=": this.asm_.append("add("); break;
+        case "*=": this.asm_.append("multiply("); break;
+        case "-=": this.asm_.append("sub("); break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+      this.asm_.append(", ").append(lhs.getName()).append(");\n");
+    } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      append2asm("evaluator.");
+      switch (op) {
+        case "+=": this.asm_.append("add_plain("); break;
+        case "*=": this.asm_.append("multiply_plain("); break;
+        case "-=": this.asm_.append("sub_plain("); break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+      this.asm_.append(", ").append(lhs.getName()).append(");\n");
+    }
     return null;
   }
 
@@ -349,8 +375,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(CompoundOperator n) throws Exception {
     String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "|=", "^="};
-    this.asm_.append(_ret[n.f0.which]);
-    return null;
+    String op = _ret[n.f0.which];
+    return new Var_t("int", op);
   }
 
   /**
@@ -667,7 +693,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     Var_t rhs = n.f2.accept(this);
     String lhs_type = st_.findType(lhs);
     String rhs_type = st_.findType(rhs);
-    // INT Operator INT
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
       if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
           ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
@@ -678,7 +703,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
                  "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
-    // INT Operator ENCINT
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
       String res_ = newCtxtTemp();
       append2asm("tmp = uint64_to_hex_string(" + lhs.getName() + ");\n");
@@ -697,7 +721,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncInt", res_);
-      // ENCINT Operator INT
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       String res_ = newCtxtTemp();
       String op_str;
@@ -711,7 +734,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       append2asm("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
       append2asm("evaluator." + op_str + "(" + lhs.getName() + ", tmp, " + res_ + ");\n");
       return new Var_t("EncInt", res_);
-    // ENCINT Operator ENCINT
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = newCtxtTemp();
       String op_str;
@@ -779,6 +801,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> "]"
    */
   public Var_t visit(ArrayLookup n) throws Exception {
+// TODO
     Var_t arr = n.f0.accept(this);
     this.asm_.append(arr.getName()).append("[");
     Var_t idx = n.f2.accept(this);

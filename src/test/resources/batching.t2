@@ -15,5 +15,8 @@ int main(void) {
   batched_ctxt_vec = { 1, 3 }; // non-batching
   batched_ctxt_vec[0] = { 1, 3 }; // batching
 
+  batched_ctxt_vec[0] = batched_ctxt + batched_ctxt; // ok
+  batched_ctxt += batched_ctxt; // ok
+
   return 0;
 }

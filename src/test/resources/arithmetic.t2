@@ -11,5 +11,9 @@ int main(void) {
   enc_sum_ = enc_sum_ - x; // plain sub
   enc_sum_ = x - enc_sum_; // encrypt x and sub
 
+  x += 2; // ok
+  enc_sum_ += enc_num_; // ok
+  enc_sum_ += x; // ok
+
   return 0;
 }

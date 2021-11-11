@@ -239,15 +239,14 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     Var_t t1 = n.f0.accept(this);
     String operator = n.f1.accept(this).getName();
     Var_t t2 = n.f2.accept(this);
-    String t1_type = st_.findType(t1);
-    String t2_type = st_.findType(t2);
-    if ((t1_type.equals("int") && t2_type.equals("int")) ||
-          (t1_type.equals("EncInt") &&
-            (t2_type.equals("int") || t2_type.equals("EncInt")))) {
+    String t1_t = st_.findType(t1);
+    String t2_t = st_.findType(t2);
+    if ((t1_t.equals("int") && t2_t.equals("int")) ||
+        (t1_t.equals("EncInt") && (t2_t.equals("int") || t2_t.equals("EncInt")))) {
       return null;
     }
     throw new Exception("Error compound assignment between different types (" +
-                        operator + ") : " + t1_type + " " + t2_type);
+                        operator + ") : " + t1_t + " " + t2_t);
   }
 
   /**
