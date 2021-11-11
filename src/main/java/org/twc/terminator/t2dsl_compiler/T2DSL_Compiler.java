@@ -391,24 +391,24 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    Var_t val = n.f5.accept(this);
     String idx_type = st_.findType(idx);
-    String val_type = st_.findType(val);
+    Var_t rhs = n.f5.accept(this);
+    String rhs_type = st_.findType(rhs);
     switch (id_type) {
       case "int[]":
         append2asm(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = ");
-        this.asm_.append(val.getName()).append(";\n");
+        this.asm_.append(rhs.getName()).append(";\n");
         break;
       case "EncInt[]":
-        if (val_type.equals("EncInt")) {
+        if (rhs_type.equals("EncInt")) {
           append2asm(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] = ");
-          this.asm_.append(val.getName()).append(";\n");
+          this.asm_.append(rhs.getName()).append(";\n");
           break;
-        } else if (val_type.equals("int")) {
+        } else if (rhs_type.equals("int")) {
           append2asm("tmp = uint64_to_hex_string(");
-          this.asm_.append(val.getName());
+          this.asm_.append(rhs.getName());
           this.asm_.append(");\n");
           append2asm("encryptor.encrypt(tmp, ");
           this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
@@ -801,12 +801,22 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> "]"
    */
   public Var_t visit(ArrayLookup n) throws Exception {
-// TODO
     Var_t arr = n.f0.accept(this);
-    this.asm_.append(arr.getName()).append("[");
     Var_t idx = n.f2.accept(this);
-    this.asm_.append(idx.getName()).append("]");
-    return null;
+    String arr_type = st_.findType(arr);
+    tmp_cnt_++;
+    Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
+    if (arr_type.equals("int[]")) {
+      append2asm("int ");
+      ret.setType("int");
+    } else if (arr_type.equals("EncInt[]")) {
+      append2asm("Ciphertext ");
+      ret.setType("EncInt");
+    }
+    this.asm_.append(ret.getName());
+    this.asm_.append(" = ").append(arr.getName()).append("[");
+    this.asm_.append(idx.getName()).append("];\n");
+    return ret;
   }
 
   /**
@@ -918,10 +928,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> ")"
    */
   public Var_t visit(BracketExpression n) throws Exception {
-    this.asm_.append("(");
-    n.f1.accept(this);
-    this.asm_.append(")");
-    return null;
+    Var_t res = n.f1.accept(this);
+    return new Var_t(res.getType(), "(" + res.getName() + ")");
   }
 
 }
