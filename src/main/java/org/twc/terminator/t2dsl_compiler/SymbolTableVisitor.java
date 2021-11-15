@@ -130,23 +130,20 @@ public class SymbolTableVisitor extends GJNoArguDepthFirst<Var_t> {
   /**
    * f0 -> "for"
    * f1 -> "("
-   * f2 -> VarDeclaration()
-   * f3 -> Expression()
-   * f4 -> ";"
-   * f5 -> ( AssignmentStatement() | IncrementAssignmentStatement() |
-   *         DecrementAssignmentStatement() | CompoundAssignmentStatement() )
-   * f6 -> ")"
-   * f7 -> Statement()
+   * f2 -> AssignmentStatement()
+   * f3 -> ";"
+   * f4 -> Expression()
+   * f5 -> ";"
+   * f6 -> ( AssignmentStatement() | IncrementAssignmentStatement() | DecrementAssignmentStatement() | CompoundAssignmentStatement() )
+   * f7 -> ")"
+   * f8 -> Statement()
    */
   public Var_t visit(ForStatement n) throws Exception {
-    Var_t var_def = (Var_t) n.f2.accept(this);
-    if (!st_.addVar(new Var_t(var_def.getType(), var_def.getName()))) {
-      throw new Exception("Variable " + var_def.getName() + " already exists");
-    }
-    n.f3.accept(this);
-    n.f5.accept(this);
-    n.f7.accept(this);
-    return var_def;
+    n.f2.accept(this);
+    n.f4.accept(this);
+    n.f6.accept(this);
+    n.f8.accept(this);
+    return null;
   }
 
   /**

@@ -453,19 +453,19 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   /**
    * f0 -> "for"
    * f1 -> "("
-   * f2 -> VarDeclaration()
-   * f3 -> Expression()
-   * f4 -> ";"
-   * f5 -> ( AssignmentStatement() | IncrementAssignmentStatement() |
-   *         DecrementAssignmentStatement() | CompoundAssignmentStatement() )
-   * f6 -> ")"
-   * f7 -> Statement()
+   * f2 -> AssignmentStatement()
+   * f3 -> ";"
+   * f4 -> Expression()
+   * f5 -> ";"
+   * f6 -> ( AssignmentStatement() | IncrementAssignmentStatement() | DecrementAssignmentStatement() | CompoundAssignmentStatement() )
+   * f7 -> ")"
+   * f8 -> Statement()
    */
   public Var_t visit(ForStatement n) throws Exception {
     n.f2.accept(this);
-    Var_t cond = n.f3.accept(this);
-    n.f5.accept(this);
-    n.f7.accept(this);
+    Var_t cond = n.f4.accept(this);
+    n.f6.accept(this);
+    n.f8.accept(this);
     String cond_type = st_.findType(cond);
     if (cond_type.equals("bool")) {
       return null;

@@ -273,7 +273,7 @@ void WhileStatement() : {} {
 
 void ForStatement() : {} {
   "for" "("
-      VarDeclaration()
+      AssignmentStatement() ";"
       Expression() ";"
       ( LOOKAHEAD(2) AssignmentStatement() | LOOKAHEAD(2) IncrementAssignmentStatement() | LOOKAHEAD(2) DecrementAssignmentStatement() | LOOKAHEAD(2) CompoundAssignmentStatement() )
     ")"

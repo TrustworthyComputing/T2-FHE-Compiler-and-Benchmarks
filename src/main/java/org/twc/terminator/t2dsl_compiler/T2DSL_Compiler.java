@@ -14,11 +14,13 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   private StringBuilder asm_;
   private int indent_, tmp_cnt_;
+  private boolean semicolon_;
 
   public T2DSL_Compiler(SymbolTable st) {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;
+    this.semicolon_ = false;
   }
 
   public String getASM() {
@@ -206,9 +208,9 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | BatchAssignmentStatement() ";"
    *       | BatchArrayAssignmentStatement() ";"
    *       | AssignmentStatement() ";"
-   *       | IncrementAssignmentStatement() ";"
-   *       | DecrementAssignmentStatement() ";"
-   *       | CompoundAssignmentStatement() ";"
+   *       | IncrementAssignmentStatement()
+   *       | DecrementAssignmentStatement()
+   *       | CompoundAssignmentStatement()
    *       | IfStatement()
    *       | WhileStatement()
    *       | ForStatement()
@@ -216,7 +218,12 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | PrintLineStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
-    return n.f0.accept(this);
+    n.f0.accept(this);
+    if (this.semicolon_) {
+      this.asm_.append(";\n");
+    }
+    this.semicolon_ = false;
+    return null;
   }
 
   /**
@@ -225,7 +232,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> "}"
    */
   public Var_t visit(Block n) throws Exception {
-    append2asm("{\n");
+    this.asm_.append(" {\n");
     this.indent_ += 2;
     n.f1.accept(this);
     this.indent_ -= 2;
@@ -250,7 +257,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       this.asm_.append(rhs_name);
       this.asm_.append(");\n");
       append2asm("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append(");\n");
+      this.asm_.append(lhs.getName()).append(")");
+      this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
       tmp_cnt_++;
@@ -276,7 +284,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       } else {
         this.asm_.append(" = ");
       }
-      this.asm_.append(rhs_name).append(";\n");
+      this.asm_.append(rhs_name);
+      this.semicolon_ = true;
     } else {
       throw new Exception("Error assignment statement between different " +
               "types: " + lhs_type + ", " + rhs_type);
@@ -297,7 +306,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
       append2asm(id.getName());
-      this.asm_.append("++;\n");
+      this.asm_.append("++");
+      this.semicolon_ = true;
     }
     return null;
   }
@@ -315,7 +325,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
       append2asm(id.getName());
-      this.asm_.append("--;\n");
+      this.asm_.append("--");
+      this.semicolon_ = true;
     }
     return null;
   }
@@ -334,7 +345,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
       append2asm(lhs.getName());
       this.asm_.append(" ").append(op).append(" ");
-      this.asm_.append(rhs.getName()).append(";\n");
+      this.asm_.append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       append2asm("evaluator.");
       switch (op) {
@@ -345,7 +356,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-      this.asm_.append(", ").append(lhs.getName()).append(");\n");
+      this.asm_.append(", ").append(lhs.getName()).append(")");
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       append2asm("evaluator.");
       switch (op) {
@@ -356,8 +367,9 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-      this.asm_.append(", ").append(lhs.getName()).append(");\n");
+      this.asm_.append(", ").append(lhs.getName()).append(")");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -411,7 +423,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
           this.asm_.append(rhs.getName());
           this.asm_.append(");\n");
           append2asm("encryptor.encrypt(tmp, ");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("])");
           break;
         }
       default:
@@ -557,8 +569,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(IfthenStatement n) throws Exception {
     append2asm("if (");
-    n.f2.accept(this);
-    this.asm_.append(")");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
     return null;
   }
@@ -574,8 +586,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(IfthenElseStatement n) throws Exception {
     append2asm("if (");
-    n.f2.accept(this);
-    this.asm_.append(")");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
     append2asm("else");
     n.f6.accept(this);
@@ -591,8 +603,8 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(WhileStatement n) throws Exception {
     append2asm("while (");
-    n.f2.accept(this);
-    this.asm_.append(")");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
     return null;
   }
@@ -600,24 +612,26 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
   /**
    * f0 -> "for"
    * f1 -> "("
-   * f2 -> VarDeclaration()
-   * f3 -> Expression()
-   * f4 -> ";"
-   * f5 -> ( AssignmentStatement() | IncrementAssignmentStatement() |
-   *         DecrementAssignmentStatement() | CompoundAssignmentStatement() )
-   * f6 -> ")"
-   * f7 -> Statement()
+   * f2 -> AssignmentStatement()
+   * f3 -> ";"
+   * f4 -> Expression()
+   * f5 -> ";"
+   * f6 -> ( AssignmentStatement() | IncrementAssignmentStatement() | DecrementAssignmentStatement() | CompoundAssignmentStatement() )
+   * f7 -> ")"
+   * f8 -> Statement()
    */
   public Var_t visit(ForStatement n) throws Exception {
     append2asm("for (");
+    int prev_indent = this.indent_;
+    this.indent_ = 0;
     n.f2.accept(this);
-    n.f3.accept(this);
-    this.asm_.append(";");
-    n.f5.accept(this);
+    this.asm_.append("; ");
+    Var_t cond = n.f4.accept(this);
+    this.asm_.append(cond.getName()).append("; ");
+    n.f6.accept(this);
     this.asm_.append(")");
-    this.indent_ += 2;
-    n.f7.accept(this);
-    this.indent_ -= 2;
+    this.indent_ = prev_indent;
+    n.f8.accept(this);
     return null;
   }
 

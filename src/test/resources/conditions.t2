@@ -1,0 +1,30 @@
+int main(void) {
+  EncInt enc_sum_, enc_num_;
+  int x, i, j;
+  x = 2;
+  if (x == 2) {
+    enc_num_ = 100; // encrypt
+  } else {
+    enc_num_ = 200; // encrypt
+  }
+
+//  if (enc_num_ == 100) { // Should error out.
+//    enc_num_++;
+//  }
+
+  x++;
+
+  while (x < 10) {
+    enc_sum_++;
+  }
+  
+  for (i = 0; i < 5; i++) {
+    for (j = 0; j < 3; j++) {
+      x += 3;
+      enc_sum_ += 2;
+      enc_sum_ += enc_num_;
+    }
+  }
+
+  return 0;
+}
