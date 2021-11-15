@@ -3,45 +3,24 @@ package org.twc.terminator.t2dsl_compiler;
 import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
-import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
+public class T2_2_SEAL extends T2_Compiler {
 
-  private SymbolTable st_;
-
-  private StringBuilder asm_;
-  private int indent_, tmp_cnt_;
-  private boolean semicolon_;
-
-  public T2DSL_Compiler(SymbolTable st) {
-    this.indent_ = 0;
-    this.tmp_cnt_ = 0;
-    this.st_ = st;
-    this.semicolon_ = false;
+  public T2_2_SEAL(SymbolTable st) {
+    super(st);
   }
 
-  public String getASM() {
-    return asm_.toString();
-  }
-
-  private void append2asm(String str) {
-    for (int i = 0; i < this.indent_; ++i) {
-      this.asm_.append(" ");
-    }
-    this.asm_.append(str);
-  }
-
-  private String newCtxtTemp() {
+  protected String newCtxtTemp() {
     tmp_cnt_++;
     String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
     append2asm("Ciphertext " + ctxt_tmp_ + ";\n");
     return ctxt_tmp_;
   }
 
-  private void appendSEALkeygen() {
+  protected void append_keygen() {
     this.asm_.append(
       "  size_t poly_modulus_degree = 16384;\n" +
       "  size_t plaintext_modulus = 20;\n" +
@@ -64,16 +43,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       "  BatchEncoder batch_encoder(context);\n" +
       "  Plaintext tmp;\n" +
       "  Ciphertext tmp_;\n\n");
-  }
-
-  /**
-   * f0 -> MainClass()
-   * f2 -> <EOF>
-   */
-  public Var_t visit(Goal n) throws Exception {
-    n.f0.accept(this);
-    n.f1.accept(this);
-    return null;
   }
 
   /**
@@ -100,7 +69,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
 
     append2asm("int main(void) {\n");
     this.indent_ = 2;
-    appendSEALkeygen();
+    append_keygen();
     n.f6.accept(this);
     n.f7.accept(this);
     append2asm("return ");
@@ -151,94 +120,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_.append(", ");
     Var_t id = n.f1.accept(this);
     this.asm_.append(id.getName());
-    return null;
-  }
-
-  /**
-   * f0 -> ArrayType()
-   * | EncryptedArrayType()
-   * | BooleanType()
-   * | IntegerType()
-   * | EncryptedIntegerType()
-   * | Identifier()
-   */
-  public Var_t visit(Type n) throws Exception {
-    return n.f0.accept(this);
-  }
-
-  /**
-   * f0 -> "int"
-   * f1 -> "["
-   * f2 -> "]"
-   */
-  public Var_t visit(ArrayType n) throws Exception {
-    return new Var_t("int[]", null);
-  }
-
-  /**
-   * f0 -> "EncInt"
-   * f1 -> "["
-   * f2 -> "]"
-   */
-  public Var_t visit(EncryptedArrayType n) throws Exception {
-    return new Var_t("EncInt[]", null);
-  }
-
-  /**
-   * f0 -> "boolean"
-   */
-  public Var_t visit(BooleanType n) throws Exception {
-    return new Var_t("bool", null);
-  }
-
-  /**
-   * f0 -> "int"
-   */
-  public Var_t visit(IntegerType n) throws Exception {
-    return new Var_t("int", null);
-  }
-
-  /**
-   * f0 -> "EncInt"
-   */
-  public Var_t visit(EncryptedIntegerType n) throws Exception {
-    return new Var_t("EncInt", null);
-  }
-
-  /**
-   * f0 -> Block()
-   *       | ArrayAssignmentStatement() ";"
-   *       | BatchAssignmentStatement() ";"
-   *       | BatchArrayAssignmentStatement() ";"
-   *       | AssignmentStatement() ";"
-   *       | IncrementAssignmentStatement()
-   *       | DecrementAssignmentStatement()
-   *       | CompoundAssignmentStatement()
-   *       | IfStatement()
-   *       | WhileStatement()
-   *       | ForStatement()
-   *       | PrintStatement() ";"
-   */
-  public Var_t visit(Statement n) throws Exception {
-    n.f0.accept(this);
-    if (this.semicolon_) {
-      this.asm_.append(";\n");
-    }
-    this.semicolon_ = false;
-    return null;
-  }
-
-  /**
-   * f0 -> "{"
-   * f1 -> ( Statement() )*
-   * f2 -> "}"
-   */
-  public Var_t visit(Block n) throws Exception {
-    this.asm_.append(" {\n");
-    this.indent_ += 2;
-    n.f1.accept(this);
-    this.indent_ -= 2;
-    append2asm("}\n");
     return null;
   }
 
@@ -378,24 +259,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     }
     this.semicolon_ = true;
     return null;
-  }
-
-  /**
-   * f0 -> "+="
-   * |   "-="
-   * |   "*="
-   * |   "/="
-   * |   "%="
-   * |   "<<="
-   * |   ">>="
-   * |   "&="
-   * |   "|="
-   * |   "^="
-   */
-  public Var_t visit(CompoundOperator n) throws Exception {
-    String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "|=", "^="};
-    String op = _ret[n.f0.which];
-    return new Var_t("int", op);
   }
 
   /**
@@ -552,97 +415,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
-   * f0 -> ","
-   * f1 -> Expression()
-   */
-  public Var_t visit(BatchAssignmentStatementRest n) throws Exception {
-    return n.f1.accept(this);
-  }
-
-  /**
-   * f0 -> IfthenElseStatement()
-   * | IfthenStatement()
-   */
-  public Var_t visit(IfStatement n) throws Exception {
-    return n.f0.accept(this);
-  }
-
-  /**
-   * f0 -> "if"
-   * f1 -> "("
-   * f2 -> Expression()
-   * f3 -> ")"
-   * f4 -> Statement()
-   */
-  public Var_t visit(IfthenStatement n) throws Exception {
-    append2asm("if (");
-    Var_t cond = n.f2.accept(this);
-    this.asm_.append(cond.getName()).append(")");
-    n.f4.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> "if"
-   * f1 -> "("
-   * f2 -> Expression()
-   * f3 -> ")"
-   * f4 -> Statement()
-   * f5 -> "else"
-   * f6 -> Statement()
-   */
-  public Var_t visit(IfthenElseStatement n) throws Exception {
-    append2asm("if (");
-    Var_t cond = n.f2.accept(this);
-    this.asm_.append(cond.getName()).append(")");
-    n.f4.accept(this);
-    append2asm("else");
-    n.f6.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> "while"
-   * f1 -> "("
-   * f2 -> Expression()
-   * f3 -> ")"
-   * f4 -> Statement()
-   */
-  public Var_t visit(WhileStatement n) throws Exception {
-    append2asm("while (");
-    Var_t cond = n.f2.accept(this);
-    this.asm_.append(cond.getName()).append(")");
-    n.f4.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> "for"
-   * f1 -> "("
-   * f2 -> AssignmentStatement()
-   * f3 -> ";"
-   * f4 -> Expression()
-   * f5 -> ";"
-   * f6 -> ( AssignmentStatement() | IncrementAssignmentStatement() | DecrementAssignmentStatement() | CompoundAssignmentStatement() )
-   * f7 -> ")"
-   * f8 -> Statement()
-   */
-  public Var_t visit(ForStatement n) throws Exception {
-    append2asm("for (");
-    int prev_indent = this.indent_;
-    this.indent_ = 0;
-    n.f2.accept(this);
-    this.asm_.append("; ");
-    Var_t cond = n.f4.accept(this);
-    this.asm_.append(cond.getName()).append("; ");
-    n.f6.accept(this);
-    this.asm_.append(")");
-    this.indent_ = prev_indent;
-    n.f8.accept(this);
-    return null;
-  }
-
-  /**
    * f0 -> "print"
    * f1 -> "("
    * f2 -> Expression()
@@ -666,45 +438,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       default:
         throw new Exception("Bad type for print statement");
     }
-
-    return null;
-  }
-
-  /**
-   * f0 -> LogicalAndExpression()
-   * | LogicalOrExpression()
-   * | BinaryExpression()
-   * | BinNotExpression()
-   * | ArrayLookup()
-   * | ArrayLength()
-   * | TernaryExpression()
-   * | Clause()
-   */
-  public Var_t visit(Expression n) throws Exception {
-    return n.f0.accept(this);
-  }
-
-  /**
-   * f0 -> Clause()
-   * f1 -> "&&"
-   * f2 -> Clause()
-   */
-  public Var_t visit(LogicalAndExpression n) throws Exception {
-    n.f0.accept(this);
-    this.asm_.append(" && ");
-    n.f2.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> Clause()
-   * f1 -> "||"
-   * f2 -> Clause()
-   */
-  public Var_t visit(LogicalOrExpression n) throws Exception {
-    n.f0.accept(this);
-    this.asm_.append(" || ");
-    n.f2.accept(this);
     return null;
   }
 
@@ -783,49 +516,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
-   * f0 -> "&"
-   * |  "|"
-   * |  "^"
-   * |  "<<"
-   * |  ">>"
-   * |  "+"
-   * |  "-"
-   * |  "*"
-   * |  "/"
-   * |  "%"
-   * |  "=="
-   * |  "!="
-   * |  "<"
-   * |  "<="
-   * |  ">"
-   * |  ">="
-   */
-  public Var_t visit(BinOperator n) throws Exception {
-    String[] _ret = {"&", "|", "^", "<<", ">>", "+", "-", "*", "/", "%", "==",
-                     "!=", "<", "<=", ">", ">="};
-    String op = _ret[n.f0.which];
-    if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
-        ">>".equals(op) || "<<=".equals(op) || ">>=".equals(op) || "+".equals(op) ||
-        "-".equals(op) || "*".equals(op) || "/".equals(op) || "%".equals(op)) {
-      return new Var_t("int", op);
-    } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-               "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
-      return new Var_t("boolean", op);
-    } else {
-      throw new IllegalStateException("BinOperator: Unexpected value: " + op);
-    }
-  }
-
-  /**
-   * f0 -> "~"
-   * f1 -> PrimaryExpression()
-   */
-  public Var_t visit(BinNotExpression n) throws Exception {
-    this.asm_.append("~");
-    return n.f1.accept(this);
-  }
-
-  /**
    * f0 -> PrimaryExpression()
    * f1 -> "["
    * f2 -> PrimaryExpression()
@@ -851,74 +541,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
-   * f0 -> "("
-   * f1 -> Expression()
-   * f2 -> ")"
-   * f3 -> "?"
-   * f4 -> Expression()
-   * f5 -> ":"
-   * f6 -> Expression()
-   */
-  public Var_t visit(TernaryExpression n) throws Exception {
-    this.asm_.append("(");
-    n.f1.accept(this);
-    this.asm_.append(") ?");
-    n.f4.accept(this);
-    this.asm_.append(" : ");
-    n.f6.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> NotExpression()
-   * | PrimaryExpression()
-   */
-  public Var_t visit(Clause n) throws Exception {
-    return n.f0.accept(this);
-  }
-
-  /**
-   * f0 -> IntegerLiteral()
-   *       | TrueLiteral()
-   *       | FalseLiteral()
-   *       | Identifier()
-   *       | ArrayAllocationExpression()
-   *       | EncryptedArrayAllocationExpression()
-   *       | BracketExpression()
-   */
-  public Var_t visit(PrimaryExpression n) throws Exception {
-    return n.f0.accept(this);
-  }
-
-  /**
-   * f0 -> <INTEGER_LITERAL>
-   */
-  public Var_t visit(IntegerLiteral n) throws Exception {
-    return new Var_t("int", n.f0.toString());
-  }
-
-  /**
-   * f0 -> "true"
-   */
-  public Var_t visit(TrueLiteral n) throws Exception {
-    return new Var_t("bool", "true");
-  }
-
-  /**
-   * f0 -> "false"
-   */
-  public Var_t visit(FalseLiteral n) throws Exception {
-    return new Var_t("bool", "false");
-  }
-
-  /**
-   * f0 -> <IDENTIFIER>
-   */
-  public Var_t visit(Identifier n) throws Exception {
-    return new Var_t(null, n.f0.toString());
-  }
-
-  /**
    * f0 -> "new"
    * f1 -> "int"
    * f2 -> "["
@@ -941,26 +563,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
     String size = n.f3.accept(this).getName();
 //    v.resize(5, 10);
     return new Var_t("EncInt[]", "resize(" + size + ")");
-  }
-
-  /**
-   * f0 -> "!"
-   * f1 -> Clause()
-   */
-  public Var_t visit(NotExpression n) throws Exception {
-    this.asm_.append("!");
-    n.f1.accept(this);
-    return null;
-  }
-
-  /**
-   * f0 -> "("
-   * f1 -> Expression()
-   * f2 -> ")"
-   */
-  public Var_t visit(BracketExpression n) throws Exception {
-    Var_t res = n.f1.accept(this);
-    return new Var_t(res.getType(), "(" + res.getName() + ")");
   }
 
 }

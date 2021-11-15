@@ -1,8 +1,9 @@
 package org.twc.terminator;
 
 import org.twc.terminator.t2dsl_compiler.SymbolTableVisitor;
+import org.twc.terminator.t2dsl_compiler.T2_2_SEAL;
 import org.twc.terminator.t2dsl_compiler.TypeCheckVisitor;
-import org.twc.terminator.t2dsl_compiler.T2DSL_Compiler;
+import org.twc.terminator.t2dsl_compiler.T2_Compiler;
 import org.twc.terminator.t2dsl_compiler.T2DSLparser.ParseException;
 import org.twc.terminator.t2dsl_compiler.T2DSLparser.T2DSLParser;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.Goal;
@@ -55,7 +56,7 @@ public class Main {
         System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed");
 
         // generate SEAL code
-        T2DSL_Compiler dsl_compiler = new T2DSL_Compiler(symbol_table);
+        T2_Compiler dsl_compiler = new T2_2_SEAL(symbol_table);
         t2dsl_goal.accept(dsl_compiler);
         String code = dsl_compiler.getASM();
         String seal_out = path + ".cpp";
