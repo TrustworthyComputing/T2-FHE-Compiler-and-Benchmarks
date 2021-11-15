@@ -26,15 +26,26 @@
 
 typedef enum rotation_t { LEFT = 0, RIGHT } rotation_t;
 
+/// CLIENT FUNCTIONS
+
+/// Encrypt a number with the secret key. Return result = Enc(ptxt_val).
+LweSample* e_client(uint32_t ptxt_val, size_t word_sz,
+                    const TFheGateBootstrappingSecretKeySet* sk);
+
+/// Decrypt a ciphertext with the secret key. Return result = Dec(ctxt)
+uint32_t d_client(size_t word_sz, const LweSample* ctxt,
+                  const TFheGateBootstrappingSecretKeySet* sk);
+
+
 /// MISCELLANEOUS
 
-/// Encypt a number with the cloud key. Return result = Enc(ptxt_val).
+/// Encode a number with the cloud key. Return result = Encode(ptxt_val).
 LweSample* e_cloud(uint32_t ptxt_val, size_t word_sz,
                    const TFheGateBootstrappingCloudKeySet* bk);
 
-/// Rotate ciphertext array to the left or right by amt. 
+/// Rotate ciphertext array to the left or right by amt.
 void rotate_inplace(LweSample* result, rotation_t dir, int amt,
-                    const size_t word_sz, 
+                    const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk);
 
 /// ARITHMETIC CIRCUITS
@@ -74,7 +85,7 @@ void lt(LweSample* result_, const LweSample* a, const LweSample* b,
 
 /// BITWISE
 
-void e_not(LweSample* result, const LweSample* a, const size_t nb_bits, 
+void e_not(LweSample* result, const LweSample* a, const size_t nb_bits,
          const TFheGateBootstrappingCloudKeySet* bk);
 
 void e_and(LweSample* result, const LweSample* a, const LweSample* b,
@@ -96,13 +107,21 @@ void e_xnor(LweSample* result, const LweSample* a, const LweSample* b,
          const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
 void e_mux(LweSample* result, const LweSample* a, const LweSample* b,
-           const LweSample* c, const size_t nb_bits, 
+           const LweSample* c, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk);
 
-/// INTEGER DOMAIN 
+/// INTEGER DOMAIN
+
+/// Encrypt integer as a single ciphertext.
+LweSample* e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
+                        const TFheGateBootstrappingSecretKeySet* sk);
+
+/// Decrypt an integer ciphertext with the secret key. Return result = Dec(ctxt)
+uint32_t d_client_int(uint32_t ptxt_mod, const LweSample* ctxt,
+                  const TFheGateBootstrappingSecretKeySet* sk);
 
 /// Encode integer as a single noiseless ciphertext.
-LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod, 
+LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
                  const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Convert {0,1} % 2 to {-1,1} % ptxt_mod.

@@ -1,5 +1,25 @@
 #include "functional_units.hpp"
 
+LweSample* e_client(uint32_t ptxt_val, size_t word_sz,
+                    const TFheGateBootstrappingSecretKeySet* sk) {
+  LweSample* result =
+    new_gate_bootstrapping_ciphertext_array(word_sz, sk->params);
+  for (int i = 0; i < word_sz; i++) {
+    bootsSymEncrypt(&result[i], (ptxt_val >> i) & 1, sk);
+  }
+  return result;
+}
+
+uint32_t d_client(size_t word_sz, const LweSample* ctxt,
+                  const TFheGateBootstrappingSecretKeySet* sk) {
+  uint32_t result = 0;
+  for (int i = 0; i < word_sz; i++) {
+    uint32_t ri = bootsSymDecrypt(&ctxt[i], sk) > 0;
+    result |= (ri << i);
+  }
+  return result;
+}
+
 LweSample* e_cloud(uint32_t ptxt_val, size_t word_sz,
                      const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* result =
@@ -11,9 +31,9 @@ LweSample* e_cloud(uint32_t ptxt_val, size_t word_sz,
 }
 
 void rotate_inplace(LweSample* result, rotation_t dir, int amt,
-                    const size_t word_sz, 
+                    const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* tmp = 
+  LweSample* tmp =
     new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
 
   if (dir == LEFT) {
@@ -219,7 +239,7 @@ void gt(LweSample* result_, const LweSample* a, const LweSample* b,
   delete_gate_bootstrapping_ciphertext(tmp_result_);
 }
 
-void e_not(LweSample* result, const LweSample* a, const size_t nb_bits, 
+void e_not(LweSample* result, const LweSample* a, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk) {
   for (int i = 0; i < nb_bits; i++) {
     bootsNOT(&result[i], &a[i], bk);
@@ -269,14 +289,29 @@ void e_xnor(LweSample* result, const LweSample* a, const LweSample* b,
 }
 
 void e_mux(LweSample* result, const LweSample* a, const LweSample* b,
-           const LweSample* c, const size_t nb_bits, 
+           const LweSample* c, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk) {
   for (int i = 0; i < nb_bits; i++) {
     bootsMUX(&result[i], &a[i], &b[i], &c[i], bk);
   }
 }
 
-LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod, 
+LweSample* e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
+                        const TFheGateBootstrappingSecretKeySet* sk) {
+  LweSample* result = new_LweSample(sk->params->in_out_params);
+  const Torus32 mu = modSwitchToTorus32(ptxt_val, ptxt_mod);
+  lweSymEncrypt(result, mu, sk->params->in_out_params->alpha_min, sk->lwe_key);
+  return result;
+}
+
+uint32_t d_client_int(uint32_t ptxt_mod, const LweSample* ctxt,
+                  const TFheGateBootstrappingSecretKeySet* sk) {
+  uint32_t result = modSwitchFromTorus32(
+    lweSymDecrypt(ctxt, sk->lwe_key, ptxt_mod),ptxt_mod);
+  return result;
+}
+
+LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
                  const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* result = new_LweSample(bk->params->in_out_params);
   const Torus32 mu = modSwitchToTorus32(ptxt_val, ptxt_mod);
@@ -303,21 +338,21 @@ LweSample* e_int_to_bin(LweSample* a,
 void add_int(LweSample* result, const LweSample* a, const LweSample* b,
              const TFheGateBootstrappingCloudKeySet* bk) {
   const int32_t n = bk->params->in_out_params->n;
-  for (int32_t i = 0; i < n; ++i) { 
+  for (int32_t i = 0; i < n; ++i) {
     result->a[i] = a->a[i] + b->a[i];
   }
   result->b = a->b + b->b;
-  result->current_variance = a->current_variance + b->current_variance; 
+  result->current_variance = a->current_variance + b->current_variance;
 }
 
 void sub_int(LweSample* result, const LweSample* a, const LweSample* b,
              const TFheGateBootstrappingCloudKeySet* bk) {
   const int32_t n = bk->params->in_out_params->n;
-  for (int32_t i = 0; i < n; ++i) { 
+  for (int32_t i = 0; i < n; ++i) {
     result->a[i] = a->a[i] - b->a[i];
   }
   result->b = a->b - b->b;
-  result->current_variance = a->current_variance + b->current_variance; 
+  result->current_variance = a->current_variance + b->current_variance;
 }
 
 void mult_plain_int(LweSample* result, const LweSample* a, int32_t p,
@@ -327,5 +362,5 @@ void mult_plain_int(LweSample* result, const LweSample* a, int32_t p,
     result->a[i] = p*a->a[i];
   }
   result->b += p*a->b;
-  result->current_variance += (p*p)*a->current_variance; 
+  result->current_variance += (p*p)*a->current_variance;
 }
