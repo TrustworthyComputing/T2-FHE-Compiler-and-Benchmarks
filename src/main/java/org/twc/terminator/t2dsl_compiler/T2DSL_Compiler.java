@@ -52,7 +52,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       "  parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, " +
               "20));\n" +
       "  SEALContext context(parms);\n" +
-      "  print_parameters(context);\n" +
       "  KeyGenerator keygen(context);\n" +
       "  SecretKey secret_key = keygen.secret_key();\n" +
       "  PublicKey public_key;\n" +
@@ -64,7 +63,7 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       "  Decryptor decryptor(context, secret_key);\n" +
       "  BatchEncoder batch_encoder(context);\n" +
       "  Plaintext tmp;\n" +
-      "  Ciphertext tmp_\n\n");
+      "  Ciphertext tmp_;\n\n");
   }
 
   /**
@@ -93,8 +92,12 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(MainClass n) throws Exception {
     this.asm_ = new StringBuilder();
-    this.asm_.append("#include <iostream>\n");
-    this.asm_.append("#include \"seal/seal.h\"\n\n");
+    this.asm_.append("#include <iostream>\n\n");
+    this.asm_.append("#include \"seal/seal.h\"\n");
+    this.asm_.append("#include \"../../helper.hpp\"\n\n");
+    this.asm_.append("using namespace seal;\n");
+    this.asm_.append("using namespace std;\n\n");
+
     append2asm("int main(void) {\n");
     this.indent_ = 2;
     appendSEALkeygen();
@@ -215,7 +218,6 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | WhileStatement()
    *       | ForStatement()
    *       | PrintStatement() ";"
-   *       | PrintLineStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     n.f0.accept(this);
@@ -357,6 +359,11 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       }
       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
       this.asm_.append(", ").append(lhs.getName()).append(")");
+      if (op.equals("*=")) {
+        this.asm_.append(";\n");
+        append2asm("evaluator.relinearize_inplace(");
+        this.asm_.append(lhs.getName()).append(", relin_keys)");
+      }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       append2asm("evaluator.");
       switch (op) {
@@ -636,25 +643,30 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
-   * f0 -> "System.out.println"
+   * f0 -> "print"
    * f1 -> "("
    * f2 -> Expression()
    * f3 -> ")"
    */
   public Var_t visit(PrintStatement n) throws Exception {
-    append2asm("System.out.println(");
-    n.f2.accept(this);
-    this.asm_.append(");\n");
-    return null;
-  }
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    switch (expr_type) {
+      case "int":
+        append2asm("cout << ");
+        this.asm_.append(expr.getName());
+        this.asm_.append(" << endl;\n");
+        break;
+      case "EncInt":
+        append2asm("decryptor.decrypt(");
+        this.asm_.append(expr.getName()).append(", tmp);\n");
+        append2asm("cout << \"dec(");
+        this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
+        break;
+      default:
+        throw new Exception("Bad type for print statement");
+    }
 
-  /**
-   * f0 -> "System.out.println"
-   * f1 -> "("
-   * f2 -> ")"
-   */
-  public Var_t visit(PrintLineStatement n) throws Exception {
-    append2asm("System.out.println();\n");
     return null;
   }
 
@@ -760,6 +772,11 @@ public class T2DSL_Compiler extends GJNoArguDepthFirst<Var_t> {
       }
       append2asm("evaluator." + op_str + "(" + lhs.getName() + ", " +
                  rhs.getName() + ", " + res_ + ");\n");
+      if (op.equals("*")) {
+        this.asm_.append(";\n");
+        append2asm("evaluator.relinearize_inplace(");
+        this.asm_.append(lhs.getName()).append(", relin_keys)");
+      }
       return new Var_t("EncInt", res_);
     }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

@@ -72,7 +72,7 @@ TOKEN :
   | < STATIC: "static" >
   | < STRING: "String" >
   | < TRUE: "true" >
-  | < PRINT: "System.out.println" >
+  | < PRINT: "print" >
   | < VOID: "void" >
 }
 
@@ -198,10 +198,7 @@ void Statement() : {} {
 |   IfStatement()
 |   WhileStatement()
 |   ForStatement()
-|   LOOKAHEAD(3)
-  PrintStatement() ";"
-|   LOOKAHEAD(3)
-  PrintLineStatement() ";"
+|   PrintStatement() ";"
 }
 
 void Block() : {} {
@@ -282,10 +279,6 @@ void ForStatement() : {} {
 
 void PrintStatement() : {} {
   <PRINT> "(" Expression() ")"
-}
-
-void PrintLineStatement() : {} {
-  <PRINT> "(" ")"
 }
 
 void Expression() : {} {

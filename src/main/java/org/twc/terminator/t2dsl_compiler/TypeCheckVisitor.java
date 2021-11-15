@@ -164,7 +164,6 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    *       | WhileStatement()
    *       | ForStatement()
    *       | PrintStatement() ";"
-   *       | PrintLineStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     return n.f0.accept(this);
@@ -477,7 +476,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
-   * f0 -> "System.out.println"
+   * f0 -> "print"
    * f1 -> "("
    * f2 -> Expression()
    * f3 -> ")"
@@ -489,22 +488,10 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     n.f3.accept(this);
     String expr_type = st_.findType(expr);
     if (expr_type.equals("bool") || expr_type.equals("int") ||
-          expr_type.equals("EncInt")) {
+        expr_type.equals("EncInt")) {
       return null;
     }
     throw new Exception("Print statement not boolean, int, or EncInt.");
-  }
-
-  /**
-   * f0 -> "System.out.println"
-   * f1 -> "("
-   * f2 -> ")"
-   */
-  public Var_t visit(PrintLineStatement n) throws Exception {
-    n.f0.accept(this);
-    n.f1.accept(this);
-    n.f2.accept(this);
-    return null;
   }
 
   /**
