@@ -55,12 +55,12 @@ public class SymbolTableVisitor extends GJNoArguDepthFirst<Var_t> {
         }
         if (variable.getVarList() != null) {
           for (Var_t var : variable.getVarList()) {
-            if (!st_.addVar(new Var_t(var.getType(), var.getName()))) {
+            if (st_.addVar(new Var_t(var.getType(), var.getName()))) {
               throw new Exception("Variable " + var.getName() + " already exists");
             }
           }
         } else {
-          if (!st_.addVar(new Var_t(variable.getType(), variable.getName()))) {
+          if (st_.addVar(new Var_t(variable.getType(), variable.getName()))) {
             throw new Exception("Variable " + variable.getName() + " already exists");
           }
         }

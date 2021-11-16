@@ -5,12 +5,9 @@ import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
 
-  private SymbolTable st_;
+  private final SymbolTable st_;
 
   public TypeCheckVisitor(SymbolTable st) {
     this.st_ = st;

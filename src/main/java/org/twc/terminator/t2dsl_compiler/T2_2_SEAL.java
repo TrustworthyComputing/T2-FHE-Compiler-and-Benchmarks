@@ -13,36 +13,33 @@ public class T2_2_SEAL extends T2_Compiler {
     super(st);
   }
 
-  protected String newCtxtTemp() {
+  protected String new_ctxt_tmp() {
     tmp_cnt_++;
     String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
-    append2asm("Ciphertext " + ctxt_tmp_ + ";\n");
+    append_idx("Ciphertext " + ctxt_tmp_ + ";\n");
     return ctxt_tmp_;
   }
 
   protected void append_keygen() {
-    this.asm_.append(
-      "  size_t poly_modulus_degree = 16384;\n" +
-      "  size_t plaintext_modulus = 20;\n" +
-      "  EncryptionParameters parms(scheme_type::bfv);\n" +
-      "  parms.set_poly_modulus_degree(poly_modulus_degree);\n" +
-      "  parms.set_coeff_modulus(CoeffModulus::BFVDefault" +
-              "(poly_modulus_degree));\n" +
-      "  parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, " +
-              "20));\n" +
-      "  SEALContext context(parms);\n" +
-      "  KeyGenerator keygen(context);\n" +
-      "  SecretKey secret_key = keygen.secret_key();\n" +
-      "  PublicKey public_key;\n" +
-      "  RelinKeys relin_keys;\n" +
-      "  keygen.create_public_key(public_key);\n" +
-      "  keygen.create_relin_keys(relin_keys);\n" +
-      "  Encryptor encryptor(context, public_key);\n" +
-      "  Evaluator evaluator(context);\n" +
-      "  Decryptor decryptor(context, secret_key);\n" +
-      "  BatchEncoder batch_encoder(context);\n" +
-      "  Plaintext tmp;\n" +
-      "  Ciphertext tmp_;\n\n");
+    append_idx("size_t poly_modulus_degree = 16384;\n");
+    append_idx("size_t plaintext_modulus = 20;\n");
+    append_idx("EncryptionParameters parms(scheme_type::bfv);\n");
+    append_idx("parms.set_poly_modulus_degree(poly_modulus_degree);\n");
+    append_idx("parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));\n");
+    append_idx("parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, 20));\n");
+    append_idx("SEALContext context(parms);\n");
+    append_idx("KeyGenerator keygen(context);\n");
+    append_idx("SecretKey secret_key = keygen.secret_key();\n");
+    append_idx("PublicKey public_key;\n");
+    append_idx("RelinKeys relin_keys;\n");
+    append_idx("keygen.create_public_key(public_key);\n");
+    append_idx("keygen.create_relin_keys(relin_keys);\n");
+    append_idx("Encryptor encryptor(context, public_key);\n");
+    append_idx("Evaluator evaluator(context);\n");
+    append_idx("Decryptor decryptor(context, secret_key);\n");
+    append_idx("BatchEncoder batch_encoder(context);\n");
+    append_idx("Plaintext tmp;\n");
+    append_idx("Ciphertext tmp_;\n\n");
   }
 
   /**
@@ -60,19 +57,17 @@ public class T2_2_SEAL extends T2_Compiler {
    * f11 -> "}"
    */
   public Var_t visit(MainClass n) throws Exception {
-    this.asm_ = new StringBuilder();
-    this.asm_.append("#include <iostream>\n\n");
-    this.asm_.append("#include \"seal/seal.h\"\n");
-    this.asm_.append("#include \"../../helper.hpp\"\n\n");
-    this.asm_.append("using namespace seal;\n");
-    this.asm_.append("using namespace std;\n\n");
-
-    append2asm("int main(void) {\n");
+    append_idx("#include <iostream>\n\n");
+    append_idx("#include \"seal/seal.h\"\n");
+    append_idx("#include \"../../helper.hpp\"\n\n");
+    append_idx("using namespace seal;\n");
+    append_idx("using namespace std;\n\n");
+    append_idx("int main(void) {\n");
     this.indent_ = 2;
     append_keygen();
     n.f6.accept(this);
     n.f7.accept(this);
-    append2asm("return ");
+    append_idx("return ");
     Var_t ret = n.f9.accept(this);
     this.asm_.append(ret.getName()).append(";\n}");
     return null;
@@ -85,7 +80,7 @@ public class T2_2_SEAL extends T2_Compiler {
    * f3 -> ";"
    */
   public Var_t visit(VarDeclaration n) throws Exception {
-    append2asm("");
+    append_idx("");
     String type = n.f0.accept(this).getType();
     switch (type) {
       case "int[]":
@@ -136,32 +131,32 @@ public class T2_2_SEAL extends T2_Compiler {
     String rhs_name = rhs.getName();
     if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
-      append2asm("tmp = uint64_to_hex_string(");
+      append_idx("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs_name);
       this.asm_.append(");\n");
-      append2asm("encryptor.encrypt(tmp, ");
+      append_idx("encryptor.encrypt(tmp, ");
       this.asm_.append(lhs.getName()).append(")");
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
-      append2asm(lhs.getName());
+      append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
-      append2asm("for (size_t ");
+      append_idx("for (size_t ");
       this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
       this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      append2asm("tmp = uint64_to_hex_string(");
+      append_idx("tmp = uint64_to_hex_string(");
       this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
-      append2asm("encryptor.encrypt(tmp, ");
+      append_idx("encryptor.encrypt(tmp, ");
       this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
       this.indent_ -= 2;
-      append2asm("}\n");
+      append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
       // if the destination has the same type as the source.
-      append2asm(lhs.getName());
+      append_idx(lhs.getName());
       if (rhs_name.startsWith("resize(")) {
         this.asm_.append(".");
       } else {
@@ -184,11 +179,11 @@ public class T2_2_SEAL extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
-      append2asm("tmp = uint64_to_hex_string(1);\n");
-      append2asm("evaluator.add_plain_inplace(");
+      append_idx("tmp = uint64_to_hex_string(1);\n");
+      append_idx("evaluator.add_plain_inplace(");
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
-      append2asm(id.getName());
+      append_idx(id.getName());
       this.asm_.append("++");
       this.semicolon_ = true;
     }
@@ -203,11 +198,11 @@ public class T2_2_SEAL extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
-      append2asm("tmp = uint64_to_hex_string(1);\n");
-      append2asm("evaluator.sub_plain_inplace(");
+      append_idx("tmp = uint64_to_hex_string(1);\n");
+      append_idx("evaluator.sub_plain_inplace(");
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
-      append2asm(id.getName());
+      append_idx(id.getName());
       this.asm_.append("--");
       this.semicolon_ = true;
     }
@@ -226,11 +221,11 @@ public class T2_2_SEAL extends T2_Compiler {
     String lhs_type = st_.findType(lhs);
     String rhs_type = st_.findType(rhs);
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
-      append2asm(lhs.getName());
+      append_idx(lhs.getName());
       this.asm_.append(" ").append(op).append(" ");
       this.asm_.append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
-      append2asm("evaluator.");
+      append_idx("evaluator.");
       switch (op) {
         case "+=": this.asm_.append("add("); break;
         case "*=": this.asm_.append("multiply("); break;
@@ -242,11 +237,11 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(", ").append(lhs.getName()).append(")");
       if (op.equals("*=")) {
         this.asm_.append(";\n");
-        append2asm("evaluator.relinearize_inplace(");
+        append_idx("evaluator.relinearize_inplace(");
         this.asm_.append(lhs.getName()).append(", relin_keys)");
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      append2asm("evaluator.");
+      append_idx("evaluator.");
       switch (op) {
         case "+=": this.asm_.append("add_plain("); break;
         case "*=": this.asm_.append("multiply_plain("); break;
@@ -278,21 +273,21 @@ public class T2_2_SEAL extends T2_Compiler {
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
       case "int[]":
-        append2asm(id.getName());
+        append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = ");
         this.asm_.append(rhs.getName()).append(";\n");
         break;
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
-          append2asm(id.getName());
+          append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] = ");
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int")) {
-          append2asm("tmp = uint64_to_hex_string(");
+          append_idx("tmp = uint64_to_hex_string(");
           this.asm_.append(rhs.getName());
           this.asm_.append(");\n");
-          append2asm("encryptor.encrypt(tmp, ");
+          append_idx("encryptor.encrypt(tmp, ");
           this.asm_.append(id.getName()).append("[").append(idx.getName()).append("])");
           break;
         }
@@ -317,7 +312,7 @@ public class T2_2_SEAL extends T2_Compiler {
     String exp_type = st_.findType(exp);
     switch (id_type) {
       case "int[]":
-        append2asm(id.getName());
+        append_idx(id.getName());
         this.asm_.append(" = { ").append(exp.getName());
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
@@ -329,7 +324,7 @@ public class T2_2_SEAL extends T2_Compiler {
       case "EncInt":
         tmp_cnt_++;
         String tmp_vec = "tmp_vec_" + tmp_cnt_;
-        append2asm("vector<uint64_t> ");
+        append_idx("vector<uint64_t> ");
         this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
@@ -337,17 +332,17 @@ public class T2_2_SEAL extends T2_Compiler {
           }
         }
         this.asm_.append(" };\n");
-        append2asm("batch_encoder.encode(");
+        append_idx("batch_encoder.encode(");
         this.asm_.append(tmp_vec).append(", tmp);\n");
-        append2asm("encryptor.encrypt(tmp, ");
+        append_idx("encryptor.encrypt(tmp, ");
         this.asm_.append(id.getName()).append(");\n");
         break;
       case "EncInt[]":
         String exp_var;
         if (exp_type.equals("int")) {
-          exp_var = newCtxtTemp();
-          append2asm("tmp = uint64_to_hex_string(" + exp.getName() + ");\n");
-          append2asm("encryptor.encrypt(tmp, ");
+          exp_var = new_ctxt_tmp();
+          append_idx("tmp = uint64_to_hex_string(" + exp.getName() + ");\n");
+          append_idx("encryptor.encrypt(tmp, ");
           this.asm_.append(exp_var).append(");\n");
         } else { // exp type is EncInt
           exp_var = exp.getName();
@@ -357,9 +352,9 @@ public class T2_2_SEAL extends T2_Compiler {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int")) {
-              String tmp_ = newCtxtTemp();
-              append2asm("tmp = uint64_to_hex_string(" + init + ");\n");
-              append2asm("encryptor.encrypt(tmp, ");
+              String tmp_ = new_ctxt_tmp();
+              append_idx("tmp = uint64_to_hex_string(" + init + ");\n");
+              append_idx("encryptor.encrypt(tmp, ");
               this.asm_.append(tmp_).append(");\n");
               inits.add(tmp_);
             } else { // exp type is EncInt
@@ -367,7 +362,7 @@ public class T2_2_SEAL extends T2_Compiler {
             }
           }
         }
-        append2asm(id.getName());
+        append_idx(id.getName());
         this.asm_.append(" = { ").append(exp_var);
         for (String init : inits) {
           this.asm_.append(", ").append(init);
@@ -399,7 +394,7 @@ public class T2_2_SEAL extends T2_Compiler {
     String index_type = st_.findType(index);
     tmp_cnt_++;
     String tmp_vec = "tmp_vec_" + tmp_cnt_;
-    append2asm("vector<uint64_t> ");
+    append_idx("vector<uint64_t> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {
@@ -407,9 +402,9 @@ public class T2_2_SEAL extends T2_Compiler {
       }
     }
     this.asm_.append(" };\n");
-    append2asm("batch_encoder.encode(");
+    append_idx("batch_encoder.encode(");
     this.asm_.append(tmp_vec).append(", tmp);\n");
-    append2asm("encryptor.encrypt(tmp, ");
+    append_idx("encryptor.encrypt(tmp, ");
     this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
     return null;
   }
@@ -425,14 +420,14 @@ public class T2_2_SEAL extends T2_Compiler {
     String expr_type = st_.findType(expr);
     switch (expr_type) {
       case "int":
-        append2asm("cout << ");
+        append_idx("cout << ");
         this.asm_.append(expr.getName());
         this.asm_.append(" << endl;\n");
         break;
       case "EncInt":
-        append2asm("decryptor.decrypt(");
+        append_idx("decryptor.decrypt(");
         this.asm_.append(expr.getName()).append(", tmp);\n");
-        append2asm("cout << \"dec(");
+        append_idx("cout << \"dec(");
         this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
         break;
       default:
@@ -463,25 +458,25 @@ public class T2_2_SEAL extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
-      String res_ = newCtxtTemp();
-      append2asm("tmp = uint64_to_hex_string(" + lhs.getName() + ");\n");
+      String res_ = new_ctxt_tmp();
+      append_idx("tmp = uint64_to_hex_string(" + lhs.getName() + ");\n");
       switch (op) {
         case "+":
-          append2asm("evaluator.add_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          append_idx("evaluator.add_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
           break;
         case "*":
-          append2asm("evaluator.multiply_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          append_idx("evaluator.multiply_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
           break;
         case "-":
-          append2asm("encryptor.encrypt(tmp, tmp_);\n");
-          append2asm("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
+          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+          append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      String res_ = newCtxtTemp();
+      String res_ = new_ctxt_tmp();
       String op_str;
       switch (op) {
         case "+": op_str = "add_plain"; break;
@@ -490,11 +485,11 @@ public class T2_2_SEAL extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      append2asm("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
-      append2asm("evaluator." + op_str + "(" + lhs.getName() + ", tmp, " + res_ + ");\n");
+      append_idx("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
+      append_idx("evaluator." + op_str + "(" + lhs.getName() + ", tmp, " + res_ + ");\n");
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
-      String res_ = newCtxtTemp();
+      String res_ = new_ctxt_tmp();
       String op_str;
       switch (op) {
         case "+": op_str = "add"; break;
@@ -503,11 +498,11 @@ public class T2_2_SEAL extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      append2asm("evaluator." + op_str + "(" + lhs.getName() + ", " +
+      append_idx("evaluator." + op_str + "(" + lhs.getName() + ", " +
                  rhs.getName() + ", " + res_ + ");\n");
       if (op.equals("*")) {
         this.asm_.append(";\n");
-        append2asm("evaluator.relinearize_inplace(");
+        append_idx("evaluator.relinearize_inplace(");
         this.asm_.append(lhs.getName()).append(", relin_keys)");
       }
       return new Var_t("EncInt", res_);
@@ -528,10 +523,10 @@ public class T2_2_SEAL extends T2_Compiler {
     tmp_cnt_++;
     Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
     if (arr_type.equals("int[]")) {
-      append2asm("int ");
+      append_idx("int ");
       ret.setType("int");
     } else if (arr_type.equals("EncInt[]")) {
-      append2asm("Ciphertext ");
+      append_idx("Ciphertext ");
       ret.setType("EncInt");
     }
     this.asm_.append(ret.getName());
@@ -561,7 +556,6 @@ public class T2_2_SEAL extends T2_Compiler {
    */
   public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
     String size = n.f3.accept(this).getName();
-//    v.resize(5, 10);
     return new Var_t("EncInt[]", "resize(" + size + ")");
   }
 

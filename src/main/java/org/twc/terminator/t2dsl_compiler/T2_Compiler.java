@@ -18,20 +18,21 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.tmp_cnt_ = 0;
     this.st_ = st;
     this.semicolon_ = false;
+    this.asm_ = new StringBuilder();
   }
 
-  public String getASM() {
+  public String get_asm() {
     return asm_.toString();
   }
 
-  protected void append2asm(String str) {
+  protected void append_idx(String str) {
     for (int i = 0; i < this.indent_; ++i) {
       this.asm_.append(" ");
     }
     this.asm_.append(str);
   }
 
-  protected abstract String newCtxtTemp();
+  protected abstract String new_ctxt_tmp();
 
   protected abstract void append_keygen();
 
@@ -159,7 +160,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.indent_ += 2;
     n.f1.accept(this);
     this.indent_ -= 2;
-    append2asm("}\n");
+    append_idx("}\n");
     return null;
   }
 
@@ -264,7 +265,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f4 -> Statement()
    */
   public Var_t visit(IfthenStatement n) throws Exception {
-    append2asm("if (");
+    append_idx("if (");
     Var_t cond = n.f2.accept(this);
     this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
@@ -281,11 +282,11 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f6 -> Statement()
    */
   public Var_t visit(IfthenElseStatement n) throws Exception {
-    append2asm("if (");
+    append_idx("if (");
     Var_t cond = n.f2.accept(this);
     this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
-    append2asm("else");
+    append_idx("else");
     n.f6.accept(this);
     return null;
   }
@@ -298,7 +299,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f4 -> Statement()
    */
   public Var_t visit(WhileStatement n) throws Exception {
-    append2asm("while (");
+    append_idx("while (");
     Var_t cond = n.f2.accept(this);
     this.asm_.append(cond.getName()).append(")");
     n.f4.accept(this);
@@ -317,7 +318,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f8 -> Statement()
    */
   public Var_t visit(ForStatement n) throws Exception {
-    append2asm("for (");
+    append_idx("for (");
     int prev_indent = this.indent_;
     this.indent_ = 0;
     n.f2.accept(this);

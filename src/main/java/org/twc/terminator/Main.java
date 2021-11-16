@@ -1,19 +1,18 @@
 package org.twc.terminator;
 
-import org.twc.terminator.t2dsl_compiler.SymbolTableVisitor;
-import org.twc.terminator.t2dsl_compiler.T2_2_SEAL;
-import org.twc.terminator.t2dsl_compiler.TypeCheckVisitor;
-import org.twc.terminator.t2dsl_compiler.T2_Compiler;
+import org.twc.terminator.t2dsl_compiler.*;
 import org.twc.terminator.t2dsl_compiler.T2DSLparser.ParseException;
 import org.twc.terminator.t2dsl_compiler.T2DSLparser.T2DSLParser;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.Goal;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+
+enum HE_BACKEND {
+  NONE, SEAL, TFHE
+}
 
 public class Main {
-
-  private static boolean debug_ = false;
 
   public static void main(String[] args) {
     if (args.length == 0) {
@@ -21,9 +20,19 @@ public class Main {
       System.exit(-1);
     }
     ArrayList<String> input_files = new ArrayList<>();
+    HE_BACKEND backend_ = HE_BACKEND.NONE;
+    boolean debug_ = false;
+
     for (String arg : args) {
-      if (arg.toUpperCase().equals("-DEBUG") || arg.toUpperCase().equals("--DEBUG")) {
+      if (arg.equalsIgnoreCase("-DEBUG") ||
+          arg.equalsIgnoreCase("--DEBUG")) {
         debug_ = true;
+      } else if (arg.equalsIgnoreCase("-SEAL") ||
+                 arg.equalsIgnoreCase("--SEAL")) {
+        backend_ = HE_BACKEND.SEAL;
+      } else if (arg.equalsIgnoreCase("-TFHE") ||
+                 arg.equalsIgnoreCase("--TFHE")) {
+        backend_ = HE_BACKEND.TFHE;
       } else {
         input_files.add(arg);
       }
@@ -39,9 +48,9 @@ public class Main {
         System.out.println("===================================================================================");
         System.out.println("Compiling file \"" + arg + "\"");
         input_stream = new FileInputStream(arg);
-        // typechecking
-        T2DSLParser dslParser = new T2DSLParser(input_stream);
-        Goal t2dsl_goal = dslParser.Goal();
+        // Type checking.
+        new T2DSLParser(input_stream);
+        Goal t2dsl_goal = T2DSLParser.Goal();
         SymbolTableVisitor symtable_visit = new SymbolTableVisitor();
         t2dsl_goal.accept(symtable_visit);
         SymbolTable symbol_table = symtable_visit.getSymbolTable();
@@ -55,10 +64,23 @@ public class Main {
         System.out.println("[ 3/3 ] Type checking phase completed");
         System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed");
 
-        // generate SEAL code
-        T2_Compiler dsl_compiler = new T2_2_SEAL(symbol_table);
+        // Code generation.
+        T2_Compiler dsl_compiler = null;
+        switch (backend_) {
+          case NONE:
+            throw new RuntimeException("Provide a backend (e.g., -SEAL, " +
+                                       "-TFHE, ...)");
+          case SEAL:
+            dsl_compiler = new T2_2_SEAL(symbol_table);
+            break;
+          case TFHE:
+            dsl_compiler = new T2_2_TFHE(symbol_table);
+            break;
+          default:
+            throw new RuntimeException("Backend is not supported yet");
+        }
         t2dsl_goal.accept(dsl_compiler);
-        String code = dsl_compiler.getASM();
+        String code = dsl_compiler.get_asm();
         String seal_out = path + ".cpp";
         writer = new PrintWriter(seal_out);
         writer.print(code);

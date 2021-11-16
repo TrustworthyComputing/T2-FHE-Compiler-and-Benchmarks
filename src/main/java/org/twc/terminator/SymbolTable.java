@@ -1,7 +1,7 @@
 package org.twc.terminator;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SymbolTable {
 
@@ -29,10 +29,10 @@ public class SymbolTable {
 
   public boolean addVar(Var_t var) {
     if (getVar(var.getName()) != null) {
-      return false;
+      return true;
     }
     vars.add(var);
-    return true;
+    return false;
   }
 
   public void printMethod() {
