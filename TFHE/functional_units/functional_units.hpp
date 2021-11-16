@@ -71,14 +71,6 @@ void inc(LweSample* result, const LweSample* a, const size_t nb_bits,
 void eq(LweSample* result, const LweSample* a, const LweSample* b,
         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
 
-/// Comparator circuit: result = (a <= b).
-void leq(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Greater than circuit: result = (a > b)
-void gt(LweSample* result_, const LweSample* a, const LweSample* b,
-        const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
-
 /// Less than circuit: result = (a < b)
 void lt(LweSample* result_, const LweSample* a, const LweSample* b,
         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);

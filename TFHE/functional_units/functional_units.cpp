@@ -174,69 +174,25 @@ void eq(LweSample* result_, const LweSample* a, const LweSample* b,
   }
 }
 
-/// Less or equal than. result = a <= b
-void leq(LweSample* result_, const LweSample* a, const LweSample* b,
+/// Less than. result = a < b
+void lt(LweSample* result_, const LweSample* a, const LweSample* b,
          const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* n1_ = new_gate_bootstrapping_ciphertext(bk->params);
   LweSample* n2_ = new_gate_bootstrapping_ciphertext(bk->params);
   LweSample* n1_AND_n2_ = new_gate_bootstrapping_ciphertext(bk->params);
   assert(("Result ciphertext should not be any of the equality arguments",
           result_ != a && result_ != b));
-  bootsCONSTANT(result_, 0, bk);
+  bootsCONSTANT(&result_[0], 0, bk);
   for (int i = 0; i < word_sz; ++i) {
-    bootsXOR(n1_, result_, &a[i], bk);
-    bootsXOR(n2_, result_, &b[i], bk);
+    bootsXOR(n1_, &result_[0], &a[i], bk);
+    bootsXOR(n2_, &result_[0], &b[i], bk);
     bootsAND(n1_AND_n2_, n1_, n2_, bk);
-    bootsXOR(result_, n1_AND_n2_, &b[i], bk);
+    bootsXOR(&result_[0], n1_AND_n2_, &b[i], bk);
   }
 
   delete_gate_bootstrapping_ciphertext(n1_);
   delete_gate_bootstrapping_ciphertext(n2_);
   delete_gate_bootstrapping_ciphertext(n1_AND_n2_);
-}
-
-/// Less than. result = a < b
-void lt(LweSample* result_, const LweSample* a, const LweSample* b,
-         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* not_a_ = new_gate_bootstrapping_ciphertext(bk->params);
-  LweSample* tmp_ = new_gate_bootstrapping_ciphertext(bk->params);
-  LweSample* tmp_result_ = new_gate_bootstrapping_ciphertext(bk->params);
-  for (int i = 0; i < word_sz; ++i) {
-    bootsNOT(not_a_, &a[i], bk);
-    bootsAND(tmp_, not_a_, &b[i], bk);
-    if (i == 0) {
-      bootsCOPY(tmp_result_, tmp_, bk);
-    }
-    else {
-      bootsAND(tmp_result_, tmp_result_, tmp_, bk);
-    }
-  }
-  bootsCOPY(result_, tmp_result_, bk);
-  delete_gate_bootstrapping_ciphertext(not_a_);
-  delete_gate_bootstrapping_ciphertext(tmp_);
-  delete_gate_bootstrapping_ciphertext(tmp_result_);
-}
-
-/// Greater than. result = a > b
-void gt(LweSample* result_, const LweSample* a, const LweSample* b,
-         const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* not_b_ = new_gate_bootstrapping_ciphertext(bk->params);
-  LweSample* tmp_ = new_gate_bootstrapping_ciphertext(bk->params);
-  LweSample* tmp_result_ = new_gate_bootstrapping_ciphertext(bk->params);
-  for (int i = 0; i < word_sz; ++i) {
-    bootsNOT(not_b_, &b[i], bk);
-    bootsAND(tmp_, not_b_, &a[i], bk);
-    if (i == 0) {
-      bootsCOPY(tmp_result_, tmp_, bk);
-    }
-    else {
-      bootsAND(tmp_result_, tmp_result_, tmp_, bk);
-    }
-  }
-  bootsCOPY(result_, tmp_result_, bk);
-  delete_gate_bootstrapping_ciphertext(not_b_);
-  delete_gate_bootstrapping_ciphertext(tmp_);
-  delete_gate_bootstrapping_ciphertext(tmp_result_);
 }
 
 void e_not(LweSample* result, const LweSample* a, const size_t nb_bits,
