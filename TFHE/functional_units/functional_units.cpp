@@ -278,7 +278,7 @@ LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
 LweSample* e_bin_to_int(LweSample* a, uint32_t ptxt_mod,
                         const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* result = new_LweSample(bk->params->in_out_params);
-  const Torus32 mu = modSwitchToTorus32(-1, ptxt_mod);
+  const Torus32 mu = modSwitchToTorus32(1, ptxt_mod);
   tfhe_bootstrap_FFT(result, bk->bkFFT, mu, a);
   return result;
 }
@@ -317,6 +317,6 @@ void mult_plain_int(LweSample* result, const LweSample* a, int32_t p,
   for (int32_t i = 0; i < n; ++i) {
     result->a[i] = p*a->a[i];
   }
-  result->b += p*a->b;
-  result->current_variance += (p*p)*a->current_variance;
+  result->b = p*a->b;
+  result->current_variance = (p*p)*a->current_variance;
 }
