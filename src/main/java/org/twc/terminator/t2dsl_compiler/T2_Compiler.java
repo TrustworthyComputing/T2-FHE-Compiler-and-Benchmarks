@@ -453,7 +453,24 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> PrimaryExpression()
    * f3 -> "]"
    */
-  public abstract Var_t visit(ArrayLookup n) throws Exception;
+  public Var_t visit(ArrayLookup n) throws Exception {
+    Var_t arr = n.f0.accept(this);
+    Var_t idx = n.f2.accept(this);
+    String arr_type = st_.findType(arr);
+    tmp_cnt_++;
+    Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
+    if (arr_type.equals("int[]")) {
+      append_idx(this.st_.backend_types.get("int"));
+      ret.setType("int");
+    } else if (arr_type.equals("EncInt[]")) {
+      append_idx(this.st_.backend_types.get("EncInt"));
+      ret.setType("EncInt");
+    }
+    this.asm_.append(" ").append(ret.getName());
+    this.asm_.append(" = ").append(arr.getName()).append("[");
+    this.asm_.append(idx.getName()).append("];\n");
+    return ret;
+  }
 
   /**
    * f0 -> "("

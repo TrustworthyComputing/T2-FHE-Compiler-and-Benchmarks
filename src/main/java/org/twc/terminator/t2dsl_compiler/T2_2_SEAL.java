@@ -469,29 +469,4 @@ public class T2_2_SEAL extends T2_Compiler {
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
   }
 
-  /**
-   * f0 -> PrimaryExpression()
-   * f1 -> "["
-   * f2 -> PrimaryExpression()
-   * f3 -> "]"
-   */
-  public Var_t visit(ArrayLookup n) throws Exception {
-    Var_t arr = n.f0.accept(this);
-    Var_t idx = n.f2.accept(this);
-    String arr_type = st_.findType(arr);
-    tmp_cnt_++;
-    Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
-    if (arr_type.equals("int[]")) {
-      append_idx("int ");
-      ret.setType("int");
-    } else if (arr_type.equals("EncInt[]")) {
-      append_idx("Ciphertext ");
-      ret.setType("EncInt");
-    }
-    this.asm_.append(ret.getName());
-    this.asm_.append(" = ").append(arr.getName()).append("[");
-    this.asm_.append(idx.getName()).append("];\n");
-    return ret;
-  }
-
 }

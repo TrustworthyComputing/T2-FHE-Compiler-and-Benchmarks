@@ -238,7 +238,8 @@ public class T2_2_TFHE extends T2_Compiler {
         if (rhs_type.equals("EncInt")) {
           append_idx("copy(");
           this.asm_.append(id.getName()).append("[").append(idx.getName());
-          this.asm_.append("], ").append(rhs.getName()).append(", word_sz, key)");
+          this.asm_.append("], ").append(rhs.getName());
+          this.asm_.append(", word_sz, key);\n");
           break;
         } else if (rhs_type.equals("int")) {
           append_idx(id.getName());
@@ -363,17 +364,6 @@ public class T2_2_TFHE extends T2_Compiler {
     this.asm_.append("(").append(res_).append(", ").append(lhs_enc);
     this.asm_.append(", ").append(rhs_enc).append(", word_sz, &key->cloud);\n");
     return new Var_t("EncInt", res_);
-  }
-
-  /**
-   * f0 -> PrimaryExpression()
-   * f1 -> "["
-   * f2 -> PrimaryExpression()
-   * f3 -> "]"
-   */
-  public Var_t visit(ArrayLookup n) throws Exception {
-    // TODO:...
-    return null;
   }
 
 }
