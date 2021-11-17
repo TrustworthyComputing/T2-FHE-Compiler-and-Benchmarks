@@ -68,13 +68,32 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> ( VarDeclarationRest() )*
    * f3 -> ";"
    */
-  public abstract Var_t visit(VarDeclaration n) throws Exception;
+  public Var_t visit(VarDeclaration n) throws Exception {
+    append_idx("");
+    String type = n.f0.accept(this).getType();
+    this.asm_.append(this.st_.backend_types.get(type));
+    this.asm_.append(" ");
+    Var_t id = n.f1.accept(this);
+    this.asm_.append(id.getName());
+    if (n.f2.present()) {
+      for (int i = 0; i < n.f2.size(); i++) {
+        n.f2.nodes.get(i).accept(this);
+      }
+    }
+    this.asm_.append(";\n");
+    return null;
+  }
 
   /**
    * f0 -> ","
    * f1 -> Identifier()
    */
-  public abstract Var_t visit(VarDeclarationRest n) throws Exception;
+  public Var_t visit(VarDeclarationRest n) throws Exception {
+    this.asm_.append(", ");
+    Var_t id = n.f1.accept(this);
+    this.asm_.append(id.getName());
+    return null;
+  }
 
   /**
    * f0 -> ArrayType()

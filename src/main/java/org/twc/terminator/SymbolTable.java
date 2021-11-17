@@ -1,14 +1,18 @@
 package org.twc.terminator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SymbolTable {
 
   public List<Var_t> vars;
+  public Map<String, String> backend_types;
 
   public SymbolTable() {
     this.vars = new ArrayList<>();
+    this.backend_types = new HashMap<>();
   }
 
   public String findType(Var_t var) {

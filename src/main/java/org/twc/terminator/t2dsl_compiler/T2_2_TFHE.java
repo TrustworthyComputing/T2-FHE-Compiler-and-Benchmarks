@@ -11,19 +11,29 @@ public class T2_2_TFHE extends T2_Compiler {
 
   public T2_2_TFHE(SymbolTable st) {
     super(st);
+    this.st_.backend_types.put("int", "int");
+    this.st_.backend_types.put("int[]", "vector<int>");
+    this.st_.backend_types.put("EncInt", "LweSample*");
+    this.st_.backend_types.put("EncInt[]", "vector<LweSample*>");
   }
 
   protected String new_ctxt_tmp() {
     tmp_cnt_++;
     String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
-    append_idx("Ciphertext " + ctxt_tmp_ + ";\n");
+    append_idx("LweSample* " + ctxt_tmp_ + ";\n");
     return ctxt_tmp_;
   }
 
   protected void append_keygen() {
-    append_idx("ifstream cloud_key, ctxt_file;\n");
-
-    // TODO:...
+    append_idx("const size_t word_sz = 16;\n");
+    append_idx("const size_t minimum_lambda = 80;\n");
+    append_idx("TFheGateBootstrappingParameterSet* params =\n");
+    append_idx("  new_default_gate_bootstrapping_parameters(minimum_lambda);\n");
+    append_idx("uint32_t seed[] = { 314, 1592, 657 };\n");
+    append_idx("tfhe_random_generator_setSeed(seed, 3);\n");
+    append_idx("TFheGateBootstrappingSecretKeySet* key =\n");
+    append_idx("  new_random_gate_bootstrapping_secret_keyset(params);\n");
+    append_idx("LweSample* tmp, tmp_;\n\n");
   }
 
   /**
@@ -60,32 +70,61 @@ public class T2_2_TFHE extends T2_Compiler {
   }
 
   /**
-   * f0 -> Type()
-   * f1 -> Identifier()
-   * f2 -> ( VarDeclarationRest() )*
-   * f3 -> ";"
-   */
-  public Var_t visit(VarDeclaration n) throws Exception {
-    // TODO:...
-    return null;
-  }
-
-  /**
-   * f0 -> ","
-   * f1 -> Identifier()
-   */
-  public Var_t visit(VarDeclarationRest n) throws Exception {
-    // TODO:...
-    return null;
-  }
-
-  /**
    * f0 -> Identifier()
    * f1 -> "="
    * f2 -> Expression()
    */
   public Var_t visit(AssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t lhs = n.f0.accept(this);
+    String lhs_type = st_.findType(lhs);
+    Var_t rhs = n.f2.accept(this);
+    String rhs_type = st_.findType(rhs);
+    String rhs_name = rhs.getName();
+    if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      // if EncInt <- int
+      append_idx(lhs.getName());
+      this.asm_.append(" = e_client(").append(rhs_name).append(", word_sz, key)");
+      this.semicolon_ = true;
+    } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
+      // if EncInt[] <- int[]
+// TODO: ...
+
+//      tmp_cnt_++;
+//      String tmp_i = "i_" + tmp_cnt_;
+//      append_idx(lhs.getName());
+//      this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
+//      append_idx("for (size_t ");
+//      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
+//      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+//      this.asm_.append(") {\n");
+//      this.indent_ += 2;
+//      append_idx("tmp = uint64_to_hex_string(");
+//      this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
+//      append_idx("encryptor.encrypt(tmp, ");
+//      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
+//      this.indent_ -= 2;
+//      append_idx("}\n");
+    } else if (lhs_type.equals(rhs_type)) {
+      // if the destination has the same type as the source.
+      if (lhs_type.equals("int")) {
+        append_idx(lhs.getName());
+        this.asm_.append(" = ").append(rhs_name);
+      } else if (lhs_type.equals("int[]")) {
+        append_idx(lhs.getName());
+        this.asm_.append(".");
+        this.asm_.append(rhs_name);
+      } else if (lhs_type.equals("EncInt")) {
+        append_idx("copy(");
+        this.asm_.append(lhs.getName()).append(", ").append(rhs_name);
+        this.asm_.append(", word_sz, key)");
+      } else if (lhs_type.equals("EncInt[]")) {
+        // TODO: ...
+      }
+      this.semicolon_ = true;
+    } else {
+      throw new Exception("Error assignment statement between different " +
+                          "types: " + lhs_type + ", " + rhs_type);
+    }
     return null;
   }
 
@@ -94,7 +133,16 @@ public class T2_2_TFHE extends T2_Compiler {
    * f1 -> "++"
    */
   public Var_t visit(IncrementAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    if (id_type.equals("EncInt")) {
+      append_idx("inc_inplace(");
+      this.asm_.append(id.getName()).append(", word_sz, &key->cloud);\n");
+    } else {
+      append_idx(id.getName());
+      this.asm_.append("++");
+      this.semicolon_ = true;
+    }
     return null;
   }
 
@@ -103,7 +151,16 @@ public class T2_2_TFHE extends T2_Compiler {
    * f1 -> "--"
    */
   public Var_t visit(DecrementAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    if (id_type.equals("EncInt")) {
+      append_idx("dec_inplace(");
+      this.asm_.append(id.getName()).append(", word_sz, &key->cloud);\n");
+    } else {
+      append_idx(id.getName());
+      this.asm_.append("--");
+      this.semicolon_ = true;
+    }
     return null;
   }
 
@@ -176,8 +233,55 @@ public class T2_2_TFHE extends T2_Compiler {
    * f2 -> PrimaryExpression()
    */
   public Var_t visit(BinaryExpression n) throws Exception {
-    // TODO:...
-    return null;
+    Var_t lhs = n.f0.accept(this);
+    String op = n.f1.accept(this).getName();
+    Var_t rhs = n.f2.accept(this);
+    String lhs_type = st_.findType(lhs);
+    String rhs_type = st_.findType(rhs);
+    String lhs_enc = null, rhs_enc = null;
+    if (lhs_type.equals("int") && rhs_type.equals("int")) {
+      if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
+          ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
+          "/".equals(op) || "%".equals(op)
+      ) {
+        return new Var_t("int", lhs.getName() + op + rhs.getName());
+      } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
+              "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
+        return new Var_t("bool", lhs.getName() + op + rhs.getName());
+      } else {
+        throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+    } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+      lhs_enc = new_ctxt_tmp();
+      append_idx(lhs_enc);
+      this.asm_.append(" = e_cloud(").append(lhs.getName());
+      this.asm_.append(", word_sz, &key->cloud);\n");
+      rhs_enc = rhs.getName();
+    } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      lhs_enc = lhs.getName();
+      rhs_enc = new_ctxt_tmp();
+      append_idx(rhs_enc);
+      this.asm_.append(" = e_cloud(").append(rhs.getName());
+      this.asm_.append(", word_sz, &key->cloud);\n");
+    } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+      lhs_enc = lhs.getName();
+      rhs_enc = rhs.getName();
+    } else {
+      throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+    }
+    String res_ = new_ctxt_tmp();
+    String op_str;
+    switch (op) {
+      case "+": op_str = "add"; break;
+      case "*": op_str = "mult"; break;
+      case "-": op_str = "sub"; break;
+      default:
+        throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+    }
+    append_idx(op_str);
+    this.asm_.append("(").append(res_).append(", ").append(lhs_enc);
+    this.asm_.append(", ").append(rhs_enc).append(", word_sz, &key->cloud);\n");
+    return new Var_t("EncInt", res_);
   }
 
   /**

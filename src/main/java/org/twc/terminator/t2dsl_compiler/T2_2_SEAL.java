@@ -11,6 +11,10 @@ public class T2_2_SEAL extends T2_Compiler {
 
   public T2_2_SEAL(SymbolTable st) {
     super(st);
+    this.st_.backend_types.put("int", "int");
+    this.st_.backend_types.put("int[]", "vector<int>");
+    this.st_.backend_types.put("EncInt", "Ciphertext");
+    this.st_.backend_types.put("EncInt[]", "vector<Ciphertext>");
   }
 
   protected String new_ctxt_tmp() {
@@ -70,51 +74,6 @@ public class T2_2_SEAL extends T2_Compiler {
     append_idx("return ");
     Var_t ret = n.f9.accept(this);
     this.asm_.append(ret.getName()).append(";\n}");
-    return null;
-  }
-
-  /**
-   * f0 -> Type()
-   * f1 -> Identifier()
-   * f2 -> ( VarDeclarationRest() )*
-   * f3 -> ";"
-   */
-  public Var_t visit(VarDeclaration n) throws Exception {
-    append_idx("");
-    String type = n.f0.accept(this).getType();
-    switch (type) {
-      case "int[]":
-        this.asm_.append("vector<int>");
-        break;
-      case "EncInt":
-        this.asm_.append("Ciphertext");
-        break;
-      case "EncInt[]":
-        this.asm_.append("vector<Ciphertext>");
-        break;
-      default:
-        this.asm_.append(type);
-    }
-    this.asm_.append(" ");
-    Var_t id = n.f1.accept(this);
-    this.asm_.append(id.getName());
-    if (n.f2.present()) {
-      for (int i = 0; i < n.f2.size(); i++) {
-        n.f2.nodes.get(i).accept(this);
-      }
-    }
-    this.asm_.append(";\n");
-    return null;
-  }
-
-  /**
-   * f0 -> ","
-   * f1 -> Identifier()
-   */
-  public Var_t visit(VarDeclarationRest n) throws Exception {
-    this.asm_.append(", ");
-    Var_t id = n.f1.accept(this);
-    this.asm_.append(id.getName());
     return null;
   }
 
