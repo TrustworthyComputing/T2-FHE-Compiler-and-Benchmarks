@@ -87,38 +87,40 @@ public class T2_2_TFHE extends T2_Compiler {
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
-// TODO: ...
-
-//      tmp_cnt_++;
-//      String tmp_i = "i_" + tmp_cnt_;
-//      append_idx(lhs.getName());
-//      this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
-//      append_idx("for (size_t ");
-//      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-//      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
-//      this.asm_.append(") {\n");
-//      this.indent_ += 2;
-//      append_idx("tmp = uint64_to_hex_string(");
-//      this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
-//      append_idx("encryptor.encrypt(tmp, ");
-//      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
-//      this.indent_ -= 2;
-//      append_idx("}\n");
+      tmp_cnt_++;
+      String tmp_i = "i_" + tmp_cnt_;
+      append_idx(lhs.getName());
+      this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
+      append_idx("for (size_t ");
+      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(") {\n");
+      this.indent_ += 2;
+      append_idx(lhs.getName());
+      this.asm_.append("[").append(tmp_i).append("] = e_cloud(");
+      this.asm_.append(rhs_name).append("[").append(tmp_i).append("], ");
+      this.asm_.append("word_sz, &key->cloud);\n");
+      this.indent_ -= 2;
+      append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
       // if the destination has the same type as the source.
-      if (lhs_type.equals("int")) {
-        append_idx(lhs.getName());
-        this.asm_.append(" = ").append(rhs_name);
-      } else if (lhs_type.equals("int[]")) {
-        append_idx(lhs.getName());
-        this.asm_.append(".");
-        this.asm_.append(rhs_name);
-      } else if (lhs_type.equals("EncInt")) {
-        append_idx("copy(");
-        this.asm_.append(lhs.getName()).append(", ").append(rhs_name);
-        this.asm_.append(", word_sz, key)");
-      } else if (lhs_type.equals("EncInt[]")) {
-        // TODO: ...
+      switch (lhs_type) {
+        case "int":
+        case "int[]":
+        case "EncInt[]":
+          append_idx(lhs.getName());
+          if (rhs_name.startsWith("resize(")) {
+            this.asm_.append(".");
+          } else {
+            this.asm_.append(" = ");
+          }
+          this.asm_.append(rhs_name);
+          break;
+        case "EncInt":
+          append_idx("copy(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs_name);
+          this.asm_.append(", word_sz, key)");
+          break;
       }
       this.semicolon_ = true;
     } else {
@@ -170,7 +172,44 @@ public class T2_2_TFHE extends T2_Compiler {
    * f2 -> Expression()
    */
   public Var_t visit(CompoundAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t lhs = n.f0.accept(this);
+    String op = n.f1.accept(this).getName();
+    Var_t rhs = n.f2.accept(this);
+    String lhs_type = st_.findType(lhs);
+    String rhs_type = st_.findType(rhs);
+    if (lhs_type.equals("int") && rhs_type.equals("int")) {
+      append_idx(lhs.getName());
+      this.asm_.append(" ").append(op).append(" ");
+      this.asm_.append(rhs.getName());
+    } else if (lhs_type.equals("EncInt")) {
+      String rhs_enc = null;
+      switch (rhs_type) {
+        case "int":
+          rhs_enc = new_ctxt_tmp();
+          append_idx(rhs_enc);
+          this.asm_.append(" = e_cloud(").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud);\n");
+          break;
+        case "EncInt":
+          rhs_enc = rhs.getName();
+          break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      switch (op) {
+        case "+=": append_idx("add"); break;
+        case "*=": append_idx("mult"); break;
+        case "-=": append_idx("sub"); break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      this.asm_.append("(").append(lhs.getName()).append(", ");
+      this.asm_.append(lhs.getName()).append(", ").append(rhs_enc);
+      this.asm_.append(", word_sz, &key->cloud)");
+    } else {
+      throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+    }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -223,7 +262,23 @@ public class T2_2_TFHE extends T2_Compiler {
    * f3 -> ")"
    */
   public Var_t visit(PrintStatement n) throws Exception {
-    // TODO:...
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    switch (expr_type) {
+      case "int":
+        append_idx("cout << ");
+        this.asm_.append(expr.getName());
+        this.asm_.append(" << endl;\n");
+        break;
+      case "EncInt":
+        append_idx("tmp = d_client(word_sz, ");
+        this.asm_.append(expr.getName()).append(", key);\n");
+        append_idx("cout << \"dec(");
+        this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
+        break;
+      default:
+        throw new Exception("Bad type for print statement");
+    }
     return null;
   }
 
