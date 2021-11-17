@@ -329,6 +329,7 @@ public class T2_2_SEAL extends T2_Compiler {
         this.asm_.append(" };\n");
         break;
       default:
+        throw new Exception("Bad operand types: " + id.getName() + " " + exp_type);
     }
     return null;
   }

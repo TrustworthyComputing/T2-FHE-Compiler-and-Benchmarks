@@ -13,8 +13,8 @@ public class T2_2_TFHE extends T2_Compiler {
     super(st);
     this.st_.backend_types.put("int", "int");
     this.st_.backend_types.put("int[]", "vector<int>");
-    this.st_.backend_types.put("EncInt", "LweSample*");
-    this.st_.backend_types.put("EncInt[]", "vector<LweSample*>");
+    this.st_.backend_types.put("EncInt", "vector<LweSample*>");
+    this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }
 
   protected String new_ctxt_tmp() {
@@ -262,7 +262,59 @@ public class T2_2_TFHE extends T2_Compiler {
    * f5 -> "}"
    */
   public Var_t visit(BatchAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t exp = n.f3.accept(this);
+    String exp_type = st_.findType(exp);
+    boolean is_array = false;
+    switch (id_type) {
+      case "int[]":
+        append_idx(id.getName());
+        this.asm_.append(" = { ").append(exp.getName());
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+          }
+        }
+        this.asm_.append(" };\n");
+        return null;
+      case "EncInt":
+        break;
+      case "EncInt[]":
+        is_array = true;
+        break;
+      default:
+        throw new Exception("Bad operand types: " + id.getName() + " " + exp_type);
+    }
+
+    tmp_cnt_++;
+    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    append_idx("vector<uint64_t> ");
+    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+    if (n.f4.present()) {
+      for (int i = 0; i < n.f4.size(); i++) {
+        this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+      }
+    }
+    this.asm_.append(" };\n");
+    String tmp_i = "i_" + tmp_cnt_;
+    append_idx(id.getName());
+    this.asm_.append(".resize(").append(tmp_vec).append(".size());\n");
+    append_idx("for (size_t ");
+    this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
+    this.asm_.append(tmp_vec).append(".size(); ++").append(tmp_i);
+    this.asm_.append(") {\n");
+    this.indent_ += 2;
+    append_idx(id.getName());
+    this.asm_.append("[").append(tmp_i).append("] = ");
+    if (is_array) this.asm_.append("{ ");
+    this.asm_.append("e_client(");
+    this.asm_.append(tmp_vec).append("[").append(tmp_i);
+    this.asm_.append("], word_sz, key)");
+    if (is_array) this.asm_.append(" }");
+    this.asm_.append(";\n");
+    this.indent_ -= 2;
+    append_idx("}\n");
     return null;
   }
 

@@ -27,7 +27,5 @@ int main(void) {
     }
   }
 
-  enc_sum_ += (enc_num_ == 2);
-
   return 0;
 }
