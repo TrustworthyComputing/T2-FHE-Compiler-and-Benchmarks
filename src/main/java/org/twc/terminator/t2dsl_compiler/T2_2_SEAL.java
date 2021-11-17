@@ -247,7 +247,7 @@ public class T2_2_SEAL extends T2_Compiler {
           this.asm_.append(rhs.getName());
           this.asm_.append(");\n");
           append_idx("encryptor.encrypt(tmp, ");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("])");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
           break;
         }
       default:
@@ -492,30 +492,6 @@ public class T2_2_SEAL extends T2_Compiler {
     this.asm_.append(" = ").append(arr.getName()).append("[");
     this.asm_.append(idx.getName()).append("];\n");
     return ret;
-  }
-
-  /**
-   * f0 -> "new"
-   * f1 -> "int"
-   * f2 -> "["
-   * f3 -> Expression()
-   * f4 -> "]"
-   */
-  public Var_t visit(ArrayAllocationExpression n) throws Exception {
-    String size = n.f3.accept(this).getName();
-    return new Var_t("int[]", "resize(" + size + ")");
-  }
-
-  /**
-   * f0 -> "new"
-   * f1 -> "EncInt"
-   * f2 -> "["
-   * f3 -> Expression()
-   * f4 -> "]"
-   */
-  public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
-    String size = n.f3.accept(this).getName();
-    return new Var_t("EncInt[]", "resize(" + size + ")");
   }
 
 }

@@ -530,7 +530,10 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> Expression()
    * f4 -> "]"
    */
-  public abstract Var_t visit(ArrayAllocationExpression n) throws Exception;
+  public Var_t visit(ArrayAllocationExpression n) throws Exception {
+    String size = n.f3.accept(this).getName();
+    return new Var_t("int[]", "resize(" + size + ")");
+  }
 
   /**
    * f0 -> "new"
@@ -539,7 +542,10 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> Expression()
    * f4 -> "]"
    */
-  public abstract Var_t visit(EncryptedArrayAllocationExpression n) throws Exception;
+  public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
+    String size = n.f3.accept(this).getName();
+    return new Var_t("EncInt[]", "resize(" + size + ")");
+  }
 
   /**
    * f0 -> "!"

@@ -222,7 +222,33 @@ public class T2_2_TFHE extends T2_Compiler {
    * f5 -> Expression()
    */
   public Var_t visit(ArrayAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t idx = n.f2.accept(this);
+    String idx_type = st_.findType(idx);
+    Var_t rhs = n.f5.accept(this);
+    String rhs_type = st_.findType(rhs);
+    switch (id_type) {
+      case "int[]":
+        append_idx(id.getName());
+        this.asm_.append("[").append(idx.getName()).append("] = ");
+        this.asm_.append(rhs.getName()).append(";\n");
+        break;
+      case "EncInt[]":
+        if (rhs_type.equals("EncInt")) {
+          append_idx("copy(");
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName()).append(", word_sz, key)");
+          break;
+        } else if (rhs_type.equals("int")) {
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("] = e_cloud(");
+          this.asm_.append(rhs.getName()).append(", word_sz, &key->cloud);\n");
+          break;
+        }
+      default:
+        throw new Exception("error in array assignment");
+    }
     return null;
   }
 
@@ -346,30 +372,6 @@ public class T2_2_TFHE extends T2_Compiler {
    * f3 -> "]"
    */
   public Var_t visit(ArrayLookup n) throws Exception {
-    // TODO:...
-    return null;
-  }
-
-  /**
-   * f0 -> "new"
-   * f1 -> "int"
-   * f2 -> "["
-   * f3 -> Expression()
-   * f4 -> "]"
-   */
-  public Var_t visit(ArrayAllocationExpression n) throws Exception {
-    // TODO:...
-    return null;
-  }
-
-  /**
-   * f0 -> "new"
-   * f1 -> "EncInt"
-   * f2 -> "["
-   * f3 -> Expression()
-   * f4 -> "]"
-   */
-  public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
     // TODO:...
     return null;
   }
