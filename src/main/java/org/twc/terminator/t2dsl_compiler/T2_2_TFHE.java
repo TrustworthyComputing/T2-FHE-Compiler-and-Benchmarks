@@ -17,13 +17,6 @@ public class T2_2_TFHE extends T2_Compiler {
     this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }
 
-  protected String new_ctxt_tmp() {
-    tmp_cnt_++;
-    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
-    append_idx("LweSample* " + ctxt_tmp_ + ";\n");
-    return ctxt_tmp_;
-  }
-
   protected void append_keygen() {
     append_idx("const size_t word_sz = 16;\n");
     append_idx("const size_t minimum_lambda = 80;\n");
@@ -425,6 +418,9 @@ public class T2_2_TFHE extends T2_Compiler {
       case "+": op_str = "add"; break;
       case "*": op_str = "mult"; break;
       case "-": op_str = "sub"; break;
+      case "==": op_str = "eq"; break;
+      case "<": op_str = "lt"; break;
+      case "<=": op_str = "leq"; break;
       default:
         throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }

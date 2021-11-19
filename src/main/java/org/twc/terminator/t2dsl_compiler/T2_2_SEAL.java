@@ -17,13 +17,6 @@ public class T2_2_SEAL extends T2_Compiler {
     this.st_.backend_types.put("EncInt[]", "vector<Ciphertext>");
   }
 
-  protected String new_ctxt_tmp() {
-    tmp_cnt_++;
-    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
-    append_idx("Ciphertext " + ctxt_tmp_ + ";\n");
-    return ctxt_tmp_;
-  }
-
   protected void append_keygen() {
     append_idx("size_t poly_modulus_degree = 16384;\n");
     append_idx("size_t plaintext_modulus = 20;\n");

@@ -32,7 +32,13 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_.append(str);
   }
 
-  protected abstract String new_ctxt_tmp();
+  protected String new_ctxt_tmp() {
+    tmp_cnt_++;
+    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
+    append_idx(this.st_.backend_types.get("EncInt"));
+    this.asm_.append(" ").append(ctxt_tmp_).append(";\n");
+    return ctxt_tmp_;
+  }
 
   protected abstract void append_keygen();
 
