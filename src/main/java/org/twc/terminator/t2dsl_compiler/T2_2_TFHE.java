@@ -266,55 +266,52 @@ public class T2_2_TFHE extends T2_Compiler {
     String id_type = st_.findType(id);
     Var_t exp = n.f3.accept(this);
     String exp_type = st_.findType(exp);
-    boolean is_array = false;
-    switch (id_type) {
-      case "int[]":
-        append_idx(id.getName());
-        this.asm_.append(" = { ").append(exp.getName());
-        if (n.f4.present()) {
-          for (int i = 0; i < n.f4.size(); i++) {
-            this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
-          }
+    if ("int[]".equals(id_type)) {
+      append_idx(id.getName());
+      this.asm_.append(" = { ").append(exp.getName());
+      if (n.f4.present()) {
+        for (int i = 0; i < n.f4.size(); i++) {
+          this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
         }
-        this.asm_.append(" };\n");
-        return null;
-      case "EncInt":
-        break;
-      case "EncInt[]":
-        is_array = true;
-        break;
-      default:
+      }
+      this.asm_.append(" };\n");
+      return null;
+    } else {
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<uint64_t> ");
+      this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+      if (n.f4.present()) {
+        for (int i = 0; i < n.f4.size(); i++) {
+          this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+        }
+      }
+      this.asm_.append(" };\n");
+      append_idx(id.getName());
+      if ("EncInt".equals(id_type)) {
+        this.asm_.append(" = ");
+        this.asm_.append("e_client(");
+        this.asm_.append(tmp_vec).append(", word_sz, key);\n");
+      } else if ("EncInt[]".equals(id_type)) {
+        String tmp_i = "i_" + tmp_cnt_;
+        this.asm_.append(".resize(").append(tmp_vec).append(".size());\n");
+        append_idx("for (size_t ");
+        this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
+        this.asm_.append(tmp_vec).append(".size(); ++").append(tmp_i);
+        this.asm_.append(") {\n");
+        this.indent_ += 2;
+        append_idx(id.getName());
+        this.asm_.append("[").append(tmp_i).append("] = ");
+        this.asm_.append("e_client(");
+        this.asm_.append(tmp_vec).append("[").append(tmp_i);
+        this.asm_.append("], word_sz, key)");
+        this.asm_.append(";\n");
+        this.indent_ -= 2;
+        append_idx("}\n");
+      } else {
         throw new Exception("Bad operand types: " + id.getName() + " " + exp_type);
-    }
-
-    tmp_cnt_++;
-    String tmp_vec = "tmp_vec_" + tmp_cnt_;
-    append_idx("vector<uint64_t> ");
-    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
-    if (n.f4.present()) {
-      for (int i = 0; i < n.f4.size(); i++) {
-        this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
       }
     }
-    this.asm_.append(" };\n");
-    String tmp_i = "i_" + tmp_cnt_;
-    append_idx(id.getName());
-    this.asm_.append(".resize(").append(tmp_vec).append(".size());\n");
-    append_idx("for (size_t ");
-    this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-    this.asm_.append(tmp_vec).append(".size(); ++").append(tmp_i);
-    this.asm_.append(") {\n");
-    this.indent_ += 2;
-    append_idx(id.getName());
-    this.asm_.append("[").append(tmp_i).append("] = ");
-    if (is_array) this.asm_.append("{ ");
-    this.asm_.append("e_client(");
-    this.asm_.append(tmp_vec).append("[").append(tmp_i);
-    this.asm_.append("], word_sz, key)");
-    if (is_array) this.asm_.append(" }");
-    this.asm_.append(";\n");
-    this.indent_ -= 2;
-    append_idx("}\n");
     return null;
   }
 
@@ -330,7 +327,26 @@ public class T2_2_TFHE extends T2_Compiler {
    * f8 -> "}"
    */
   public Var_t visit(BatchArrayAssignmentStatement n) throws Exception {
-    // TODO:...
+    Var_t id = n.f0.accept(this);
+    Var_t index = n.f2.accept(this);
+    Var_t exp = n.f6.accept(this);
+    String id_type = st_.findType(id);
+    assert(id_type.equals("EncInt[]"));
+    String index_type = st_.findType(index);
+    tmp_cnt_++;
+    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    append_idx("vector<uint64_t> ");
+    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+    if (n.f7.present()) {
+      for (int i = 0; i < n.f7.size(); i++) {
+        this.asm_.append(", ").append((n.f7.nodes.get(i).accept(this)).getName());
+      }
+    }
+    this.asm_.append(" };\n");
+    append_idx(id.getName());
+    this.asm_.append("[").append(index.getName()).append("] = ");
+    this.asm_.append("e_client(");
+    this.asm_.append(tmp_vec).append(", word_sz, key);\n");
     return null;
   }
 
