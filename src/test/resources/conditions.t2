@@ -27,6 +27,9 @@ int main(void) {
   enc_sum_ = (enc_num_ <= 3);
   enc_sum_ = (5 < enc_num_);
 
+  i = (x == 100) ? 1 : 2;
+  enc_sum_ = (enc_num_ == 100) ? 10 : 20;
+
 //  if (enc_num_ == 100) { // Should error out.
 //    enc_num_++;
 //  }

@@ -487,15 +487,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f5 -> ":"
    * f6 -> Expression()
    */
-  public Var_t visit(TernaryExpression n) throws Exception {
-    this.asm_.append("(");
-    n.f1.accept(this);
-    this.asm_.append(") ?");
-    n.f4.accept(this);
-    this.asm_.append(" : ");
-    n.f6.accept(this);
-    return null;
-  }
+  public abstract Var_t visit(TernaryExpression n) throws Exception ;
 
   /**
    * f0 -> NotExpression()

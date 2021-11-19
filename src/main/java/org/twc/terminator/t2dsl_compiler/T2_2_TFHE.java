@@ -430,4 +430,45 @@ public class T2_2_TFHE extends T2_Compiler {
     return new Var_t("EncInt", res_);
   }
 
+  /**
+   * f0 -> "("
+   * f1 -> Expression()
+   * f2 -> ")"
+   * f3 -> "?"
+   * f4 -> Expression()
+   * f5 -> ":"
+   * f6 -> Expression()
+   */
+  public Var_t visit(TernaryExpression n) throws Exception {
+    Var_t cond = n.f1.accept(this);
+    Var_t exp_1 = n.f4.accept(this);
+    Var_t exp_2 = n.f6.accept(this);
+    String cond_type = st_.findType(cond);
+    String exp_1_type = st_.findType(exp_1);
+    String exp_2_type = st_.findType(exp_2);
+    if (!exp_1_type.equals(exp_2_type)) {
+      throw new RuntimeException(exp_1_type + " is not equal to" + exp_2_type +
+                                 " in ternary expression");
+    }
+    String res_ = new_ctxt_tmp();
+    switch (cond_type) {
+      case "bool":
+      case "int":
+        append_idx(res_);
+        this.asm_.append(" = (").append(cond.getName()).append(") ? ");
+        this.asm_.append(exp_1.getName()).append(" : ").append(exp_2.getName());
+        this.asm_.append(";\n");
+        return new Var_t(exp_1_type, res_);
+      case "EncInt":
+        append_idx(res_);
+        this.asm_.append(" = mux(").append(cond.getName()).append(", ");
+        this.asm_.append(exp_1.getName()).append(", ").append(exp_2.getName());
+        this.asm_.append(");\n");
+        return new Var_t("EncInt", res_);
+      default:
+        throw new RuntimeException("condition in ternary should be either " +
+                                    "bool or EncInt but it is of type " + cond_type);
+    }
+  }
+
 }
