@@ -9,16 +9,12 @@ int main(void) {
   }
   enc_sum_ = enc_num_;
 
-//  if (enc_num_ == 100) { // Should error out.
-//    enc_num_++;
-//  }
-
   x++;
   while (x < 10) {
     enc_sum_++;
     x++;
   }
-  
+
   for (i = 0; i < 5; i++) {
     for (j = 0; j < 3; j++) {
       x += 3;
@@ -26,6 +22,14 @@ int main(void) {
       enc_sum_ += enc_num_;
     }
   }
+
+  enc_sum_ = (enc_num_ == enc_num_);
+  enc_sum_ = (enc_num_ <= 3);
+  enc_sum_ = (5 < enc_num_);
+
+//  if (enc_num_ == 100) { // Should error out.
+//    enc_num_++;
+//  }
 
   return 0;
 }

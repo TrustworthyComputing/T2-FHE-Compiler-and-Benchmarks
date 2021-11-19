@@ -431,39 +431,102 @@ public class T2_2_SEAL extends T2_Compiler {
           append_idx("encryptor.encrypt(tmp, tmp_);\n");
           append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
           break;
+        case "==":
+          append_idx(res_);
+          this.asm_.append(" = eq_plain(evaluator, ").append(rhs.getName());
+          this.asm_.append(", tmp, plaintext_modulus);\n");
+          break;
+        case "<":
+          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+          append_idx(res_);
+          this.asm_.append(" = lt(evaluator, tmp_, ");
+          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+          break;
+        case "<=":
+          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+          append_idx(res_);
+          this.asm_.append(" = leq(evaluator, tmp_, ");
+          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       String res_ = new_ctxt_tmp();
-      String op_str;
+      append_idx("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
       switch (op) {
-        case "+": op_str = "add_plain"; break;
-        case "*": op_str = "multiply_plain"; break;
-        case "-": op_str = "sub_plain"; break;
+        case "+":
+          append_idx("evaluator.add_plain(");
+          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          break;
+        case "*":
+          append_idx("evaluator.multiply_plain(");
+          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          break;
+        case "-":
+          append_idx("evaluator.sub_plain(");
+          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          break;
+        case "==":
+          append_idx(res_);
+          this.asm_.append(" = eq_plain(evaluator, ").append(lhs.getName());
+          this.asm_.append(", tmp, plaintext_modulus);\n");
+          break;
+        case "<":
+          append_idx(res_);
+          this.asm_.append(" = lt_plain(evaluator, ").append(lhs.getName());
+          this.asm_.append(", tmp, plaintext_modulus);\n");
+          break;
+        case "<=":
+          append_idx(res_);
+          this.asm_.append(" = leq_plain(evaluator, ").append(lhs.getName());
+          this.asm_.append(", tmp, plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      append_idx("tmp = uint64_to_hex_string(" + rhs.getName() + ");\n");
-      append_idx("evaluator." + op_str + "(" + lhs.getName() + ", tmp, " + res_ + ");\n");
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
-      String op_str;
       switch (op) {
-        case "+": op_str = "add"; break;
-        case "*": op_str = "multiply"; break;
-        case "-": op_str = "sub"; break;
+        case "+":
+          append_idx("evaluator.add(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", ").append(res_).append(");\n");
+          break;
+        case "*":
+          append_idx("evaluator.multiply(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", ").append(res_).append(");\n");
+          append_idx("evaluator.relinearize_inplace(");
+          this.asm_.append(res_).append(", relin_keys);\n");
+          break;
+        case "-":
+          append_idx("evaluator.sub(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", ").append(res_).append(");\n");
+          break;
+        case "==":
+          append_idx(res_);
+          this.asm_.append(" = eq(evaluator, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName());
+          this.asm_.append(", plaintext_modulus);\n");
+          break;
+        case "<":
+          append_idx(res_);
+          this.asm_.append(" = lt(evaluator, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName());
+          this.asm_.append(", plaintext_modulus);\n");
+          break;
+        case "<=":
+          append_idx(res_);
+          this.asm_.append(" = leq(evaluator, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName());
+          this.asm_.append(", plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-      }
-      append_idx("evaluator." + op_str + "(" + lhs.getName() + ", " +
-                 rhs.getName() + ", " + res_ + ");\n");
-      if (op.equals("*")) {
-        this.asm_.append(";\n");
-        append_idx("evaluator.relinearize_inplace(");
-        this.asm_.append(lhs.getName()).append(", relin_keys)");
       }
       return new Var_t("EncInt", res_);
     }
