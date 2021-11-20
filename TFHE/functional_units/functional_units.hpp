@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cassert>
 #include <chrono>
+#include <vector>
+#include <algorithm>
 
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
@@ -28,112 +30,137 @@ typedef enum rotation_t { LEFT = 0, RIGHT } rotation_t;
 
 /// CLIENT FUNCTIONS
 
-/// Encrypt a number with the secret key. Return result = Enc(ptxt_val).
-LweSample* e_client(uint32_t ptxt_val, size_t word_sz,
+/// Encrypt a number (or vec) with the secret key. Return result = Enc(ptxt_val).
+std::vector<LweSample*> e_client(std::vector<uint32_t> ptxt_val, size_t word_sz,
+                    const TFheGateBootstrappingSecretKeySet* sk);
+
+std::vector<LweSample*> e_client(uint32_t ptxt_val, size_t word_sz,
                     const TFheGateBootstrappingSecretKeySet* sk);
 
 /// Decrypt a ciphertext with the secret key. Return result = Dec(ctxt)
-uint32_t d_client(size_t word_sz, const LweSample* ctxt,
+std::vector<uint32_t> d_client(size_t word_sz, const std::vector<LweSample*> ctxt,
                   const TFheGateBootstrappingSecretKeySet* sk);
 
 
 /// MISCELLANEOUS
 
 /// Encode a number with the cloud key. Return result = Encode(ptxt_val).
-LweSample* e_cloud(uint32_t ptxt_val, size_t word_sz,
+std::vector<LweSample*> e_cloud(std::vector<uint32_t> ptxt_val, size_t word_sz,
+                    const TFheGateBootstrappingCloudKeySet* bk);
+
+std::vector<LweSample*> e_cloud(uint32_t ptxt_val, size_t word_sz,
                    const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Rotate ciphertext array to the left or right by amt.
-void rotate_inplace(LweSample* result, rotation_t dir, int amt,
+void rotate_inplace(std::vector<LweSample*> result, rotation_t dir, int amt,
                     const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk);
 
 /// ARITHMETIC CIRCUITS
 
 /// Adder circuit: result = a + b.
-void add(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+void add(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+         const std::vector<LweSample*> b, const size_t nb_bits,
+         const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Subtracter circuit: result = a - b.
-void sub(LweSample* result, const LweSample* a, const LweSample* b, const int nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+void sub(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+         const std::vector<LweSample*> b, const int nb_bits,
+         const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Multiplier circuit: result = a * b.
-void mult(LweSample* result, const LweSample* a, const LweSample* b,
-          const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+void mult(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+          const std::vector<LweSample*> b, const size_t nb_bits,
+          const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Incrementer circuit: result = a + 1.
-void inc(LweSample* result, const LweSample* a, const size_t nb_bits,
-         const TFheGateBootstrappingCloudKeySet* bk);
+void inc(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
 /// COMPARISONS
 
 /// Equality circuit: result = (a == b).
-void eq(LweSample* result, const LweSample* a, const LweSample* b,
-        const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
+void eq(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+        const std::vector<LweSample*> b, const size_t word_sz,
+        const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Less than circuit: result = (a < b)
-void lt(LweSample* result_, const LweSample* a, const LweSample* b,
-        const size_t word_sz, const TFheGateBootstrappingCloudKeySet* bk);
+void lt(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
+        const std::vector<LweSample*> b, const size_t word_sz,
+        const TFheGateBootstrappingCloudKeySet* bk);
 
 /// BITWISE
 
-void e_not(LweSample* result, const LweSample* a, const size_t nb_bits,
-         const TFheGateBootstrappingCloudKeySet* bk);
+void e_not(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
-void e_and(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_or(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_nand(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_nor(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_xor(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_xnor(LweSample* result, const LweSample* a, const LweSample* b,
-         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
-
-void e_mux(LweSample* result, const LweSample* a, const LweSample* b,
-           const LweSample* c, const size_t nb_bits,
+void e_and(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+           const std::vector<LweSample*> b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_or(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+          const std::vector<LweSample*> b, const size_t nb_bits,
+          const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_nand(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+            const std::vector<LweSample*> b, const size_t nb_bits,
+            const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_nor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+           const std::vector<LweSample*> b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_xor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+           const std::vector<LweSample*> b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_xnor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+            const std::vector<LweSample*> b, const size_t nb_bits,
+            const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_mux(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+           const std::vector<LweSample*> b, const std::vector<LweSample*> c,
+           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
 /// INTEGER DOMAIN
 
 /// Encrypt integer as a single ciphertext.
-LweSample* e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
+std::vector<LweSample*> e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
                         const TFheGateBootstrappingSecretKeySet* sk);
 
 /// Decrypt an integer ciphertext with the secret key. Return result = Dec(ctxt)
-uint32_t d_client_int(uint32_t ptxt_mod, const LweSample* ctxt,
-                  const TFheGateBootstrappingSecretKeySet* sk);
+std::vector<uint32_t> d_client_int(uint32_t ptxt_mod,
+                                   const std::vector<LweSample*> ctxt,
+                                   const TFheGateBootstrappingSecretKeySet* sk);
 
 /// Encode integer as a single noiseless ciphertext.
-LweSample* e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
-                 const TFheGateBootstrappingCloudKeySet* bk);
+std::vector<LweSample*> e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
+                       const TFheGateBootstrappingCloudKeySet* bk);
+
+std::vector<LweSample*> e_cloud_int(std::vector<int32_t> ptxt_val,
+                                    uint32_t ptxt_mod,
+                                    const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Convert {0,1} % 2 to {-1,1} % ptxt_mod.
-LweSample* e_bin_to_int(LweSample* a, uint32_t ptxt_mod,
-                        const TFheGateBootstrappingCloudKeySet* bk);
+std::vector<LweSample*> e_bin_to_int(std::vector<LweSample*> a, uint32_t ptxt_mod,
+                                     const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Convert {0, p-1} % p to {0,1} % 2 (sign extraction)
-LweSample* e_int_to_bin(LweSample* a,
-                        const TFheGateBootstrappingCloudKeySet* bk);
+std::vector<LweSample*> e_int_to_bin(std::vector<LweSample*> a,
+                                     const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Add operation: result = a + b.
-void add_int(LweSample* result, const LweSample* a, const LweSample* b,
+void add_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+             const std::vector<LweSample*> b,
              const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Sub operation: result = a - b.
-void sub_int(LweSample* result, const LweSample* a, const LweSample* b,
+void sub_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+             const std::vector<LweSample*> b,
              const TFheGateBootstrappingCloudKeySet* bk);
 
 /// Scalar multiplication: result = a * p.
-void mult_plain_int(LweSample* result, const LweSample* a, int32_t p,
-             const TFheGateBootstrappingCloudKeySet* bk);
+void mult_plain_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+                    int32_t p, const TFheGateBootstrappingCloudKeySet* bk);
 
 #endif  // HELPER_HPP_
