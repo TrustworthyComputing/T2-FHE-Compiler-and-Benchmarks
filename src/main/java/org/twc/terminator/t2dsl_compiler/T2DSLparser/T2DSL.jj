@@ -74,6 +74,7 @@ TOKEN :
   | < TRUE: "true" >
   | < PRINT: "print" >
   | < VOID: "void" >
+  | < REDUCE_NOISE: "reduce_noise" >
 }
 
 TOKEN : /* LITERALS */
@@ -199,6 +200,7 @@ void Statement() : {} {
 |   WhileStatement()
 |   ForStatement()
 |   PrintStatement() ";"
+|   ReduceNoiseStatement() ";"
 }
 
 void Block() : {} {
@@ -279,6 +281,10 @@ void ForStatement() : {} {
 
 void PrintStatement() : {} {
   <PRINT> "(" Expression() ")"
+}
+
+void ReduceNoiseStatement() : {} {
+  <REDUCE_NOISE> "(" Expression() ")"
 }
 
 void Expression() : {} {

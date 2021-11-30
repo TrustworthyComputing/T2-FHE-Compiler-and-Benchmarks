@@ -167,6 +167,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | WhileStatement()
    *       | ForStatement()
    *       | PrintStatement() ";"
+   *       | ReduceNoiseStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     n.f0.accept(this);
@@ -366,6 +367,14 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> ")"
    */
   public abstract Var_t visit(PrintStatement n) throws Exception;
+
+  /**
+   * f0 -> <REDUCE_NOISE>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   */
+  public abstract Var_t visit(ReduceNoiseStatement n) throws Exception;
 
   /**
    * f0 -> LogicalAndExpression()

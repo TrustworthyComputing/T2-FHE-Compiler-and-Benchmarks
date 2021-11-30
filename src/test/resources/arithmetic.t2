@@ -14,6 +14,8 @@ int main(void) {
   x += 2; // ok
   enc_sum_ += enc_num_; // ok
   enc_sum_ += x; // ok
+  enc_sum_ *= enc_num_; // ok
+  reduce_noise(enc_sum_);
 
   return 0;
 }

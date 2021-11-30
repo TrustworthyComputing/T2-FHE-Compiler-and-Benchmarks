@@ -381,6 +381,21 @@ public class T2_2_PALISADE extends T2_Compiler {
   }
 
   /**
+   * f0 -> <REDUCE_NOISE>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   */
+  public Var_t visit(ReduceNoiseStatement n) throws Exception {
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    assert(expr_type.equals("EncInt"));
+    append_idx("cc->ModReduceInPlace(");
+    this.asm_.append(expr.getName()).append(");\n");
+    return null;
+  }
+
+  /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()
    * f2 -> PrimaryExpression()

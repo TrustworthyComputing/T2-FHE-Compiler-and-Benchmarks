@@ -161,6 +161,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    *       | WhileStatement()
    *       | ForStatement()
    *       | PrintStatement() ";"
+   *       | ReduceNoiseStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     return n.f0.accept(this);
@@ -489,6 +490,24 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
       return null;
     }
     throw new Exception("Print statement not boolean, int, or EncInt.");
+  }
+
+  /**
+   * f0 -> <REDUCE_NOISE>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   */
+  public Var_t visit(ReduceNoiseStatement n) throws Exception { //is int
+    n.f0.accept(this);
+    n.f1.accept(this);
+    Var_t expr = n.f2.accept(this);
+    n.f3.accept(this);
+    String expr_type = st_.findType(expr);
+    if (expr_type.equals("EncInt")) {
+      return null;
+    }
+    throw new Exception("Reduce noise statement not EncInt.");
   }
 
   /**
