@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 enum HE_BACKEND {
-  NONE, SEAL, TFHE
+  NONE, SEAL, TFHE, PALISADE
 }
 
 public class Main {
@@ -33,6 +33,9 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-TFHE") ||
                  arg.equalsIgnoreCase("--TFHE")) {
         backend_ = HE_BACKEND.TFHE;
+      } else if (arg.equalsIgnoreCase("-PALISADE") ||
+                 arg.equalsIgnoreCase("--PALISADE")) {
+        backend_ = HE_BACKEND.PALISADE;
       } else {
         input_files.add(arg);
       }
@@ -75,6 +78,9 @@ public class Main {
             break;
           case TFHE:
             dsl_compiler = new T2_2_TFHE(symbol_table);
+            break;
+          case PALISADE:
+            dsl_compiler = new T2_2_PALISADE(symbol_table);
             break;
           default:
             throw new RuntimeException("Backend is not supported yet");

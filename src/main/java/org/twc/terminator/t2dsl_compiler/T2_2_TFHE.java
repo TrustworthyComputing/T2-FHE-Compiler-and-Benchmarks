@@ -11,8 +11,6 @@ public class T2_2_TFHE extends T2_Compiler {
 
   public T2_2_TFHE(SymbolTable st) {
     super(st);
-    this.st_.backend_types.put("int", "int");
-    this.st_.backend_types.put("int[]", "vector<int>");
     this.st_.backend_types.put("EncInt", "vector<LweSample*>");
     this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }

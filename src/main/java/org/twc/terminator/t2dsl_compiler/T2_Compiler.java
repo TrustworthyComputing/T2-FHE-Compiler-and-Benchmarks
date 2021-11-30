@@ -17,6 +17,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;
+    this.st_.backend_types.put("int", "int");
+    this.st_.backend_types.put("int[]", "vector<int>");
     this.semicolon_ = false;
     this.asm_ = new StringBuilder();
   }
