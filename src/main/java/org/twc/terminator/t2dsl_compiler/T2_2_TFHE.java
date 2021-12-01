@@ -44,7 +44,7 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("#include <tfhe/tfhe.h>\n");
     append_idx("#include <tfhe/tfhe_io.h>\n");
     append_idx("#include <tfhe/tfhe_generic_streams.h>\n\n");
-    append_idx("#include \"../helper.hpp\"\n\n");
+    append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
     this.indent_ = 2;
@@ -267,7 +267,7 @@ public class T2_2_TFHE extends T2_Compiler {
     } else {
       tmp_cnt_++;
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
-      append_idx("vector<uint64_t> ");
+      append_idx("vector<uint32_t> ");
       this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
       if (n.f4.present()) {
         for (int i = 0; i < n.f4.size(); i++) {
@@ -323,7 +323,7 @@ public class T2_2_TFHE extends T2_Compiler {
     String index_type = st_.findType(index);
     tmp_cnt_++;
     String tmp_vec = "tmp_vec_" + tmp_cnt_;
-    append_idx("vector<uint64_t> ");
+    append_idx("vector<uint32_t> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {
@@ -347,6 +347,7 @@ public class T2_2_TFHE extends T2_Compiler {
   public Var_t visit(PrintStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     switch (expr_type) {
       case "int":
         append_idx("cout << ");
@@ -354,10 +355,15 @@ public class T2_2_TFHE extends T2_Compiler {
         this.asm_.append(" << endl;\n");
         break;
       case "EncInt":
-        append_idx("tmp = d_client(word_sz, ");
+        append_idx("vector<uint32_t> ");
+        this.asm_.append(tmp_vec).append(" = d_client(word_sz, ");
         this.asm_.append(expr.getName()).append(", key);\n");
-        append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
+        append_idx("for (auto v : ");
+        this.asm_.append(tmp_vec).append(") {\n");
+        append_idx("  cout << \"dec(");
+        this.asm_.append(expr.getName()).append(") = \" << v << \"\\t\";\n");
+        append_idx("}\n");
+        append_idx("cout << endl;\n");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -380,11 +386,14 @@ public class T2_2_TFHE extends T2_Compiler {
     Var_t size = n.f4.accept(this);
     String size_type = st_.findType(expr);
     assert(size_type.equals("int"));
-    append_idx("for (int i = 0; i < ");
-    this.asm_.append(size.getName()).append("; ++i) {\n");
-    append_idx("  tmp = d_client(word_sz, ");
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+    append_idx("vector<uint32_t> ");
+    this.asm_.append(tmp_vec).append(" = d_client(word_sz, ");
     this.asm_.append(expr.getName()).append(", key);\n");
-    append_idx("  cout << tmp << \"\\t\";\n");
+    append_idx("for (auto v : ");
+    this.asm_.append(tmp_vec).append(") {\n");
+    append_idx("  cout << \"dec(");
+    this.asm_.append(expr.getName()).append(") = \" << v << \"\\t\";\n");
     append_idx("}\n");
     append_idx("cout << endl;\n");
     return null;

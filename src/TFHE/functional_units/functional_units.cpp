@@ -91,7 +91,7 @@ void rotate_inplace(std::vector<LweSample*> result, rotation_t dir, int amt,
 /// Ripple carry adder for nb_bits bits. result = a + b
 void add(std::vector<LweSample*> result, const std::vector<LweSample*> a,
          const std::vector<LweSample*> b, const size_t nb_bits,
-         const TFheGateBootstrappingCloudKeySet* bk);
+         const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -259,14 +259,14 @@ void inc(std::vector<LweSample*> result, const std::vector<LweSample*> a,
 }
 
 /// Equality check. result = a == b
-void eq(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+void eq(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
         const std::vector<LweSample*> b, const size_t word_sz,
         const TFheGateBootstrappingCloudKeySet* bk) {
   assert(("Result ciphertext should not be any of the equality arguments",
           result_ != a && result_ != b));
   if (word_sz <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
-  result.resize(std::max(a.size(), b.size()));
+  result_.resize(std::max(a.size(), b.size()));
   LweSample* tmp_ = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
   // Compute XNORs across a and b and AND all results together.
   for (int i = 0; i < num_ops; i++) {
@@ -285,13 +285,13 @@ void eq(std::vector<LweSample*> result, const std::vector<LweSample*> a,
     if (a.size() < b.size()) {
       for (int i = num_ops; i < b.size(); i++) {
         for (int j = 0; j < word_sz; j++) {
-            bootsCONSTANT(&result[i][j], 0, bk);
+            bootsCONSTANT(&result_[i][j], 0, bk);
         }
       }
     } else {
       for (int i = num_ops; i < a.size(); i++) {
         for (int j = 0; j < word_sz; j++) {
-            bootsCONSTANT(&result[i][j], 0, bk);
+            bootsCONSTANT(&result_[i][j], 0, bk);
         }
       }
     }
@@ -326,13 +326,13 @@ void lt(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
     if (a.size() < b.size()) {
       for (int i = num_ops; i < b.size(); i++) {
         for (int j = 0; j < word_sz; j++) {
-            bootsCONSTANT(&result[i][j], 0, bk);
+            bootsCONSTANT(&result_[i][j], 0, bk);
         }
       }
     } else {
       for (int i = num_ops; i < a.size(); i++) {
         for (int j = 0; j < word_sz; j++) {
-            bootsCONSTANT(&result[i][j], 0, bk);
+            bootsCONSTANT(&result_[i][j], 0, bk);
         }
       }
     }

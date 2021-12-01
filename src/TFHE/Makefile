@@ -39,8 +39,8 @@ pir: $(BIN)/pir.o $(BIN)/helper.o
 simon: $(BIN)/simon.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/simon.o $(BIN)/helper.o -o $(BIN)/simon.out $(LIBS)
 
-test: $(BIN)/test.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/helper.o -o $(BIN)/test.out $(LIBS)
+test: $(BIN)/test.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/functional_units.o -o $(BIN)/test.out $(LIBS)
 
 $(BIN)/keygen.o: client/keygen.cpp
 	$(CXX) -c client/keygen.cpp -o $(BIN)/keygen.o
@@ -68,6 +68,9 @@ $(BIN)/test.o: compiled/test.cpp
 
 $(BIN)/helper.o: helper.cpp helper.hpp
 	$(CXX) -c helper.cpp -o $(BIN)/helper.o
+
+$(BIN)/functional_units.o: functional_units/functional_units.cpp functional_units/functional_units.hpp
+	$(CXX) -c functional_units/functional_units.cpp -o $(BIN)/functional_units.o
 
 directories: ${BIN}
 
