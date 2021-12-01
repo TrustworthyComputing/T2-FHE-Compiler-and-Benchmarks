@@ -493,6 +493,29 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> "print_batched"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(PrintBatchedStatement n) throws Exception { //is int
+    n.f0.accept(this);
+    n.f1.accept(this);
+    Var_t expr = n.f2.accept(this);
+    n.f3.accept(this);
+    String expr_type = st_.findType(expr);
+    Var_t size = n.f4.accept(this);
+    String size_type = st_.findType(size);
+    assert(size_type.equals("int"));
+    if (expr_type.equals("EncInt")) {
+      return null;
+    }
+    throw new Exception("Print statement not boolean, int, or EncInt.");
+  }
+
+  /**
    * f0 -> <REDUCE_NOISE>
    * f1 -> "("
    * f2 -> Expression()

@@ -167,6 +167,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | WhileStatement()
    *       | ForStatement()
    *       | PrintStatement() ";"
+   *       | PrintBatchedStatement() ";"
    *       | ReduceNoiseStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
@@ -367,6 +368,16 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> ")"
    */
   public abstract Var_t visit(PrintStatement n) throws Exception;
+
+  /**
+   * f0 -> "print_batched"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public abstract Var_t visit(PrintBatchedStatement n) throws Exception;
 
   /**
    * f0 -> <REDUCE_NOISE>

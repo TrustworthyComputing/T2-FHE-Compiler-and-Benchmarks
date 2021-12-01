@@ -30,7 +30,7 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("cc->EvalMultKeyGen(keyPair.secretKey);\n");
     append_idx("Plaintext tmp;\n");
 //    append_idx("vector<int64_t> tmp_vec = { 0 };\n");
-    append_idx("Ciphertext tmp_;\n\n");
+    append_idx("Ciphertext<DCRTPoly> tmp_;\n\n");
   }
 
   /**
@@ -50,7 +50,7 @@ public class T2_2_PALISADE extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include \"palisade.h\"\n");
-    append_idx("#include \"../../helper.hpp\"\n\n");
+    append_idx("#include \"../helper.hpp\"\n\n");
     append_idx("using namespace lbcrypto;\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
@@ -266,7 +266,7 @@ public class T2_2_PALISADE extends T2_Compiler {
       case "EncInt":
         tmp_cnt_++;
         String tmp_vec = "tmp_vec_" + tmp_cnt_;
-        append_idx("vector<uint64_t> ");
+        append_idx("vector<int64_t> ");
         this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
@@ -274,6 +274,7 @@ public class T2_2_PALISADE extends T2_Compiler {
           }
         }
         this.asm_.append(" };\n");
+//        TODO
         append_idx("tmp = cc->MakePackedPlaintext(");
         this.asm_.append(tmp_vec).append(");\n");
         append_idx(id.getName());
@@ -337,7 +338,7 @@ public class T2_2_PALISADE extends T2_Compiler {
     String index_type = st_.findType(index);
     tmp_cnt_++;
     String tmp_vec = "tmp_vec_" + tmp_cnt_;
-    append_idx("vector<uint64_t> ");
+    append_idx("vector<int64_t> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {
@@ -381,6 +382,36 @@ public class T2_2_PALISADE extends T2_Compiler {
   }
 
   /**
+   * f0 -> "print_batched"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(PrintBatchedStatement n) throws Exception {
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    assert(expr_type.equals("EncInt"));
+    Var_t size = n.f4.accept(this);
+    String size_type = st_.findType(expr);
+    assert(size_type.equals("int"));
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+    append_idx("cc->Decrypt(keyPair.secretKey, ");
+    this.asm_.append(expr.getName()).append(", ").append("&tmp);\n");
+    append_idx("tmp->SetLength(");
+    this.asm_.append(size.getName()).append(");\n");
+    append_idx("vector<int64_t> ");
+    this.asm_.append(tmp_vec).append("  = tmp->GetPackedValue();\n");
+    append_idx("for (auto v : ");
+    this.asm_.append(tmp_vec).append(") {\n");
+    append_idx("  cout << v << \"\\t\";\n");
+    append_idx("}\n");
+    append_idx("cout << endl;\n");
+    return null;
+  }
+
+  /**
    * f0 -> <REDUCE_NOISE>
    * f1 -> "("
    * f2 -> Expression()
@@ -413,7 +444,8 @@ public class T2_2_PALISADE extends T2_Compiler {
       ) {
         return new Var_t("int", lhs.getName() + op + rhs.getName());
       } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-                 "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
+                 "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
+                 "&&".equals(op) || "||".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
@@ -426,10 +458,10 @@ public class T2_2_PALISADE extends T2_Compiler {
           this.asm_.append("EvalAdd(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "*":
-          this.asm_.append("EvalMult(").append(rhs.getName()).append(", tmp)\n");
+          this.asm_.append("EvalMult(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "-":
-          this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(")\n");
+          this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(");\n");
           break;
         case "==":
           // TODO:

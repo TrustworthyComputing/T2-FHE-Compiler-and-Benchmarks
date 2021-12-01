@@ -54,7 +54,7 @@ public class T2_2_SEAL extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include \"seal/seal.h\"\n");
-    append_idx("#include \"../../helper.hpp\"\n\n");
+    append_idx("#include \"../helper.hpp\"\n\n");
     append_idx("using namespace seal;\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
@@ -388,6 +388,34 @@ public class T2_2_SEAL extends T2_Compiler {
   }
 
   /**
+   * f0 -> "print_batched"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(PrintBatchedStatement n) throws Exception {
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    assert(expr_type.equals("EncInt"));
+    Var_t size = n.f4.accept(this);
+    String size_type = st_.findType(expr);
+    assert(size_type.equals("int"));
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+    append_idx("vector<uint64_t> ");
+    this.asm_.append(tmp_vec).append(" = decrypt_array_batch_to_nums(\n");
+    append_idx("  decryptor, batch_encoder, ");
+    this.asm_.append(expr.getName()).append(", poly_modulus_degree/2);\n");
+    append_idx("for (int i = 0; i < ");
+    this.asm_.append(size.getName()).append("; ++i) {\n");
+    append_idx("  cout << " + tmp_vec + "[i] << \"\\t\";\n");
+    append_idx("}\n");
+    append_idx("cout << endl;\n");
+    return null;
+  }
+
+  /**
    * f0 -> <REDUCE_NOISE>
    * f1 -> "("
    * f2 -> Expression()
@@ -420,7 +448,8 @@ public class T2_2_SEAL extends T2_Compiler {
       ) {
         return new Var_t("int", lhs.getName() + op + rhs.getName());
       } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-                 "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
+                 "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
+                 "&&".equals(op) || "||".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {

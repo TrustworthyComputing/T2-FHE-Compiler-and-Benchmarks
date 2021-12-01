@@ -73,6 +73,7 @@ TOKEN :
   | < STRING: "String" >
   | < TRUE: "true" >
   | < PRINT: "print" >
+  | < PRINT_BATCHED: "print_batched" >
   | < VOID: "void" >
   | < REDUCE_NOISE: "reduce_noise" >
 }
@@ -200,6 +201,7 @@ void Statement() : {} {
 |   WhileStatement()
 |   ForStatement()
 |   PrintStatement() ";"
+|   PrintBatchedStatement() ";"
 |   ReduceNoiseStatement() ";"
 }
 
@@ -281,6 +283,10 @@ void ForStatement() : {} {
 
 void PrintStatement() : {} {
   <PRINT> "(" Expression() ")"
+}
+
+void PrintBatchedStatement() : {} {
+  <PRINT_BATCHED> "(" Expression() "," Expression() ")"
 }
 
 void ReduceNoiseStatement() : {} {

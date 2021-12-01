@@ -41,3 +41,10 @@ target_sources(lr-bfv-bgv-batched.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
   ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
 )
+
+add_executable(test.out)
+target_sources(test.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/compiled/test.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+)

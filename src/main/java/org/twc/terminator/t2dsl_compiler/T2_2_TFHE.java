@@ -4,9 +4,6 @@ import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class T2_2_TFHE extends T2_Compiler {
 
   public T2_2_TFHE(SymbolTable st) {
@@ -24,7 +21,7 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("tfhe_random_generator_setSeed(seed, 3);\n");
     append_idx("TFheGateBootstrappingSecretKeySet* key =\n");
     append_idx("  new_random_gate_bootstrapping_secret_keyset(params);\n");
-    append_idx("LweSample* tmp, tmp_;\n\n");
+    append_idx("LweSample *tmp, *tmp_;\n\n");
   }
 
   /**
@@ -47,7 +44,7 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("#include <tfhe/tfhe.h>\n");
     append_idx("#include <tfhe/tfhe_io.h>\n");
     append_idx("#include <tfhe/tfhe_generic_streams.h>\n\n");
-    append_idx("#include \"../../helper.hpp\"\n\n");
+    append_idx("#include \"../helper.hpp\"\n\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
     this.indent_ = 2;
@@ -369,6 +366,31 @@ public class T2_2_TFHE extends T2_Compiler {
   }
 
   /**
+   * f0 -> "print_batched"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(PrintBatchedStatement n) throws Exception {
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    assert(expr_type.equals("EncInt"));
+    Var_t size = n.f4.accept(this);
+    String size_type = st_.findType(expr);
+    assert(size_type.equals("int"));
+    append_idx("for (int i = 0; i < ");
+    this.asm_.append(size.getName()).append("; ++i) {\n");
+    append_idx("  tmp = d_client(word_sz, ");
+    this.asm_.append(expr.getName()).append(", key);\n");
+    append_idx("  cout << tmp << \"\\t\";\n");
+    append_idx("}\n");
+    append_idx("cout << endl;\n");
+    return null;
+  }
+
+  /**
    * f0 -> <REDUCE_NOISE>
    * f1 -> "("
    * f2 -> Expression()
@@ -401,7 +423,8 @@ public class T2_2_TFHE extends T2_Compiler {
       ) {
         return new Var_t("int", lhs.getName() + op + rhs.getName());
       } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-              "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
+              "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
+              "&&".equals(op) || "||".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       } else {
         throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

@@ -87,14 +87,14 @@ public class Main {
         }
         t2dsl_goal.accept(dsl_compiler);
         String code = dsl_compiler.get_asm();
-        String seal_out = path + ".cpp";
-        writer = new PrintWriter(seal_out);
+        String output_path = path + ".cpp";
+        writer = new PrintWriter(output_path);
         writer.print(code);
         writer.close();
         System.out.println(code);
         System.out.println("[ \033[0;32m \u2713 \033[0m ] SEAL code generated" +
-                           " to \"" + seal_out + "\"");
-        input_stream = new FileInputStream(seal_out);
+                           " to \"" + output_path + "\"");
+        input_stream = new FileInputStream(output_path);
       } catch (ParseException | FileNotFoundException ex) {
         ex.printStackTrace();
       } catch (Exception ex) {
