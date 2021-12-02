@@ -18,127 +18,175 @@ int main() {
   TFheGateBootstrappingSecretKeySet* key =
     new_random_gate_bootstrapping_secret_keyset(params);
 
-  LweSample* ctxt_;
-  LweSample* ctxt2_;
-  LweSample* const_;
-  LweSample* bool_;
-  uint16_t ans = 1;
+  vector<LweSample*> ctxt_;
+  vector<LweSample*> ctxt2_;
+  vector<LweSample*> const_;
+  vector<LweSample*> bool_;
+  vector<uint16_t> ans = {1, 2};
+  vector<uint32_t> ans_big = {1, 2};
+
 
   // BINARY TESTS
-  vector<uint32_t> ptxt = {255,1};
+
+  // Enc/Dec
+  vector<uint32_t> ptxt = {53,1};
   vector<uint32_t> rec_ptxt;
   ctxt_ = e_client(ptxt, 16, key);
   rec_ptxt = d_client(16, ctxt_, key);
-  for (int i = 0; i < rec_ptxt.size(); i++) {
-    cout << rec_ptxt[i] << " ";
-  }
-  cout << endl;
-  // // Enc/Dec
-  // ctxt_ = e_client(32,16,key);
-  // assert(d_client(16, ctxt_, key) == 32);
-  //
-  // // Rotation
-  // rotate_inplace(ctxt_, LEFT, 2, 16, &key->cloud);
-  // assert(d_client(16, ctxt_, key) == (32 << 2));
-  // rotate_inplace(ctxt_, RIGHT, 2, 16, &key->cloud);
-  // assert(d_client(16, ctxt_, key) == 32);
-  //
-  // // Add
-  // const_ = e_cloud(16, 16, &key->cloud);
-  // add(ctxt_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt_, key) == (32+16));
-  //
-  // // Subtract (result must be different than operands)
-  // ctxt2_ = e_cloud(0, 16, &key->cloud);
-  // sub(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == 32);
-  //
-  // // Multiply
-  // mult(ctxt_, ctxt2_, ctxt_, 16, &key->cloud);
-  // assert(d_client(16, ctxt_, key) == (32*48));
-  //
-  // // Increment
-  // inc(ctxt_, ctxt_, 16, &key->cloud);
-  // assert(d_client(16, ctxt_, key) == (32*48+1));
-  //
-  // // Equality
-  // bool_ = e_cloud(0, 1, &key->cloud);
-  // eq(bool_, ctxt_, ctxt_, 16, &key->cloud);
-  // assert(d_client(1, bool_, key) == 1);
-  // eq(bool_, ctxt_, ctxt2_, 16, &key->cloud);
-  // assert(d_client(1, bool_, key) == 0);
-  //
-  // // Less-than
-  // lt(bool_, ctxt2_, ctxt_, 16, &key->cloud);
-  // assert(d_client(1, bool_, key) == 1);
-  // lt(bool_, ctxt_, ctxt2_, 16, &key->cloud);
-  // assert(d_client(1, bool_, key) == 0);
-  //
-  // // NOT
-  // ctxt_ = e_client(1, 16, key);
-  // ans = ~ans;
-  // e_not(ctxt2_, ctxt_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // AND
-  // const_ = e_cloud(16, 16, &key->cloud);
-  // ans = 1 & 16;
-  // e_and(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = 16 & 16;
-  // e_and(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // OR
-  // ans = 1 | 16;
-  // e_or(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = 16 | 16;
-  // e_or(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // NAND
-  // ans = ~(1 & 16);
-  // e_nand(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = ~(16 & 16);
-  // e_nand(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // NOR
-  // ans = ~(1 | 16);
-  // e_nor(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = ~(16 | 16);
-  // e_nor(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // XOR
-  // ans = 1 ^ 16;
-  // e_xor(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = 16 ^ 16;
-  // e_xor(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // XNOR
-  // ans = ~(1 ^ 16);
-  // e_xnor(ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = ~(16 ^ 16);
-  // e_xnor(ctxt2_, const_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
-  // // MUX
-  // ans = 1 * (!0) + 16 * 0;
-  // ctxt2_ = e_cloud(0xffff, 16, &key->cloud);
-  // e_mux(ctxt2_, ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  // ans = 16 * (!0) + 1 * 0;
-  // ctxt2_ = e_cloud(0x0000, 16, &key->cloud);
-  // e_mux(ctxt2_, ctxt2_, ctxt_, const_, 16, &key->cloud);
-  // assert(d_client(16, ctxt2_, key) == ans);
-  //
+  assert(d_client(16, ctxt_, key)[0] == 53);
+  assert(d_client(16, ctxt_, key)[1] == 1);
+
+  // Rotation
+  rotate_inplace(ctxt_, LEFT, 2, 16, &key->cloud);
+  assert(d_client(16, ctxt_, key)[0] == (53 << 2));
+  assert(d_client(16, ctxt_, key)[1] == (1 << 2));
+  rotate_inplace(ctxt_, RIGHT, 2, 16, &key->cloud);
+  assert(d_client(16, ctxt_, key)[0] == 53);
+  assert(d_client(16, ctxt_, key)[1] == 1);
+
+  // Add
+  vector<uint32_t> const_val = {8,8};
+  const_ = e_cloud(const_val, 16, &key->cloud);
+  add(ctxt_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt_, key)[0] == (53+8));
+  assert(d_client(16, ctxt_, key)[1] == (1+8));
+
+  // Subtract (result must be different than operands)
+  const_val = {0,0};
+  ctxt2_ = e_cloud(const_val, 16, &key->cloud);
+  sub(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == 53);
+  assert(d_client(16, ctxt2_, key)[1] == 1);
+
+  // Multiply
+  mult(ctxt_, ctxt2_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt_, key)[0] == (53*8));
+  assert(d_client(16, ctxt_, key)[1] == (1*8));
+
+  // Increment
+  inc(ctxt_, ctxt_, 16, &key->cloud);
+  assert(d_client(16, ctxt_, key)[0] == (53*8+1));
+  assert(d_client(16, ctxt_, key)[1] == (1*8+1));
+
+  // Equality
+  bool_ = e_cloud(const_val, 1, &key->cloud);
+  eq(bool_, ctxt_, ctxt_, 16, &key->cloud);
+  assert(d_client(1, bool_, key)[0] == 1);
+  assert(d_client(1, bool_, key)[1] == 1);
+  eq(bool_, ctxt_, ctxt2_, 16, &key->cloud);
+  assert(d_client(1, bool_, key)[0] == 0);
+  assert(d_client(1, bool_, key)[1] == 0);
+
+  // Less-than
+  lt(bool_, ctxt2_, ctxt_, 16, &key->cloud);
+  assert(d_client(1, bool_, key)[0] == 1);
+  assert(d_client(1, bool_, key)[1] == 1);
+  lt(bool_, ctxt_, ctxt2_, 16, &key->cloud);
+  assert(d_client(1, bool_, key)[0] == 0);
+  assert(d_client(1, bool_, key)[0] == 0);
+
+  // NOT
+  ctxt_ = e_client(ans_big, 16, key);
+  ctxt2_ = e_client(ans_big, 16, key);
+  ans[0] = ~ans[0];
+  ans[1] = ~ans[1];
+  e_not(ctxt2_, ctxt_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+  // AND
+  vector<uint32_t> sixteen = {16, 16};
+  const_ = e_cloud(sixteen, 16, &key->cloud);
+  ans[0] = 1 & 16;
+  ans[1] = 2 & 16;
+  e_and(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = 16 & 16;
+  ans[1] = 16 & 16;
+  e_and(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+  // OR
+  ans[0] = 1 | 16;
+  ans[1] = 2 | 16;
+  e_or(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = 16 | 16;
+  ans[1] = 16 | 16;
+  e_or(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+
+  // NAND
+  ans[0] = ~(1 & 16);
+  ans[1] = ~(2 & 16);
+  e_nand(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = ~(16 & 16);
+  ans[1] = ~(16 & 16);
+  e_nand(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+
+  // NOR
+  ans[0] = ~(1 | 16);
+  ans[1] = ~(2 | 16);
+  e_nor(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = ~(16 | 16);
+  ans[1] = ~(16 | 16);
+  e_nor(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+  // XOR
+  ans[0] = 1 ^ 16;
+  ans[1] = 2 ^ 16;
+  e_xor(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = 16 ^ 16;
+  ans[1] = 16 ^ 16;
+  e_xor(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+  // XNOR
+  ans[0] = ~(1 ^ 16);
+  ans[1] = ~(2 ^ 16);
+  e_xnor(ctxt2_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = ~(16 ^ 16);
+  ans[1] = ~(16 ^ 16);
+  e_xnor(ctxt2_, const_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
+  // MUX
+  ans[0] = 1 * (!0) + 16 * 0;
+  ans[1] = 2 * (!0) + 16 * 0;
+  sixteen = {0xffff, 0xffff};
+  bool_ = e_cloud(sixteen, 16, &key->cloud);
+  e_mux(ctxt2_, bool_, ctxt_, const_, 16, &key->cloud);
+  cout << d_client(16, ctxt2_, key)[0] << " " << d_client(16, ctxt2_, key)[1] << endl;
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+  ans[0] = 16 * (!0) + 1 * 0;
+  ans[1] = 16 * (!0) + 2 * 0;
+  sixteen = {0x0000, 0x0000};
+  bool_ = e_cloud(sixteen, 16, &key->cloud);
+  e_mux(ctxt2_, bool_, ctxt_, const_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == ans[0]);
+  assert(d_client(16, ctxt2_, key)[1] == ans[1]);
+
   // // INTEGER TESTS
   //
   // const int ptxt_mod = 100;

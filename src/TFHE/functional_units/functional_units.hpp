@@ -124,43 +124,43 @@ void e_mux(std::vector<LweSample*> result, const std::vector<LweSample*> a,
 
 /// INTEGER DOMAIN
 
-/// Encrypt integer as a single ciphertext.
-std::vector<LweSample*> e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
-                        const TFheGateBootstrappingSecretKeySet* sk);
-
-/// Decrypt an integer ciphertext with the secret key. Return result = Dec(ctxt)
-std::vector<uint32_t> d_client_int(uint32_t ptxt_mod,
-                                   const std::vector<LweSample*> ctxt,
-                                   const TFheGateBootstrappingSecretKeySet* sk);
-
-/// Encode integer as a single noiseless ciphertext.
-std::vector<LweSample*> e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
-                       const TFheGateBootstrappingCloudKeySet* bk);
-
-std::vector<LweSample*> e_cloud_int(std::vector<int32_t> ptxt_val,
-                                    uint32_t ptxt_mod,
-                                    const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Convert {0,1} % 2 to {-1,1} % ptxt_mod.
-std::vector<LweSample*> e_bin_to_int(std::vector<LweSample*> a, uint32_t ptxt_mod,
-                                     const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Convert {0, p-1} % p to {0,1} % 2 (sign extraction)
-std::vector<LweSample*> e_int_to_bin(std::vector<LweSample*> a,
-                                     const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Add operation: result = a + b.
-void add_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-             const std::vector<LweSample*> b,
-             const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Sub operation: result = a - b.
-void sub_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-             const std::vector<LweSample*> b,
-             const TFheGateBootstrappingCloudKeySet* bk);
-
-/// Scalar multiplication: result = a * p.
-void mult_plain_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-                    int32_t p, const TFheGateBootstrappingCloudKeySet* bk);
+// /// Encrypt integer as a single ciphertext.
+// std::vector<LweSample*> e_client_int(uint32_t ptxt_val, uint32_t ptxt_mod,
+//                         const TFheGateBootstrappingSecretKeySet* sk);
+// 
+// /// Decrypt an integer ciphertext with the secret key. Return result = Dec(ctxt)
+// std::vector<uint32_t> d_client_int(uint32_t ptxt_mod,
+//                                    const std::vector<LweSample*> ctxt,
+//                                    const TFheGateBootstrappingSecretKeySet* sk);
+//
+// /// Encode integer as a single noiseless ciphertext.
+// std::vector<LweSample*> e_cloud_int(int32_t ptxt_val, uint32_t ptxt_mod,
+//                        const TFheGateBootstrappingCloudKeySet* bk);
+//
+// std::vector<LweSample*> e_cloud_int(std::vector<int32_t> ptxt_val,
+//                                     uint32_t ptxt_mod,
+//                                     const TFheGateBootstrappingCloudKeySet* bk);
+//
+// /// Convert {0,1} % 2 to {-1,1} % ptxt_mod.
+// std::vector<LweSample*> e_bin_to_int(std::vector<LweSample*> a, uint32_t ptxt_mod,
+//                                      const TFheGateBootstrappingCloudKeySet* bk);
+//
+// /// Convert {0, p-1} % p to {0,1} % 2 (sign extraction)
+// std::vector<LweSample*> e_int_to_bin(std::vector<LweSample*> a,
+//                                      const TFheGateBootstrappingCloudKeySet* bk);
+//
+// /// Add operation: result = a + b.
+// void add_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+//              const std::vector<LweSample*> b,
+//              const TFheGateBootstrappingCloudKeySet* bk);
+//
+// /// Sub operation: result = a - b.
+// void sub_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+//              const std::vector<LweSample*> b,
+//              const TFheGateBootstrappingCloudKeySet* bk);
+//
+// /// Scalar multiplication: result = a * p.
+// void mult_plain_int(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+//                     int32_t p, const TFheGateBootstrappingCloudKeySet* bk);
 
 #endif  // HELPER_HPP_
