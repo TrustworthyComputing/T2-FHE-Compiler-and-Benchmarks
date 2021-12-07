@@ -55,6 +55,47 @@ int main(int argc, char *argv[]) {
     long nslots = ea.size();
     cout << "Number of slots: " << nslots << endl;
 
+    // Non-batching Encryption
+    helib::Ptxt<helib::BGV> pt(context);
+    pt[0] = 100;
+    helib::Ctxt ct(public_key);
+    public_key.Encrypt(ct, pt);
+
+    // Copy Ctxt
+    helib::Ctxt ct2(public_key);
+    ct2 = ct;
+    secret_key.Decrypt(pt, ct2);
+    cout << "Copy : " << pt.getSlotRepr() << endl;
+
+    // Multiply copy by 2
+    ct2.multByConstant(NTL::ZZX(2));
+    secret_key.Decrypt(pt, ct2);
+    cout << "Copy (mult by 2) : " << pt.getSlotRepr() << endl;
+
+    // Verify that the copy was a deep copy
+    secret_key.Decrypt(pt, ct);
+    cout << "Orig : " << pt.getSlotRepr() << endl;
+
+    // Increment (NOTE: THIS AFFECTS ALL SLOTS EQUALLY)
+    ct.addConstant(NTL::ZZX(1));
+    secret_key.Decrypt(pt, ct);
+    cout << "Increment Orig : " << pt.getSlotRepr() << endl;
+
+    // Decrement (Same note as above)
+    helib::Ptxt<helib::BGV> pt_sub(context);
+    for (int i = 0; i < pt_sub.size(); ++i) {
+        pt_sub[i] = 1;
+    }
+    ct.addConstant(pt_sub, true);
+    secret_key.Decrypt(pt, ct);
+    cout << "Decrement Orig :" << pt.getSlotRepr() << endl;
+
+    ct = ct2;
+    ct += ct;
+    secret_key.Decrypt(pt, ct);
+    cout << "Add test :" << pt.getSlotRepr() << endl;
+
+
     // Create a vector of long with nslots elements
     helib::Ptxt<helib::BGV> ptxt(context);
 
@@ -72,8 +113,6 @@ int main(int argc, char *argv[]) {
 
     // Encrypt the plaintext using the public_key
     public_key.Encrypt(ctxt, ptxt);
-
-    // cout << "Here's what a ciphertext looks like: " << ctxt << endl;
 
     // Multiply ctxt by itself
     cout << "Computing ctxt^2 homomorphically..." << endl;
