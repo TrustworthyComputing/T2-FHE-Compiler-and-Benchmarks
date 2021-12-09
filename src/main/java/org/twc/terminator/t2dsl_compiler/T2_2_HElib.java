@@ -55,7 +55,7 @@ public class T2_2_HElib extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include <helib/helib.h>\n");
-    append_idx("#include \"../helper.hpp\"\n\n");
+//    append_idx("#include \"../helper.hpp\"\n\n");
     append_idx("using namespace helib;\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
@@ -473,15 +473,18 @@ public class T2_2_HElib extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+// TODO
       String res_ = new_ctxt_tmp();
-      append_idx(res_);
-      this.asm_.append(" = ").append(rhs.getName()).append(";\n");
       switch (op) {
         case "+":
+          append_idx(res_);
+          this.asm_.append(" = ").append(rhs.getName()).append(";\n");
           append_idx(res_);
           this.asm_.append(".addConstant(NTL::ZZX(").append(lhs.getName()).append("));\n");
           break;
         case "*":
+          append_idx(res_);
+          this.asm_.append(" = ").append(rhs.getName()).append(";\n");
           append_idx(res_);
           this.asm_.append(".multByConstant(NTL::ZZX(").append(lhs.getName()).append("));\n");
           break;
@@ -489,8 +492,8 @@ public class T2_2_HElib extends T2_Compiler {
           append_idx("tmp[0] = ");
           this.asm_.append(lhs.getName()).append(";\n");
           append_idx("public_key.Encrypt(");
-          this.asm_.append(lhs.getName()).append(", tmp);\n");
-          append_idx(lhs.getName());
+          this.asm_.append(res_).append(", tmp);\n");
+          append_idx(res_);
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
         case "==":
