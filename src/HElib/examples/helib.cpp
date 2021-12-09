@@ -2,6 +2,7 @@
 #include <helib/helib.h>
 #include <string.h>
 #include <chrono>
+#include <vector>
 
 using namespace std;
 
@@ -189,5 +190,19 @@ int main(int argc, char *argv[]) {
       cout << "**AS EXPECTED** Decryption Fail: " << decrypted_fail.getSlotRepr() << endl;
       cout << endl;
     }
+
+    // Vectors
+    helib::Ptxt<helib::BGV> tmp(context);
+    vector<helib::Ptxt<helib::BGV>> ptxt_vec_;
+    ptxt_vec_.push_back(ptxt);
+    ptxt_vec_.push_back(ptxt);
+    ptxt_vec_.resize(5, tmp);
+
+    helib::Ctxt tmp_(public_key);
+    vector<helib::Ctxt> ctxt_vec_;
+    ctxt_vec_.push_back(ctxt);
+    ctxt_vec_.push_back(ctxt);
+    ctxt_vec_.resize(5, tmp_);
+
     return EXIT_SUCCESS;
 }

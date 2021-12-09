@@ -1,4 +1,4 @@
-HELIB_INSTALL = /home/chaz/helib_install/helib_pack
+HELIB_INSTALL = /opt/helib_install/helib_pack
 CXX = g++
 CPPFLAGS = -L $(HELIB_INSTALL)/lib/ -I $(HELIB_INSTALL)/include/ -lntl -lhelib -lgmp -lpthread -std=c++17 -O3
 
