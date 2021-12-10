@@ -107,7 +107,7 @@ public class T2_2_TFHE extends T2_Compiler {
         case "EncInt":
           append_idx("copy(");
           this.asm_.append(lhs.getName()).append(", ").append(rhs_name);
-          this.asm_.append(", word_sz, key)");
+          this.asm_.append(", word_sz, &key->cloud)");
           break;
       }
       this.semicolon_ = true;
@@ -227,7 +227,7 @@ public class T2_2_TFHE extends T2_Compiler {
           append_idx("copy(");
           this.asm_.append(id.getName()).append("[").append(idx.getName());
           this.asm_.append("], ").append(rhs.getName());
-          this.asm_.append(", word_sz, key);\n");
+          this.asm_.append(", word_sz, &key->cloud);\n");
           break;
         } else if (rhs_type.equals("int")) {
           append_idx(id.getName());
@@ -457,6 +457,8 @@ public class T2_2_TFHE extends T2_Compiler {
       throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
     String res_ = new_ctxt_tmp();
+    append_idx(res_);
+    this.asm_.append(" = e_cloud(0, word_sz, &key->cloud);\n");
     String op_str;
     switch (op) {
       case "+": op_str = "add"; break;

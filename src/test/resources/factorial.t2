@@ -10,6 +10,8 @@ int main(void) {
 
   fact_ = fact;
   n_ = n;
+
+  // Server side encrypted computation.
   for (i = 0; i < iter; i++) {
     fact_ *= n_;
     n_++;
