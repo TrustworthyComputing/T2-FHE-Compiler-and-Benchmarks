@@ -1,0 +1,24 @@
+int main(void) {
+  EncInt[] m1_, m2_, res_;
+  int r1, r2, c2, i, j, k, i_r1, k_c2;
+  m1_ = {1, 2, 3};
+  m2_ = {4, 5, 6};
+  res_ = {0};
+  r1 = 1;
+  r2 = 3;
+  c2 = 1;
+  for (i = 0; i < r1; i++) {
+    i_r1 = i*r1;
+    for (j = 0; j < c2; j++) {
+      res_[i_r1+j] = 0;
+      for (k = 0; k < r2; k++) {
+        k_c2 = k*c2;
+        res_[(i_r1+j)] = (res_[(i_r1+j)]) + ((m1_[(i_r1+k)]) * (m2_[(k_c2+j)]));
+      }
+    }
+  }
+  for (i = 0; i < (r1*c2); i++) {
+    print(res_[i]);
+  }
+  return 0;
+}
