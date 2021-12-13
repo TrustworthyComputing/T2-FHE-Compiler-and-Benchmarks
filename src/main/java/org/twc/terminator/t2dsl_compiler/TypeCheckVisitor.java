@@ -157,6 +157,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    *       | IncrementAssignmentStatement() ";"
    *       | DecrementAssignmentStatement() ";"
    *       | CompoundAssignmentStatement() ";"
+   *       | CompoundArrayAssignmentStatement() ";"
    *       | IfStatement()
    *       | WhileStatement()
    *       | ForStatement()
@@ -244,6 +245,35 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     }
     throw new Exception("Error compound assignment between different types (" +
                         operator + ") : " + t1_t + " " + t2_t);
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
+   * f4 -> CompoundOperator()
+   * f5 -> Expression()
+   */
+  public Var_t visit(CompoundArrayAssignmentStatement n) throws Exception {
+    Var_t array = n.f0.accept(this);
+    String array_type = st_.findType(array);
+    Var_t idx = n.f2.accept(this);
+    n.f1.accept(this);
+    Var_t val = n.f5.accept(this);
+    String idx_type = st_.findType(idx);
+    String val_type = st_.findType(val);
+    if (!idx_type.equals("int")) {
+      throw new Exception("Array index should be an integer: " + idx_type);
+    }
+    if (array_type.equals("int[]") && val_type.equals("int")) {
+      return null;
+    } else if (array_type.equals("EncInt[]") &&
+            (val_type.equals("EncInt") || val_type.equals("int"))) {
+      return null;
+    }
+    throw new Exception("Error: assignment in " + array_type + " array an "
+            + val_type + " type");
   }
 
   /**

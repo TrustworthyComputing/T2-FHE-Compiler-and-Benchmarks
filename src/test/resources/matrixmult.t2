@@ -13,7 +13,7 @@ int main(void) {
       res_[i_r1+j] = 0;
       for (k = 0; k < r2; k++) {
         k_c2 = k*c2;
-        res_[(i_r1+j)] = (res_[(i_r1+j)]) + ((m1_[(i_r1+k)]) * (m2_[(k_c2+j)]));
+        res_[(i_r1+j)] += ((m1_[(i_r1+k)]) * (m2_[(k_c2+j)]));
       }
     }
   }

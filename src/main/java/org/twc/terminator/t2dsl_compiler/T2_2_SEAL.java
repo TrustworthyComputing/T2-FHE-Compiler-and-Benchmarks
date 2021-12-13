@@ -211,6 +211,61 @@ public class T2_2_SEAL extends T2_Compiler {
    * f1 -> "["
    * f2 -> Expression()
    * f3 -> "]"
+   * f4 -> CompoundOperator()
+   * f5 -> Expression()
+   */
+  public Var_t visit(CompoundArrayAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t idx = n.f2.accept(this);
+    String idx_type = st_.findType(idx);
+    String op = n.f4.accept(this).getName();
+    Var_t rhs = n.f5.accept(this);
+    String rhs_type = st_.findType(rhs);
+    switch (id_type) {
+      case "int[]":
+        append_idx(id.getName());
+        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+        this.asm_.append(" ").append(rhs.getName());
+        break;
+      case "EncInt[]":
+        if (rhs_type.equals("EncInt")) {
+          append_idx("evaluator.");
+          if (op.equals("+=")) {
+            this.asm_.append("add(");
+          } else if (op.equals("*=")) {
+            this.asm_.append("multiply(");
+          } else if (op.equals("-=")) {
+            this.asm_.append("sub(");
+          } else {
+            throw new Exception("Error in compound array assignment");
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName()).append(", ");
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("])");
+          if (op.equals("*=")) {
+            this.asm_.append(";\n");
+            append_idx("evaluator.relinearize_inplace(");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], relin_keys)");
+          }
+          break;
+        } else if (rhs_type.equals("int")) {
+          throw new Exception("Encrypt and move to temporary var.");
+        }
+      default:
+        throw new Exception("error in array assignment");
+    }
+    this.semicolon_ = true;
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
    * f4 -> "="
    * f5 -> Expression()
    */
@@ -225,7 +280,7 @@ public class T2_2_SEAL extends T2_Compiler {
       case "int[]":
         append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = ");
-        this.asm_.append(rhs.getName()).append(";\n");
+        this.asm_.append(rhs.getName());
         break;
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
@@ -238,7 +293,7 @@ public class T2_2_SEAL extends T2_Compiler {
           this.asm_.append(rhs.getName());
           this.asm_.append(");\n");
           append_idx("encryptor.encrypt(tmp, ");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("])");
           break;
         }
       default:
@@ -373,13 +428,13 @@ public class T2_2_SEAL extends T2_Compiler {
       case "int":
         append_idx("cout << ");
         this.asm_.append(expr.getName());
-        this.asm_.append(" << endl;\n");
+        this.asm_.append(" << endl");
         break;
       case "EncInt":
         append_idx("decryptor.decrypt(");
         this.asm_.append(expr.getName()).append(", tmp);\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
+        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");

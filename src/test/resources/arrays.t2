@@ -11,6 +11,7 @@ int main(void) {
 
   arr = { 1, 2 }; // ok
   arr[0] = 12; // ok
+  arr[0] += 31; // ok
   arr[1] = (arr[0]) * 4; // ok
 //  arr[0] = { 1, 2 }; // should error out
   arr = { 1, num, num + 1 }; // ok
@@ -18,6 +19,7 @@ int main(void) {
   enc_vec_ = { 1, 3 }; // ok
   enc_vec_ = { ctxt, ctxt + 10 }; // ok
   enc_vec_[0] = 12; // ok
+  enc_vec_[0] += ctxt; // ok
   enc_vec_[1] = enc_vec_[0]; // ok
 
   enc_vec_ = enc_vec_; // ok

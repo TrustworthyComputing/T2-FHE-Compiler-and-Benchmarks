@@ -163,6 +163,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | IncrementAssignmentStatement()
    *       | DecrementAssignmentStatement()
    *       | CompoundAssignmentStatement()
+   *       | CompoundArrayAssignmentStatement()
    *       | IfStatement()
    *       | WhileStatement()
    *       | ForStatement()
@@ -218,6 +219,16 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f2 -> Expression()
    */
   public abstract Var_t visit(CompoundAssignmentStatement n) throws Exception;
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
+   * f4 -> CompoundOperator()
+   * f5 -> Expression()
+   */
+  public abstract Var_t visit(CompoundArrayAssignmentStatement n) throws Exception;
 
   /**
    * f0 -> "+="

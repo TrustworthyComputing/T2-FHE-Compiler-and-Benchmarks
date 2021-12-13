@@ -121,7 +121,7 @@ public class T2_2_HElib extends T2_Compiler {
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
-      this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
+      this.asm_.append(".resize(").append(rhs_name).append(".size(), tmp_);\n");
       append_idx("for (size_t ");
       this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
       this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
@@ -131,7 +131,7 @@ public class T2_2_HElib extends T2_Compiler {
       this.asm_.append(rhs_name).append("[").append(tmp_i).append("];\n");
       append_idx("public_key.Encrypt(");
       this.asm_.append(lhs.getName()).append("[").append(tmp_i);
-      this.asm_.append("], tmp[0]);\n");
+      this.asm_.append("], tmp);\n");
       this.indent_ -= 2;
       append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
@@ -243,6 +243,51 @@ public class T2_2_HElib extends T2_Compiler {
    * f1 -> "["
    * f2 -> Expression()
    * f3 -> "]"
+   * f4 -> CompoundOperator()
+   * f5 -> Expression()
+   */
+  public Var_t visit(CompoundArrayAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    String id_type = st_.findType(id);
+    Var_t idx = n.f2.accept(this);
+    String idx_type = st_.findType(idx);
+    String op = n.f4.accept(this).getName();
+    Var_t rhs = n.f5.accept(this);
+    String rhs_type = st_.findType(rhs);
+    switch (id_type) {
+      case "int[]":
+        append_idx(id.getName());
+        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+        this.asm_.append(" ").append(rhs.getName());
+        break;
+      case "EncInt[]":
+        if (rhs_type.equals("EncInt")) {
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("] ");
+          if (op.equals("+=") || op.equals("-=")) {
+            this.asm_.append(op).append(" ").append(rhs.getName());
+          } else if (op.equals("*=")) {
+            this.asm_.append(".multiplyBy(");
+            this.asm_.append(rhs.getName()).append(")");
+          } else {
+            throw new Exception("Error in compound array assignment");
+          }
+          break;
+        } else if (rhs_type.equals("int")) {
+          throw new Exception("Encrypt and move to temporary var.");
+        }
+      default:
+        throw new Exception("error in array assignment");
+    }
+    this.semicolon_ = true;
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
    * f4 -> "="
    * f5 -> Expression()
    */
@@ -257,7 +302,7 @@ public class T2_2_HElib extends T2_Compiler {
       case "int[]":
         append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = ");
-        this.asm_.append(rhs.getName()).append(";\n");
+        this.asm_.append(rhs.getName());
         break;
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
@@ -269,7 +314,7 @@ public class T2_2_HElib extends T2_Compiler {
           append_idx("tmp[0] = ");
           this.asm_.append(rhs.getName()).append(";\n");
           append_idx("public_key.Encrypt(");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("], tmp);\n");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("], tmp)");
           break;
         }
       default:
@@ -406,7 +451,7 @@ public class T2_2_HElib extends T2_Compiler {
         append_idx("secret_key.Decrypt(tmp, ");
         this.asm_.append(expr.getName()).append(");\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl;\n");
+        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -473,7 +518,6 @@ public class T2_2_HElib extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
-// TODO
       String res_ = new_ctxt_tmp();
       switch (op) {
         case "+":
@@ -549,6 +593,18 @@ public class T2_2_HElib extends T2_Compiler {
       return new Var_t("EncInt", res_);
     }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+  }
+
+  /**
+   * f0 -> "new"
+   * f1 -> "EncInt"
+   * f2 -> "["
+   * f3 -> Expression()
+   * f4 -> "]"
+   */
+  public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
+    String size = n.f3.accept(this).getName();
+    return new Var_t("EncInt[]", "resize(" + size + ", tmp_)");
   }
 
 }
