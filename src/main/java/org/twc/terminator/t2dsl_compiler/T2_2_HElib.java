@@ -456,6 +456,7 @@ public class T2_2_HElib extends T2_Compiler {
       default:
         throw new Exception("Bad type for print statement");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -480,7 +481,8 @@ public class T2_2_HElib extends T2_Compiler {
     this.asm_.append(size.getName()).append("; ++i) {\n");
     append_idx("  cout << tmp[i] << \"\\t\";\n");
     append_idx("}\n");
-    append_idx("cout << endl;\n");
+    append_idx("cout << endl");
+    this.semicolon_ = true;
     return null;
   }
 

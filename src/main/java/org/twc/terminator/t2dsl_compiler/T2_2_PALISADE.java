@@ -28,8 +28,8 @@ public class T2_2_PALISADE extends T2_Compiler {
 //    append_idx("cc->Enable(LEVELEDSHE);\n"); // for BGV
     append_idx("auto keyPair = cc->KeyGen();\n");
     append_idx("cc->EvalMultKeyGen(keyPair.secretKey);\n");
+    append_idx("size_t slots(cc->GetRingDimension());\n");
     append_idx("Plaintext tmp;\n");
-//    append_idx("vector<int64_t> tmp_vec = { 0 };\n");
     append_idx("Ciphertext<DCRTPoly> tmp_;\n\n");
   }
 
@@ -77,8 +77,11 @@ public class T2_2_PALISADE extends T2_Compiler {
     String rhs_name = rhs.getName();
     if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
-      append_idx("tmp = cc->MakePackedPlaintext({");
-      this.asm_.append(rhs_name).append("});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs_name + ");\n");
+      append_idx("tmp = cc->MakePackedPlaintext(");
+      this.asm_.append(tmp_vec).append(");\n");
       append_idx(lhs.getName());
       this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp)");
       this.semicolon_ = true;
@@ -125,7 +128,10 @@ public class T2_2_PALISADE extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
-      append_idx("tmp = cc->MakePackedPlaintext({1});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, 1);\n");
+      append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec + ");\n");
       append_idx(id.getName());
       this.asm_.append(" = cc->EvalAdd(tmp, ").append(id.getName()).append(");\n");
     } else {
@@ -144,7 +150,10 @@ public class T2_2_PALISADE extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
-      append_idx("tmp = cc->MakePackedPlaintext({1});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, 1);\n");
+      append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec + ");\n");
       append_idx(id.getName());
       this.asm_.append(" = cc->EvalSub(").append(id.getName()).append(", tmp);\n");
     } else {
@@ -181,8 +190,11 @@ public class T2_2_PALISADE extends T2_Compiler {
       }
       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      append_idx("tmp = cc->MakePackedPlaintext({");
-      this.asm_.append(rhs.getName()).append("});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+      append_idx("tmp = cc->MakePackedPlaintext(");
+      this.asm_.append(tmp_vec).append(");\n");
       append_idx(lhs.getName());
       switch (op) {
         case "+=": this.asm_.append(" = cc->EvalAdd("); break;
@@ -273,9 +285,11 @@ public class T2_2_PALISADE extends T2_Compiler {
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int")) {
-          append_idx("tmp = cc->MakePackedPlaintext({");
-          this.asm_.append(rhs.getName());
-          this.asm_.append("});\n");
+          tmp_cnt_++;
+          String tmp_vec = "tmp_vec_" + tmp_cnt_;
+          append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+          append_idx("tmp = cc->MakePackedPlaintext(");
+          this.asm_.append(tmp_vec).append(");\n");
           append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] = cc->Encrypt(");
           this.asm_.append("keyPair.publicKey, tmp)");
@@ -396,7 +410,7 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("tmp = cc->MakePackedPlaintext(");
     this.asm_.append(tmp_vec).append(");\n");
     append_idx(id.getName());
-    this.asm_.append("[").append(index.getName()).append("]) = ");
+    this.asm_.append("[").append(index.getName()).append("] = ");
     this.asm_.append("cc->Encrypt(keyPair.publicKey, tmp);\n");
     return null;
   }
@@ -425,6 +439,7 @@ public class T2_2_PALISADE extends T2_Compiler {
       default:
         throw new Exception("Bad type for print statement");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -454,7 +469,8 @@ public class T2_2_PALISADE extends T2_Compiler {
     this.asm_.append(tmp_vec).append(") {\n");
     append_idx("  cout << v << \"\\t\";\n");
     append_idx("}\n");
-    append_idx("cout << endl;\n");
+    append_idx("cout << endl");
+    this.semicolon_ = true;
     return null;
   }
 
@@ -497,7 +513,10 @@ public class T2_2_PALISADE extends T2_Compiler {
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
-      append_idx("tmp = cc->MakePackedPlaintext({" + lhs.getName() + "});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, " + lhs.getName() + ");\n");
+      append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec + ");\n");
       append_idx(res_);
       this.asm_.append(" = cc->");
       switch (op) {
@@ -536,7 +555,10 @@ public class T2_2_PALISADE extends T2_Compiler {
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       String res_ = new_ctxt_tmp();
-      append_idx("tmp = cc->MakePackedPlaintext({" + rhs.getName() + "});\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+      append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec+ ");\n");
       append_idx(res_);
       this.asm_.append(" = cc->");
       switch (op) {

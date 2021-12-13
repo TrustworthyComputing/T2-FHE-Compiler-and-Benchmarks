@@ -191,6 +191,16 @@ public class T2_2_SEAL extends T2_Compiler {
         this.asm_.append(lhs.getName()).append(", relin_keys)");
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      String rhs_var;
+      try {
+        Integer.parseInt(rhs.getName());
+        append_idx("tmp = uint64_to_hex_string(");
+        this.asm_.append(rhs.getName());
+        this.asm_.append(");\n");
+        rhs_var = "tmp";
+      } catch (NumberFormatException e) {
+        rhs_var = rhs.getName();
+      }
       append_idx("evaluator.");
       switch (op) {
         case "+=": this.asm_.append("add_plain("); break;
@@ -199,7 +209,7 @@ public class T2_2_SEAL extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+      this.asm_.append(lhs.getName()).append(", ").append(rhs_var);
       this.asm_.append(", ").append(lhs.getName()).append(")");
     }
     this.semicolon_ = true;
@@ -439,6 +449,7 @@ public class T2_2_SEAL extends T2_Compiler {
       default:
         throw new Exception("Bad type for print statement");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -466,7 +477,8 @@ public class T2_2_SEAL extends T2_Compiler {
     this.asm_.append(size.getName()).append("; ++i) {\n");
     append_idx("  cout << " + tmp_vec + "[i] << \"\\t\";\n");
     append_idx("}\n");
-    append_idx("cout << endl;\n");
+    append_idx("cout << endl");
+    this.semicolon_ = true;
     return null;
   }
 

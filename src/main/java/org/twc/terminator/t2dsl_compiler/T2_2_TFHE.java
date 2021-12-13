@@ -424,6 +424,7 @@ public class T2_2_TFHE extends T2_Compiler {
       default:
         throw new Exception("Bad type for print statement");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -451,7 +452,8 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("  cout << \"dec(");
     this.asm_.append(expr.getName()).append(") = \" << v << \"\\t\";\n");
     append_idx("}\n");
-    append_idx("cout << endl;\n");
+    append_idx("cout << endl");
+    this.semicolon_ = true;
     return null;
   }
 
