@@ -36,6 +36,11 @@ int main() {
   assert(d_client(16, ctxt_, key)[0] == 53);
   assert(d_client(16, ctxt_, key)[1] == 1);
 
+  // Copy
+  copy(ctxt2_, ctxt_, 16, &key->cloud);
+  assert(d_client(16, ctxt2_, key)[0] == 53);
+  assert(d_client(16, ctxt2_, key)[1] == 1);
+
   // Rotation
   rotate_inplace(ctxt_, LEFT, 2, 16, &key->cloud);
   assert(d_client(16, ctxt_, key)[0] == (53 << 2));
@@ -43,6 +48,8 @@ int main() {
   rotate_inplace(ctxt_, RIGHT, 2, 16, &key->cloud);
   assert(d_client(16, ctxt_, key)[0] == 53);
   assert(d_client(16, ctxt_, key)[1] == 1);
+
+  cout << "Finished rotations!" << endl;
 
   // Add
   vector<uint32_t> const_val = {8,8};

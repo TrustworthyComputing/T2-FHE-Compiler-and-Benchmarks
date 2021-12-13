@@ -1,6 +1,6 @@
 #include "functional_units.hpp"
 
-std::vector<LweSample*> e_client(std::vector<uint32_t> ptxt_val, size_t word_sz,
+std::vector<LweSample*> e_client(std::vector<uint32_t>& ptxt_val, size_t word_sz,
                     const TFheGateBootstrappingSecretKeySet* sk) {
   size_t num_ptxt = ptxt_val.size();
   std::vector<LweSample*> result(num_ptxt);
@@ -23,7 +23,18 @@ std::vector<LweSample*> e_client(uint32_t ptxt_val, size_t word_sz,
   return result;
 }
 
-std::vector<uint32_t> d_client(size_t word_sz, const std::vector<LweSample*> ctxt,
+void copy(std::vector<LweSample*>& dst_, std::vector<LweSample*>& a_, size_t word_sz,
+                               const TFheGateBootstrappingCloudKeySet* bk) {
+  dst_.resize(a_.size());
+  for (int i = 0; i < a_.size(); i++) {
+    dst_[i] = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
+    for (int j = 0; j < word_sz; j++) {
+      bootsCOPY(&dst_[i][j], &a_[i][j], bk);
+    }
+  }
+}
+
+std::vector<uint32_t> d_client(size_t word_sz, const std::vector<LweSample*>& ctxt,
                   const TFheGateBootstrappingSecretKeySet* sk) {
   size_t num_ptxt = ctxt.size();
   std::vector<uint32_t> ptxt(num_ptxt);
@@ -36,7 +47,7 @@ std::vector<uint32_t> d_client(size_t word_sz, const std::vector<LweSample*> ctx
   return ptxt;
 }
 
-std::vector<LweSample*> e_cloud(std::vector<uint32_t> ptxt_val, size_t word_sz,
+std::vector<LweSample*> e_cloud(std::vector<uint32_t>& ptxt_val, size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk){
   size_t num_ptxt = ptxt_val.size();
   std::vector<LweSample*> result(num_ptxt);
@@ -59,7 +70,7 @@ std::vector<LweSample*> e_cloud(uint32_t ptxt_val, size_t word_sz,
   return result;
 }
 
-void rotate_inplace(std::vector<LweSample*> result, rotation_t dir, int amt,
+void rotate_inplace(std::vector<LweSample*>& result, rotation_t dir, int amt,
                     const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk) {
   LweSample* tmp = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
@@ -89,8 +100,8 @@ void rotate_inplace(std::vector<LweSample*> result, rotation_t dir, int amt,
 }
 
 /// Ripple carry adder for nb_bits bits. result = a + b
-void add(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-         const std::vector<LweSample*> b, const size_t nb_bits,
+void add(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+         const std::vector<LweSample*>& b, const size_t nb_bits,
          const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
@@ -98,6 +109,7 @@ void add(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   LweSample* carry =
     new_gate_bootstrapping_ciphertext_array(nb_bits+1, bk->params);
   LweSample* temp = new_gate_bootstrapping_ciphertext_array(1, bk->params);
+
   // Initialize first carry to 0.
   bootsCONSTANT(&carry[0], 0, bk);
 
@@ -132,8 +144,8 @@ void add(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   delete_gate_bootstrapping_ciphertext_array(1, temp);
 }
 
-void sub(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-         const std::vector<LweSample*> b, const int nb_bits,
+void sub(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+         const std::vector<LweSample*>& b, const int nb_bits,
          const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
@@ -146,7 +158,6 @@ void sub(std::vector<LweSample*> result, const std::vector<LweSample*> a,
     bootsXOR(&result[i][0], &a[i][0], &b[i][0], bk);
     bootsNOT(&temp[0], &a[i][0], bk);
     bootsAND(&borrow[0], &temp[0], &b[i][0], bk);
-
     // run full subtractors
     for (int j = 1; j < nb_bits; j++) {
 
@@ -210,8 +221,8 @@ void add_single(LweSample* result, const LweSample* a,
 }
 
 /// multiply for nb_bits bits. result = a * b
-void mult(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-          const std::vector<LweSample*> b, const size_t nb_bits,
+void mult(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+          const std::vector<LweSample*>& b, const size_t nb_bits,
           const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
@@ -259,7 +270,7 @@ void mult(std::vector<LweSample*> result, const std::vector<LweSample*> a,
 }
 
 /// Increment ciphertext a by 1. result = a + 1.
-void inc(std::vector<LweSample*> result, const std::vector<LweSample*> a,
+void inc(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
          const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
 
   if (nb_bits <= 0) return ;
@@ -283,8 +294,8 @@ void inc(std::vector<LweSample*> result, const std::vector<LweSample*> a,
 }
 
 /// Equality check. result = a == b
-void eq(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
-        const std::vector<LweSample*> b, const size_t word_sz,
+void eq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
+        const std::vector<LweSample*>& b, const size_t word_sz,
         const TFheGateBootstrappingCloudKeySet* bk) {
   assert(("Result ciphertext should not be any of the equality arguments",
           result_ != a && result_ != b));
@@ -317,8 +328,8 @@ void eq(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
 }
 
 /// Less than. result = a < b
-void lt(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
-        const std::vector<LweSample*> b, const size_t word_sz,
+void lt(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
+        const std::vector<LweSample*>& b, const size_t word_sz,
         const TFheGateBootstrappingCloudKeySet* bk) {
   if (word_sz <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
@@ -356,8 +367,8 @@ void lt(std::vector<LweSample*> result_, const std::vector<LweSample*> a,
   delete_gate_bootstrapping_ciphertext(n1_AND_n2_);
 }
 
-void e_not(std::vector<LweSample*> result, const std::vector<LweSample*> a, const size_t nb_bits,
-           const TFheGateBootstrappingCloudKeySet* bk) {
+void e_not(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = a.size();
   result.resize(a.size());
   for (int i = 0; i < num_ops; i++) {
@@ -367,8 +378,8 @@ void e_not(std::vector<LweSample*> result, const std::vector<LweSample*> a, cons
   }
 }
 
-void e_and(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-           const std::vector<LweSample*> b, const size_t nb_bits,
+void e_and(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -396,8 +407,8 @@ void e_and(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_or(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-          const std::vector<LweSample*> b, const size_t nb_bits,
+void e_or(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+          const std::vector<LweSample*>& b, const size_t nb_bits,
           const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -425,8 +436,8 @@ void e_or(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_nand(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-            const std::vector<LweSample*> b, const size_t nb_bits,
+void e_nand(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+            const std::vector<LweSample*>& b, const size_t nb_bits,
             const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -453,8 +464,8 @@ void e_nand(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_nor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-           const std::vector<LweSample*> b, const size_t nb_bits,
+void e_nor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -481,8 +492,8 @@ void e_nor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_xor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-           const std::vector<LweSample*> b, const size_t nb_bits,
+void e_xor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -509,8 +520,8 @@ void e_xor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_xnor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-            const std::vector<LweSample*> b, const size_t nb_bits,
+void e_xnor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+            const std::vector<LweSample*>& b, const size_t nb_bits,
             const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(a.size(), b.size());
   result.resize(std::max(a.size(), b.size()));
@@ -537,8 +548,8 @@ void e_xnor(std::vector<LweSample*> result, const std::vector<LweSample*> a,
   }
 }
 
-void e_mux(std::vector<LweSample*> result, const std::vector<LweSample*> a,
-           const std::vector<LweSample*> b, const std::vector<LweSample*> c,
+void e_mux(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const std::vector<LweSample*>& c,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = std::min(b.size(), c.size());
   assert(a.size() >= num_ops);
