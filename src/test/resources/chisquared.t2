@@ -1,0 +1,39 @@
+int main(void) {
+  EncInt n0_, n1_, n2_;
+  EncInt alpha, beta_1, beta_2, beta_3;
+  EncInt n1_squared, two_n0_plus_n1, two_n2_plus_n1;
+  n0_ = 2;
+  n1_ = 7;
+  n2_ = 9;
+
+  // Server side encrypted computation. //
+
+  // a = (4*N0*N2 - N1^2)^2
+  alpha = n0_ * n2_;
+  alpha *= 4;
+  n1_squared = n1_ * n1_;
+  alpha -= n1_squared;
+  alpha *= alpha;
+
+  // beta_1 = 2(2*N0 + N1)^2
+  two_n0_plus_n1 = 2 * n0_;
+  two_n0_plus_n1 += n1_;
+  beta_1 = two_n0_plus_n1 * two_n0_plus_n1;
+  beta_1 *= 2;
+
+  // beta_2 = (2*N0 + N1)(2*N2 + N1)
+  two_n2_plus_n1 = 2 * n2_;
+  two_n2_plus_n1 += n1_;
+  beta_2 = two_n0_plus_n1 * two_n2_plus_n1;
+
+  // beta_3 = 2(2*N2 + N1)^2
+  beta_3 = two_n2_plus_n1 * two_n2_plus_n1;
+  beta_3 *= 2;
+
+  // Decrypt
+  print(alpha);
+  print(beta_1);
+  print(beta_2);
+  print(beta_3);
+  return 0;
+}
