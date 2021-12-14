@@ -7,18 +7,18 @@ int main(void) {
   age_              = { 0, 0, 1, 1, 0, 1, 1, 1 }; // 55
   is_man_           = { 1, 0, 0, 0, 0, 0, 0, 0 }; // true
   is_woman_         = 1 - is_man_;
-  is_smoking_       = { 0, 0, 0, 0, 0, 0, 0, 0 }; // false
+  is_smoking_       = { 1, 0, 0, 0, 0, 0, 0, 0 }; // true
   is_diabetic_      = { 1, 0, 0, 0, 0, 0, 0, 0 }; // true
-  hbp_              = { 1, 0, 0, 0, 0, 0, 0, 0 }; // true
-  hdl_              = { 0, 0, 0, 0, 0, 0, 0, 0 }; // false
-  weight_           = { 0, 1, 1, 0, 1, 1, 1, 0 }; // 110
-  height_           = { 1, 0, 1, 1, 1, 0, 0, 1 }; // 185
-  daily_activity_   = { 0, 0, 0, 1, 1, 0, 1, 1 }; // 27
-  alcohol_consumpt_ = { 1, 0, 0, 0, 0, 0, 0, 0 }; // true
+  hbp_              = { 0, 0, 0, 0, 0, 0, 0, 0 }; // false
+  hdl_              = { 0, 0, 1, 1, 0, 0, 1, 0 }; // 50
+  weight_           = { 0, 1, 0, 1, 0, 0, 0, 0 }; // 80
+  height_           = { 0, 1, 0, 1, 0, 0, 0, 0 }; // 80
+  daily_activity_   = { 0, 0, 1, 0, 1, 1, 0, 1 }; // 45
+  alcohol_consumpt_ = { 0, 0, 0, 0, 0, 1, 0, 0 }; // 4
 
   // server computation
   risk_ = { 0, 0, 0, 0, 0, 0, 0, 0 };
-//  risk_ += (is_man_ * (50 < age_));               // rule 1
+  risk_ += (is_man_ * (50 < age_));               // rule 1
 //  risk_ += (is_woman_ * (60 < age_));             // rule 2
   risk_ += is_smoking_;                           // rule 3
   risk_ += is_diabetic_;                          // rule 4
