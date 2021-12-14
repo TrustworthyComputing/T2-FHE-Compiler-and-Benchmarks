@@ -1,0 +1,24 @@
+int main(void) {
+  EncInt[] primes_;
+  int pr, i, n;
+  n = 100;
+
+  // Server side encrypted computation. //
+  
+  primes_ = new EncInt[(n+1)];
+  for (i = 0 ; i < (n+1) ; i++) {
+    primes_[i] = 1;
+  }
+
+  for (pr = 2; (pr*pr) < (n+1); pr++) {
+    for (i = (2*pr); i < (n+1); i += pr) { // Update all multiples of pr
+      primes_[i] = 0;
+    }
+  }
+
+  // Decrypt
+  for (pr = 2; pr < (n+1); pr++) { // Print all prime numbers
+    print((primes_[pr]) * pr);
+  }
+  return 0;
+}
