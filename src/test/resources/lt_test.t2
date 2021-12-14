@@ -1,0 +1,39 @@
+int main(void) {
+  int i;
+  EncInt[] age_;
+  EncInt[] fifty_;
+  EncInt res_;
+  EncInt n1_;
+  EncInt n2_;
+  EncInt n1_AND_n2_;
+
+  age_ = new EncInt[6];
+  age_[0] = { 0, 0, 0, 1, 1, 1};
+  age_[1] = { 0, 1, 0, 1, 1, 1};
+  age_[2] = { 0, 1, 1, 1, 0, 0};
+  age_[3] = { 0, 1, 0, 1, 1, 0};
+  age_[4] = { 0, 1, 1, 1, 0, 1};
+  age_[5] = { 0, 1, 1, 1, 0, 1};
+
+  fifty_ = new EncInt[6];
+  fifty_[0] = {1, 1, 1, 1, 1, 1};
+  fifty_[1] = {1, 1, 1, 1, 1, 1};
+  fifty_[2] = {0, 0, 0, 0, 0, 0};
+  fifty_[3] = {0, 0, 0, 0, 0, 0};
+  fifty_[4] = {1, 1, 1, 1, 1, 1};
+  fifty_[5] = {0, 0, 0, 0, 0, 0};
+
+  res_ = {0, 0, 0, 0, 0, 0};
+
+  for (i = 5; i > -1; i--) {
+    n1_ = res_ - (age_[i]);
+    n1_ *= n1_;
+    n2_ = res_ - (fifty_[i]);
+    n2_ *= n2_;
+    n1_AND_n2_ = n1_ * n2_;
+    res_ = n1_AND_n2_ - (fifty_[i]);
+    res_ *= res_;
+  }
+  print_batched(res_, 6);
+  return 0;
+}
