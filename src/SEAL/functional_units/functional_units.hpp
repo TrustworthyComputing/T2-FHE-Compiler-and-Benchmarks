@@ -54,35 +54,13 @@ uint64_t decrypt_binary_array_batch(
     seal::Ciphertext encrypted_vec, size_t word_sz, size_t padding = 1);
 
 /// Encrypt/Decrypt a vector of integers to a batched ciphertext
-template <typename T>
-inline seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
-    seal::BatchEncoder& batch_encoder, std::vector<T> nums,
-    size_t num_elems, size_t slots, size_t padding = 1) {
-  std::vector<T> ptxt_vec(slots);
-  for (int i = 0; i < num_elems; ++i) {
-    ptxt_vec[i * padding] = nums[i];
-  }
-  seal::Plaintext ptxt_vec_encoded;
-  batch_encoder.encode(ptxt_vec, ptxt_vec_encoded);
-  seal::Ciphertext encrypted_vec;
-  encryptor.encrypt(ptxt_vec_encoded, encrypted_vec);
-  return encrypted_vec;
-}
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums,
+    size_t num_elems, size_t slots, size_t padding = 1);
 
-template <typename T>
-inline std::vector<T> decrypt_array_batch_to_nums(
+std::vector<uint64_t> decrypt_array_batch_to_nums(
     seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
-    seal::Ciphertext encrypted_vec, size_t slots, size_t padding = 1)  {
-  seal::Plaintext ptxt_vec_encoded;
-  decryptor.decrypt(encrypted_vec, ptxt_vec_encoded);
-  std::vector<T> ptxt_vec;
-  batch_encoder.decode(ptxt_vec_encoded, ptxt_vec);
-  std::vector<T> result_vec(slots / padding);
-  for (int i = 0; i < slots/padding; ++i) {
-    result_vec[i] = ptxt_vec[i * padding];
-  }
-  return result_vec;
-}
+    seal::Ciphertext encrypted_vec, size_t slots, size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
 seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
@@ -244,14 +222,6 @@ inline void print_line(int line_number) {
 inline std::string uint64_to_hex_string(std::uint64_t value) {
   return seal::util::uint_to_hex_string(&value, std::size_t(1));
 }
-
-seal::Ciphertext encrypt_num_vec_batch(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    std::vector<uint64_t> nums, size_t slots, size_t padding /* = 1 */);
-
-std::vector<uint64_t> decrypt_num_vec_batch(
-    seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
-    seal::Ciphertext encrypted_vec, size_t padding /* = 1 */);
 
 seal::Ciphertext eq_bin_batched(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,

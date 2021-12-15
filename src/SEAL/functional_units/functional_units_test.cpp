@@ -27,21 +27,23 @@ int main(void) {
   std::vector<uint64_t> pt1 = {1, 2, 3, 4, 5};
 
   // Batched Enc/Dec
-  Ciphertext ct1_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt1,
-                                          pt1.size(), 1);
-  std::vector<uint64_t> pt1_rec = decrypt_num_vec_batch(decryptor, batch_encoder,
-                                                        ct1_, 1);
+  Ciphertext ct1_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt1,
+                                          pt1.size(), poly_modulus_degree/2, 1);
+  std::vector<uint64_t> pt1_rec = decrypt_array_batch_to_nums(decryptor, batch_encoder,
+                                                        ct1_, poly_modulus_degree/2, 1);
   for (int i = 0; i < pt1.size(); i++) { assert(pt1[i] == pt1_rec[i]); }
 
   // Batched Binary Equality (Ctxt-Ctxt)
   pt1 = {1, 0, 1, 0, 1};
-  ct1_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt1, pt1.size(), 1);
+  ct1_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt1, pt1.size(),
+                                     poly_modulus_degree/2, 1);
   std::vector<uint64_t> pt2 = {0, 0, 1, 1, 1};
-  Ciphertext ct2_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt2,
-                                          pt2.size(), 1);
+  Ciphertext ct2_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt2,
+                                          pt2.size(), poly_modulus_degree/2, 1);
   ct1_ = eq_bin_batched(evaluator, encryptor, batch_encoder, relin_keys, ct1_, ct2_,
-                        galois_keys, pt2.size(), 1);
-  pt1_rec = decrypt_num_vec_batch(decryptor, batch_encoder, ct1_, 1);
+                        galois_keys, poly_modulus_degree/2, 1);
+  pt1_rec = decrypt_array_batch_to_nums(decryptor, batch_encoder, ct1_,
+                                        poly_modulus_degree/2, 1);
   for (int i = 0; i < pt1.size(); i++) {
     pt1[i] = (uint64_t)(pt1[i] == pt2[i]);
     assert(pt1_rec[i] == pt1[i]);
@@ -49,13 +51,15 @@ int main(void) {
 
   // Batched Binary Equality (Ctxt-Ptxt)
   pt1 = {1, 0, 1, 0, 1};
-  ct1_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt1, pt1.size(), 1);
+  ct1_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt1, pt1.size(),
+                                     poly_modulus_degree/2, 1);
   pt2 = {0, 0, 1, 1, 1};
   seal::Plaintext const1;
   batch_encoder.encode(pt2, const1);
   ct1_ = eq_bin_batched_plain(evaluator, encryptor, batch_encoder, relin_keys, ct1_, const1,
-                        galois_keys, pt2.size(), 1);
-  pt1_rec = decrypt_num_vec_batch(decryptor, batch_encoder, ct1_, 1);
+                        galois_keys, poly_modulus_degree/2, 1);
+  pt1_rec = decrypt_array_batch_to_nums(decryptor, batch_encoder, ct1_,
+                                        poly_modulus_degree/2, 1);
   for (int i = 0; i < pt1.size(); i++) {
     pt1[i] = (uint64_t)(pt1[i] == pt2[i]);
     assert(pt1_rec[i] == pt1[i]);
@@ -63,13 +67,15 @@ int main(void) {
 
   // Batched Binary Less-Than (Ctxt-Ctxt)
   pt1 = {1, 0, 1, 0, 1};
-  ct1_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt1, pt1.size(), 1);
+  ct1_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt1, pt1.size(),
+                                     poly_modulus_degree/2, 1);
   pt2 = {0, 0, 1, 1, 1};
-  ct2_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt2,
-                                          pt2.size(), 1);
+  ct2_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt2, pt2.size(),
+                                     poly_modulus_degree/2, 1);
   ct1_ = lt_bin_batched(evaluator, batch_encoder, relin_keys, ct1_, ct2_,
-                        pt2.size());
-  pt1_rec = decrypt_num_vec_batch(decryptor, batch_encoder, ct1_, 1);
+                        poly_modulus_degree/2);
+  pt1_rec = decrypt_array_batch_to_nums(decryptor, batch_encoder, ct1_,
+                                        poly_modulus_degree/2, 1);
   for (int i = 0; i < pt1.size(); i++) {
     pt1[i] = (uint64_t)(pt1[i] < pt2[i]);
     assert(pt1_rec[i] == pt1[i]);
@@ -77,16 +83,17 @@ int main(void) {
 
   // Batched Binary Less-Than (Ctxt-Ptxt)
   pt1 = {1, 0, 1, 0, 1};
-  ct1_ = encrypt_num_vec_batch(encryptor, batch_encoder, pt1, pt1.size(), 1);
+  ct1_ = encrypt_nums_to_array_batch(encryptor, batch_encoder, pt1, pt1.size(),
+                                     poly_modulus_degree/2, 1);
   pt2 = {0, 0, 1, 1, 1};
   batch_encoder.encode(pt2, const1);
   ct1_ = lt_bin_batched_plain(evaluator, batch_encoder, relin_keys, ct1_, const1,
-                              pt2.size());
-  pt1_rec = decrypt_num_vec_batch(decryptor, batch_encoder, ct1_, 1);
+                              poly_modulus_degree/2);
+  pt1_rec = decrypt_array_batch_to_nums(decryptor, batch_encoder, ct1_,
+                                        poly_modulus_degree/2, 1);
   for (int i = 0; i < pt1.size(); i++) {
     pt1[i] = (uint64_t)(pt1[i] < pt2[i]);
     assert(pt1_rec[i] == pt1[i]);
   }
-
-  cout << endl;
+  cout << "All tests passed!" << endl;
 }
