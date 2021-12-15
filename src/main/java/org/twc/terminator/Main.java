@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 enum HE_BACKEND {
-  NONE, SEAL, TFHE, PALISADE, HELIB
+  NONE, SEAL, TFHE, PALISADE, HELIB, LATTIGO
 }
 
 public class Main {
@@ -39,6 +39,9 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-HELIB") ||
                  arg.equalsIgnoreCase("--HELIB")) {
         backend_ = HE_BACKEND.HELIB;
+      } else if (arg.equalsIgnoreCase("-LATTIGO") ||
+                 arg.equalsIgnoreCase("--LATTIGO")) {
+        backend_ = HE_BACKEND.LATTIGO;
       } else {
         input_files.add(arg);
       }
@@ -74,8 +77,8 @@ public class Main {
         T2_Compiler dsl_compiler = null;
         switch (backend_) {
           case NONE:
-            throw new RuntimeException("Provide a backend (e.g., -SEAL, " +
-                                       "-TFHE, ...)");
+            throw new RuntimeException("Provide a backend (i.e., -SEAL, " +
+                                       "-TFHE, -PALISADE, -HELIB, -LATTIGO)");
           case SEAL:
             dsl_compiler = new T2_2_SEAL(symbol_table);
             break;
@@ -87,6 +90,9 @@ public class Main {
             break;
           case HELIB:
             dsl_compiler = new T2_2_HElib(symbol_table);
+            break;
+          case LATTIGO:
+            dsl_compiler = new T2_2_Lattigo(symbol_table);
             break;
           default:
             throw new RuntimeException("Backend is not supported yet");
