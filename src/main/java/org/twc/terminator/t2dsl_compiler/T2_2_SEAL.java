@@ -191,16 +191,9 @@ public class T2_2_SEAL extends T2_Compiler {
         this.asm_.append(lhs.getName()).append(", relin_keys)");
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      String rhs_var;
-      try {
-        Integer.parseInt(rhs.getName());
-        append_idx("tmp = uint64_to_hex_string(");
-        this.asm_.append(rhs.getName());
-        this.asm_.append(");\n");
-        rhs_var = "tmp";
-      } catch (NumberFormatException e) {
-        rhs_var = rhs.getName();
-      }
+      append_idx("tmp = uint64_to_hex_string(");
+      this.asm_.append(rhs.getName());
+      this.asm_.append(");\n");
       append_idx("evaluator.");
       switch (op) {
         case "+=": this.asm_.append("add_plain("); break;
@@ -209,8 +202,8 @@ public class T2_2_SEAL extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      this.asm_.append(lhs.getName()).append(", ").append(rhs_var);
-      this.asm_.append(", ").append(lhs.getName()).append(")");
+      this.asm_.append(lhs.getName()).append(", tmp, ");
+      this.asm_.append(lhs.getName()).append(")");
     }
     this.semicolon_ = true;
     return null;
@@ -533,6 +526,12 @@ public class T2_2_SEAL extends T2_Compiler {
           append_idx("encryptor.encrypt(tmp, tmp_);\n");
           append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
           break;
+        case "^":
+          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+          append_idx(res_);
+          this.asm_.append(" = xor_batch(tmp_, ").append(rhs.getName());
+          this.asm_.append(", evaluator, relin_keys);\n");
+          break;
         case "==":
           append_idx(res_);
           this.asm_.append(" = eq_plain(evaluator, ").append(rhs.getName());
@@ -569,6 +568,12 @@ public class T2_2_SEAL extends T2_Compiler {
         case "-":
           append_idx("evaluator.sub_plain(");
           this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          break;
+        case "^":
+          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+          append_idx(res_);
+          this.asm_.append(" = xor_batch(").append(lhs.getName());
+          this.asm_.append(", tmp_, evaluator, relin_keys);\n");
           break;
         case "==":
           append_idx(res_);
@@ -608,6 +613,12 @@ public class T2_2_SEAL extends T2_Compiler {
           append_idx("evaluator.sub(");
           this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
           this.asm_.append(", ").append(res_).append(");\n");
+          break;
+        case "^":
+          append_idx(res_);
+          this.asm_.append(" = xor_batch(").append(lhs.getName());
+          this.asm_.append(", ").append(lhs.getName());
+          this.asm_.append(", evaluator, relin_keys);\n");
           break;
         case "==":
           append_idx(res_);

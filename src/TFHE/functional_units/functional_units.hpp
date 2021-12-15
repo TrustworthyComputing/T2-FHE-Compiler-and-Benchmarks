@@ -80,6 +80,10 @@ void mult(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
 void inc(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
          const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 
+/// Incrementer circuit: result++.
+void inc_inplace(std::vector<LweSample*>& result, const size_t nb_bits,
+                 const TFheGateBootstrappingCloudKeySet* bk);
+
 /// COMPARISONS
 
 /// Equality circuit: result = (a == b).

@@ -522,6 +522,7 @@ public class T2_2_TFHE extends T2_Compiler {
       case "+": op_str = "add"; break;
       case "*": op_str = "mult"; break;
       case "-": op_str = "sub"; break;
+      case "^": op_str = "e_xor"; break;
       case "==": op_str = "eq"; break;
       case "<": op_str = "lt"; break;
       case "<=": op_str = "leq"; break;

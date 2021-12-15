@@ -293,6 +293,12 @@ void inc(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
   delete_gate_bootstrapping_ciphertext_array(nb_bits, carry);
 }
 
+/// Incrementer circuit: result++.
+void inc_inplace(std::vector<LweSample*>& result, const size_t nb_bits,
+                 const TFheGateBootstrappingCloudKeySet* bk) {
+  inc(result, result, nb_bits, bk);
+}
+
 /// Equality check. result = a == b
 void eq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
         const std::vector<LweSample*>& b, const size_t word_sz,
