@@ -40,3 +40,4 @@ src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLvisitor/*.java
 src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLsyntaxtree/*.java
 src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLparser/*.java
 src/test/resources/*.cpp
+src/test/resources/*.go

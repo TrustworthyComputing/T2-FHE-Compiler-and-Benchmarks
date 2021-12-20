@@ -75,6 +75,7 @@ public class Main {
 
         // Code generation.
         T2_Compiler dsl_compiler = null;
+        String suffix = ".cpp";
         switch (backend_) {
           case NONE:
             throw new RuntimeException("Provide a backend (i.e., -SEAL, " +
@@ -93,13 +94,14 @@ public class Main {
             break;
           case LATTIGO:
             dsl_compiler = new T2_2_Lattigo(symbol_table);
+            suffix = ".go";
             break;
           default:
             throw new RuntimeException("Backend is not supported yet");
         }
         t2dsl_goal.accept(dsl_compiler);
         String code = dsl_compiler.get_asm();
-        String output_path = path + ".cpp";
+        String output_path = path + suffix;
         writer = new PrintWriter(output_path);
         writer.print(code);
         writer.close();

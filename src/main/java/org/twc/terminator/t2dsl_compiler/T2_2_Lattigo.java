@@ -57,12 +57,12 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("package main\n\n");
     append_idx("import (\n");
     append_idx("  \"fmt\"\n");
-    append_idx("  \"math\"\n");
-    append_idx("  \"math/bits\"\n\n");
+//    append_idx("  \"math\"\n");
+//    append_idx("  \"math/bits\"\n\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/utils\"\n");
+//    append_idx("  \"github.com/ldsec/lattigo/v2/utils\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/bfv\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/ring\"\n");
+//    append_idx("  \"github.com/ldsec/lattigo/v2/ring\"\n");
     append_idx(")\n\n");
     append_idx("func main() {\n");
     this.indent_ = 2;
@@ -114,7 +114,8 @@ public class T2_2_Lattigo extends T2_Compiler {
       this.asm_.append(")\n");
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx(lhs.getName());
-      this.asm_.append(" = encryptorSk.EncryptNew(ptxt)\n");
+      this.asm_.append(" = encryptorSk.EncryptNew(ptxt)");
+      this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
       tmp_cnt_++;
@@ -140,11 +141,12 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (rhs_name.startsWith("resize(")) {
         this.asm_.append(" = make([]");
         this.asm_.append(rhs_type.substring(0, rhs_type.length()-2)).append(", ");
-        this.asm_.append( rhs_name.substring(7)).append("\n");
+        this.asm_.append(rhs_name.substring(7));
       } else {
         this.asm_.append(" = ");
-        this.asm_.append(rhs_name).append("\n");
+        this.asm_.append(rhs_name);
       }
+      this.semicolon_ = true;
     } else {
       throw new Exception("Error assignment statement between different " +
               "types: " + lhs_type + ", " + rhs_type);
@@ -174,8 +176,8 @@ public class T2_2_Lattigo extends T2_Compiler {
       append_idx(id.getName() + " = evaluator.AddNew(");
       this.asm_.append(id.getName()).append(", tmp_)\n");
     } else {
-      append_idx(id.getName());
-      this.asm_.append("++\n");
+      append_idx(id.getName() + "++");
+      this.semicolon_ = true;
     }
     return null;
   }
@@ -202,8 +204,8 @@ public class T2_2_Lattigo extends T2_Compiler {
       append_idx(id.getName() + " = evaluator.SubNew(");
       this.asm_.append(id.getName()).append(", tmp_)\n");
     } else {
-      append_idx(id.getName());
-      this.asm_.append("++\n");
+      append_idx(id.getName() + "--");
+      this.semicolon_ = true;
     }
     return null;
   }
@@ -214,7 +216,6 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f2 -> Expression()
    */
   public Var_t visit(CompoundAssignmentStatement n) throws Exception {
-    // TODO
     Var_t lhs = n.f0.accept(this);
     String op = n.f1.accept(this).getName();
     Var_t rhs = n.f2.accept(this);
@@ -222,11 +223,33 @@ public class T2_2_Lattigo extends T2_Compiler {
     String rhs_type = st_.findType(rhs);
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
       append_idx(lhs.getName());
-      this.asm_.append(" ").append(op).append(" ");
-      this.asm_.append(rhs.getName());
+      this.asm_.append(" ").append(op).append(" ").append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+      append_idx(lhs.getName() + " = evaluator.");
+      switch (op) {
+        case "+=": this.asm_.append("AddNew("); break;
+        case "*=": this.asm_.append("MulNew("); break;
+        case "-=": this.asm_.append("SubNew("); break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      append_idx("tmp[0] = uint64(");
+      this.asm_.append(rhs.getName()).append(")\n");
+      append_idx("encoder.EncodeUint(tmp, ptxt)\n");
+      append_idx("tmp_ = encryptorSk.EncryptNew(ptxt)\n");
+      append_idx(lhs.getName() + " = evaluator.");
+      switch (op) {
+        case "+=": this.asm_.append("AddNew("); break;
+        case "*=": this.asm_.append("MulNew("); break;
+        case "-=": this.asm_.append("SubNew("); break;
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+      this.asm_.append(lhs.getName()).append(", tmp_)");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -239,8 +262,6 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f5 -> Expression()
    */
   public Var_t visit(CompoundArrayAssignmentStatement n) throws Exception {
-    // TODO
-
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
@@ -255,9 +276,25 @@ public class T2_2_Lattigo extends T2_Compiler {
         this.asm_.append(" ").append(rhs.getName());
         break;
       case "EncInt[]":
+        if (rhs_type.equals("EncInt")) {
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("] = evaluator.");
+          switch (op) {
+            case "+=": this.asm_.append("AddNew("); break;
+            case "*=": this.asm_.append("MulNew("); break;
+            case "-=": this.asm_.append("SubNew("); break;
+            default: throw new Exception("Error in compound array assignment");
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName()).append(")");
+          break;
+        } else if (rhs_type.equals("int")) {
+          throw new Exception("Encrypt and move to temporary var.");
+        }
       default:
         throw new Exception("error in array assignment");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -280,26 +317,26 @@ public class T2_2_Lattigo extends T2_Compiler {
       case "int[]":
         append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = uint64(");
-        this.asm_.append(rhs.getName()).append(")\n");
+        this.asm_.append(rhs.getName());
         break;
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
           append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] = ");
-          this.asm_.append(rhs.getName()).append("\n");
+          this.asm_.append(rhs.getName());
           break;
         } else if (rhs_type.equals("int")) {
           append_idx("tmp[0] = uint64(");
-          this.asm_.append(rhs.getName());
-          this.asm_.append(")\n");
+          this.asm_.append(rhs.getName()).append(")\n");
           append_idx("encoder.EncodeUint(tmp, ptxt)\n");
           append_idx(id.getName() + "[" + idx.getName()+ "] = ");
-          this.asm_.append("encryptorSk.EncryptNew(ptxt)\n");
+          this.asm_.append("encryptorSk.EncryptNew(ptxt)");
           break;
         }
       default:
         throw new Exception("error in array assignment");
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -411,6 +448,80 @@ public class T2_2_Lattigo extends T2_Compiler {
   }
 
   /**
+   * f0 -> "if"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   * f4 -> Statement()
+   */
+  public Var_t visit(IfthenStatement n) throws Exception {
+    append_idx("if ");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName());
+    n.f4.accept(this);
+    return null;
+  }
+
+  /**
+   * f0 -> "if"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   * f4 -> Statement()
+   * f5 -> "else"
+   * f6 -> Statement()
+   */
+  public Var_t visit(IfthenElseStatement n) throws Exception {
+    append_idx("if ");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName());
+    n.f4.accept(this);
+    append_idx("else");
+    n.f6.accept(this);
+    return null;
+  }
+
+  /**
+   * f0 -> "while"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   * f4 -> Statement()
+   */
+  public Var_t visit(WhileStatement n) throws Exception {
+    append_idx("for ");
+    Var_t cond = n.f2.accept(this);
+    this.asm_.append(cond.getName());
+    n.f4.accept(this);
+    return null;
+  }
+
+  /**
+   * f0 -> "for"
+   * f1 -> "("
+   * f2 -> AssignmentStatement()
+   * f3 -> ";"
+   * f4 -> Expression()
+   * f5 -> ";"
+   * f6 -> ( AssignmentStatement() | IncrementAssignmentStatement() | DecrementAssignmentStatement() | CompoundAssignmentStatement() )
+   * f7 -> ")"
+   * f8 -> Statement()
+   */
+  public Var_t visit(ForStatement n) throws Exception {
+    append_idx("for ");
+    int prev_indent = this.indent_;
+    this.indent_ = 0;
+    n.f2.accept(this);
+    this.asm_.append("; ");
+    Var_t cond = n.f4.accept(this);
+    this.asm_.append(cond.getName()).append("; ");
+    n.f6.accept(this);
+    this.indent_ = prev_indent;
+    n.f8.accept(this);
+    return null;
+  }
+
+  /**
    * f0 -> "print"
    * f1 -> "("
    * f2 -> Expression()
@@ -477,13 +588,12 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f2 -> PrimaryExpression()
    */
   public Var_t visit(BinaryExpression n) throws Exception {
-    // TODO
-
     Var_t lhs = n.f0.accept(this);
     String op = n.f1.accept(this).getName();
     Var_t rhs = n.f2.accept(this);
     String lhs_type = st_.findType(lhs);
     String rhs_type = st_.findType(rhs);
+    String res_ = "tmp_" + (++tmp_cnt_);
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
       if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
               ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
@@ -496,10 +606,107 @@ public class T2_2_Lattigo extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+      append_idx("tmp[0] = uint64(");
+      this.asm_.append(lhs.getName()).append(")\n");
+      append_idx("encoder.EncodeUint(tmp, ptxt)\n");
+      append_idx("tmp_ = encryptorSk.EncryptNew(ptxt)\n");
+      switch (op) {
+        case "+":
+          append_idx(res_ + " := evaluator.AddNew(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
+        case "*":
+          append_idx(res_ + " := evaluator.MulNew(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
+        case "-":
+          append_idx(res_ + " := evaluator.SubNew(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
+        case "^":
+          append_idx(res_ + " := evaluator.XorNew(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
+        case "==":
+        case "<":
+        case "<=":
+//          append_idx(res_);
+//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
+//          this.asm_.append("relin_keys, ").append(lhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
+//          break;
+          throw new Exception("Operation " + op + " not yet supported");
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      append_idx("tmp[0] = uint64(");
+      this.asm_.append(rhs.getName()).append(")\n");
+      append_idx("encoder.EncodeUint(tmp, ptxt)\n");
+      append_idx("tmp_ = encryptorSk.EncryptNew(ptxt)\n");
+      switch (op) {
+        case "+":
+          append_idx(res_ + " := evaluator.AddNew(");
+          this.asm_.append(lhs.getName()).append(", tmp_)\n");
+          break;
+        case "*":
+          append_idx(res_ + " := evaluator.MulNew(");
+          this.asm_.append(lhs.getName()).append(", tmp_)\n");
+          break;
+        case "-":
+          append_idx(res_ + " := evaluator.SubNew(");
+          this.asm_.append(lhs.getName()).append(", tmp_)\n");
+          break;
+        case "^":
+          append_idx(res_ + " := evaluator.XorNew(");
+          this.asm_.append(lhs.getName()).append(", tmp_)\n");
+          break;
+        case "==":
+        case "<":
+        case "<=":
+//          append_idx(res_);
+//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
+//          this.asm_.append("relin_keys, ").append(lhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
+//          break;
+          throw new Exception("Operation " + op + " not yet supported");
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+      switch (op) {
+        case "+":
+          append_idx(res_ + " := evaluator.AddNew(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
+        case "*":
+          append_idx(res_ + " := evaluator.MulNew(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
+        case "-":
+          append_idx(res_ + " := evaluator.SubNew(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
+        case "^":
+          append_idx(res_ + " := evaluator.XorNew(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
+        case "==":
+        case "<":
+        case "<=":
+//          append_idx(res_);
+//          this.asm_.append(" = eq(encryptor, batch_encoder, evaluator, ");
+//          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+//          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots)\n");
+//          break;
+          throw new Exception("Operation " + op + " not yet supported");
+        default:
+          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      }
+    } else {
+      throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
-    throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+    return new Var_t("EncInt", res_);
   }
 
 }
