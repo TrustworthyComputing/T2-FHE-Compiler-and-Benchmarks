@@ -65,6 +65,8 @@ TOKEN :
   | < FOR: "for" >
   | < INTEGER: "int" >
   | < ENCRYPTED_INTEGER: "EncInt" >
+  | < DOUBLE: "double" >
+  | < ENCRYPTED_DOUBLE: "EncDouble" >
   | < MAIN: "main" >
   | < NEW: "new" >
   | < PUBLIC: "public" >
@@ -80,7 +82,8 @@ TOKEN :
 
 TOKEN : /* LITERALS */
 {
-  < INTEGER_LITERAL: ( ["1"-"9"] (["0"-"9"])* | "0" ) >
+  < INTEGER_LITERAL: ( ["1"-"9"] (["0"-"9"])* | "0" ) > |
+  < DOUBLE_LITERAL: ( ["1"-"9"] (["0"-"9"])* | "0" ) "." (["0"-"9"])* >
 }
 
 TOKEN : /* IDENTIFIERS */
@@ -155,9 +158,13 @@ void Type() : {} {
   ArrayType()
 |   LOOKAHEAD(3)
     EncryptedArrayType()
+|   LOOKAHEAD(3)
+    EncryptedDoubleArrayType()
 |   BooleanType()
 |   IntegerType()
 |   EncryptedIntegerType()
+|   DoubleType()
+|   EncryptedDoubleType()
 |   Identifier()
 }
 
@@ -165,8 +172,16 @@ void ArrayType() : {} {
   "int" "[" "]"
 }
 
+void DoubleArrayType() : {} {
+  "double" "[" "]"
+}
+
 void EncryptedArrayType() : {} {
   "EncInt" "[" "]"
+}
+
+void EncryptedDoubleArrayType() : {} {
+  "EncDouble" "[" "]"
 }
 
 void BooleanType() : {} {
@@ -179,6 +194,14 @@ void IntegerType() : {} {
 
 void EncryptedIntegerType() : {} {
   "EncInt"
+}
+
+void DoubleType() : {} {
+  "double"
+}
+
+void EncryptedDoubleType() : {} {
+  "EncDouble"
 }
 
 void Statement() : {} {
@@ -369,6 +392,7 @@ void Clause() : {} {
 
 void PrimaryExpression() : {} {
   IntegerLiteral()
+|   DoubleLiteral()
 |   TrueLiteral()
 |   FalseLiteral()
 |   Identifier()
@@ -376,11 +400,18 @@ void PrimaryExpression() : {} {
   ArrayAllocationExpression()
 |   LOOKAHEAD(3)
   EncryptedArrayAllocationExpression()
+|   LOOKAHEAD(3)
+    ArrayDoubleAllocationExpression()
+|   LOOKAHEAD(3) EncryptedArrayDoubleAllocationExpression()
 |   BracketExpression()
 }
 
 void IntegerLiteral() : {} {
   <INTEGER_LITERAL>
+}
+
+void DoubleLiteral() : {} {
+  <DOUBLE_LITERAL>
 }
 
 void TrueLiteral() : {} {
@@ -401,6 +432,14 @@ void ArrayAllocationExpression() : {} {
 
 void EncryptedArrayAllocationExpression() : {} {
   "new" "EncInt" "[" Expression() "]"
+}
+
+void ArrayDoubleAllocationExpression() : {} {
+  "new" "double" "[" Expression() "]"
+}
+
+void EncryptedArrayDoubleAllocationExpression() : {} {
+  "new" "EncDouble" "[" Expression() "]"
 }
 
 void NotExpression() : {} {

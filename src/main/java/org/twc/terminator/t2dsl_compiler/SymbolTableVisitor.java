@@ -49,8 +49,9 @@ public class SymbolTableVisitor extends GJNoArguDepthFirst<Var_t> {
         Var_t variable = n.f6.nodes.get(i).accept(this);
         String var_t = variable.getType();
         if (!(var_t.equals("int") || var_t.equals("EncInt") ||
+              var_t.equals("double") || var_t.equals("EncDouble") ||
               var_t.equals("bool") || var_t.equals("int[]") ||
-              var_t.equals("EncInt[]")) ) {
+              var_t.equals("EncInt[]") || var_t.equals("EncDouble[]")) ) {
           throw new Exception("Unknown type " + var_t);
         }
         if (variable.getVarList() != null) {
@@ -168,12 +169,30 @@ public class SymbolTableVisitor extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> "double"
+   * f1 -> "["
+   * f2 -> "]"
+   */
+  public Var_t visit(DoubleArrayType n) throws Exception {
+    return new Var_t("double[]", null);
+  }
+
+  /**
    * f0 -> "EncInt"
    * f1 -> "["
    * f2 -> "]"
    */
   public Var_t visit(EncryptedArrayType n) throws Exception {
     return new Var_t("EncInt[]", null);
+  }
+
+  /**
+   * f0 -> "EncDouble"
+   * f1 -> "["
+   * f2 -> "]"
+   */
+  public Var_t visit(EncryptedDoubleArrayType n) throws Exception {
+    return new Var_t("EncDouble[]", null);
   }
 
   /**
@@ -195,6 +214,21 @@ public class SymbolTableVisitor extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(EncryptedIntegerType n) throws Exception {
     return new Var_t("EncInt", null);
+  }
+
+
+  /**
+   * f0 -> "double"
+   */
+  public Var_t visit(DoubleType n) throws Exception {
+    return new Var_t("double", null);
+  }
+
+  /**
+   * f0 -> "EncDouble"
+   */
+  public Var_t visit(EncryptedDoubleType n) throws Exception {
+    return new Var_t("EncDouble", null);
   }
 
   /**

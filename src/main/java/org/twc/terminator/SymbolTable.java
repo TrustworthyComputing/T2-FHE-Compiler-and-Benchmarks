@@ -9,10 +9,14 @@ public class SymbolTable {
 
   public List<Var_t> vars;
   public Map<String, String> backend_types;
+  public Map<String, Boolean> enc_var_type;
 
   public SymbolTable() {
     this.vars = new ArrayList<>();
     this.backend_types = new HashMap<>();
+    this.enc_var_type = new HashMap<>();
+    this.enc_var_type.put("EncInt", false);
+    this.enc_var_type.put("EncDouble", false);
   }
 
   public String findType(Var_t var) {

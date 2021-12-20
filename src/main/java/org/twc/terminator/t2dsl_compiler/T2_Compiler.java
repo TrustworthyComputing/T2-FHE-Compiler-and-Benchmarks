@@ -109,6 +109,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * | BooleanType()
    * | IntegerType()
    * | EncryptedIntegerType()
+   * | DoubleType()
+   * | EncryptedDoubleType()
    * | Identifier()
    */
   public Var_t visit(Type n) throws Exception {
@@ -125,6 +127,15 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> "double"
+   * f1 -> "["
+   * f2 -> "]"
+   */
+  public Var_t visit(DoubleArrayType n) throws Exception {
+    return new Var_t("double[]", null);
+  }
+
+  /**
    * f0 -> "EncInt"
    * f1 -> "["
    * f2 -> "]"
@@ -132,6 +143,16 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   public Var_t visit(EncryptedArrayType n) throws Exception {
     return new Var_t("EncInt[]", null);
   }
+
+  /**
+   * f0 -> "EncDouble"
+   * f1 -> "["
+   * f2 -> "]"
+   */
+  public Var_t visit(EncryptedDoubleArrayType n) throws Exception {
+    return new Var_t("EncDouble[]", null);
+  }
+
 
   /**
    * f0 -> "boolean"
@@ -152,6 +173,20 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(EncryptedIntegerType n) throws Exception {
     return new Var_t("EncInt", null);
+  }
+
+  /**
+   * f0 -> "double"
+   */
+  public Var_t visit(DoubleType n) throws Exception {
+    return new Var_t("double", null);
+  }
+
+  /**
+   * f0 -> "EncDouble"
+   */
+  public Var_t visit(EncryptedDoubleType n) throws Exception {
+    return new Var_t("EncDouble", null);
   }
 
   /**
@@ -562,6 +597,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   /**
    * f0 -> IntegerLiteral()
+   *       | DoubleLiteral()
    *       | TrueLiteral()
    *       | FalseLiteral()
    *       | Identifier()
@@ -578,6 +614,13 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    */
   public Var_t visit(IntegerLiteral n) throws Exception {
     return new Var_t("int", n.f0.toString());
+  }
+
+  /**
+   * f0 -> <DOUBLE_LITERAL>
+   */
+  public Var_t visit(DoubleLiteral n) throws Exception {
+    return new Var_t("double", n.f0.toString());
   }
 
   /**
@@ -623,6 +666,30 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
     String size = n.f3.accept(this).getName();
     return new Var_t("EncInt[]", "resize(" + size + ")");
+  }
+
+  /**
+   * f0 -> "new"
+   * f1 -> "double"
+   * f2 -> "["
+   * f3 -> Expression()
+   * f4 -> "]"
+   */
+  public Var_t visit(ArrayDoubleAllocationExpression n) throws Exception {
+    String size = n.f3.accept(this).getName();
+    return new Var_t("double[]", "resize(" + size + ")");
+  }
+
+  /**
+   * f0 -> "new"
+   * f1 -> "EncDouble"
+   * f2 -> "["
+   * f3 -> Expression()
+   * f4 -> "]"
+   */
+  public Var_t visit(EncryptedArrayDoubleAllocationExpression n) throws Exception {
+    String size = n.f3.accept(this).getName();
+    return new Var_t("EncDouble[]", "resize(" + size + ")");
   }
 
   /**

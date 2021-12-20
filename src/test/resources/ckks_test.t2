@@ -1,0 +1,8 @@
+int main(void) {
+  EncDouble ctxt1, ctxt2;
+  double x;
+  x = 2.5;
+  ctxt1 = 1.0;
+
+  return 0;
+}

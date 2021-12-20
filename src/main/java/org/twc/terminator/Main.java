@@ -8,11 +8,15 @@ import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.Goal;
 import java.io.*;
 import java.util.ArrayList;
 
-enum HE_BACKEND {
-  NONE, SEAL, TFHE, PALISADE, HELIB, LATTIGO
-}
-
 public class Main {
+
+  enum HE_BACKEND {
+    NONE, SEAL, TFHE, PALISADE, HELIB, LATTIGO
+  }
+
+  public enum HE_SCHEME {
+    NONE, BFV_BGV, CKKS;
+  }
 
   public static void main(String[] args) {
     if (args.length == 0) {
@@ -67,11 +71,14 @@ public class Main {
           System.out.println();
           symtable_visit.printSymbolTable();
         }
-        System.out.println("[ 2/3 ] Class members and methods info collection phase completed");
+        System.out.println("[ 1/2 ] Class members and methods info collection" +
+                           " phase completed");
         TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
         t2dsl_goal.accept(type_checker);
-        System.out.println("[ 3/3 ] Type checking phase completed");
-        System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed");
+        HE_SCHEME scheme_ = type_checker.getScheme();
+        System.out.println("[ 2/2 ] Type checking phase completed");
+        System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed, " +
+                "using " + backend_.name() + " with " + scheme_.name());
 
         // Code generation.
         T2_Compiler dsl_compiler = null;
@@ -81,20 +88,41 @@ public class Main {
             throw new RuntimeException("Provide a backend (i.e., -SEAL, " +
                                        "-TFHE, -PALISADE, -HELIB, -LATTIGO)");
           case SEAL:
-            dsl_compiler = new T2_2_SEAL(symbol_table);
+            switch (scheme_) {
+              case BFV_BGV:
+                dsl_compiler = new T2_2_SEAL(symbol_table);
+                break;
+              case CKKS:
+//                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table);
+                break;
+            }
             break;
           case TFHE:
             dsl_compiler = new T2_2_TFHE(symbol_table);
             break;
           case PALISADE:
-            dsl_compiler = new T2_2_PALISADE(symbol_table);
+            switch (scheme_) {
+              case BFV_BGV:
+                dsl_compiler = new T2_2_PALISADE(symbol_table);
+                break;
+              case CKKS:
+//                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table);
+                break;
+            }
             break;
           case HELIB:
             dsl_compiler = new T2_2_HElib(symbol_table);
             break;
           case LATTIGO:
-            dsl_compiler = new T2_2_Lattigo(symbol_table);
             suffix = ".go";
+            switch (scheme_) {
+              case BFV_BGV:
+                dsl_compiler = new T2_2_Lattigo(symbol_table);
+                break;
+              case CKKS:
+//                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table);
+                break;
+            }
             break;
           default:
             throw new RuntimeException("Backend is not supported yet");
@@ -106,8 +134,8 @@ public class Main {
         writer.print(code);
         writer.close();
         System.out.println(code);
-        System.out.println("[ \033[0;32m \u2713 \033[0m ] SEAL code generated" +
-                           " to \"" + output_path + "\"");
+        System.out.println("[ \033[0;32m \u2713 \033[0m ] " + backend_.name() +
+                           " code generated to \"" + output_path + "\"");
         input_stream = new FileInputStream(output_path);
       } catch (ParseException | FileNotFoundException ex) {
         ex.printStackTrace();
