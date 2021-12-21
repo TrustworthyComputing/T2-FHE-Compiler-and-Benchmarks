@@ -157,6 +157,8 @@ void Type() : {} {
   LOOKAHEAD(3)
   ArrayType()
 |   LOOKAHEAD(3)
+    DoubleArrayType()
+|   LOOKAHEAD(3)
     EncryptedArrayType()
 |   LOOKAHEAD(3)
     EncryptedDoubleArrayType()

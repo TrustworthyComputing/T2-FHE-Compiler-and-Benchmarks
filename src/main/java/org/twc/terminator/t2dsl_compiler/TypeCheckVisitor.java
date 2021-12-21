@@ -114,9 +114,12 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   /**
    * f0 -> ArrayType()
    * | EncryptedArrayType()
+   * | EncryptedDoubleArrayType()
    * | BooleanType()
    * | IntegerType()
    * | EncryptedIntegerType()
+   * | DoubleType()
+   * | EncryptedDoubleType()
    * | Identifier()
    */
   public Var_t visit(Type n) throws Exception {
@@ -712,7 +715,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
                  (t2.equals("int") || t2.equals("EncInt")) ) {
         return new Var_t("EncInt", null);
       } else if ((t1.equals("int") || t1.equals("double") || t1.equals("EncDouble")) &&
-                 (t2.equals("int") || t1.equals("double") || t2.equals("EncDouble")) ) {
+                 (t2.equals("int") || t2.equals("double") || t2.equals("EncDouble")) ) {
         return new Var_t("EncDouble", null);
       }
     } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||

@@ -18,7 +18,9 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.tmp_cnt_ = 0;
     this.st_ = st;
     this.st_.backend_types.put("int", "int");
+    this.st_.backend_types.put("double", "double");
     this.st_.backend_types.put("int[]", "vector<int>");
+    this.st_.backend_types.put("double[]", "vector<double>");
     this.semicolon_ = false;
     this.asm_ = new StringBuilder();
   }
@@ -105,7 +107,9 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   /**
    * f0 -> ArrayType()
+   * | DoubleArrayType()
    * | EncryptedArrayType()
+   * | EncryptedDoubleArrayType()
    * | BooleanType()
    * | IntegerType()
    * | EncryptedIntegerType()
@@ -533,12 +537,23 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     String arr_type = st_.findType(arr);
     tmp_cnt_++;
     Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
-    if (arr_type.equals("int[]")) {
-      append_idx(this.st_.backend_types.get("int"));
-      ret.setType("int");
-    } else if (arr_type.equals("EncInt[]")) {
-      append_idx(this.st_.backend_types.get("EncInt"));
-      ret.setType("EncInt");
+    switch (arr_type) {
+      case "int[]":
+        append_idx(this.st_.backend_types.get("int"));
+        ret.setType("int");
+        break;
+      case "double[]":
+        append_idx(this.st_.backend_types.get("double"));
+        ret.setType("double");
+        break;
+      case "EncInt[]":
+        append_idx(this.st_.backend_types.get("EncInt"));
+        ret.setType("EncInt");
+        break;
+      case "EncDouble[]":
+        append_idx(this.st_.backend_types.get("EncDouble"));
+        ret.setType("EncDouble");
+        break;
     }
     this.asm_.append(" ").append(ret.getName());
     this.asm_.append(" = ").append(arr.getName()).append("[");
@@ -570,17 +585,19 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     switch (cond_type) {
       case "bool":
       case "int":
+      case "double":
         append_idx(res_);
         this.asm_.append(" = (").append(cond.getName()).append(") ? ");
         this.asm_.append(exp_1.getName()).append(" : ").append(exp_2.getName());
         this.asm_.append(";\n");
         return new Var_t(exp_1_type, res_);
       case "EncInt":
+      case "EncDouble":
         append_idx(res_);
         this.asm_.append(" = mux(").append(cond.getName()).append(", ");
         this.asm_.append(exp_1.getName()).append(", ").append(exp_2.getName());
         this.asm_.append(");\n");
-        return new Var_t("EncInt", res_);
+        return new Var_t(cond_type, res_);
       default:
         throw new RuntimeException("condition in ternary should be either " +
                 "bool or EncInt but it is of type " + cond_type);

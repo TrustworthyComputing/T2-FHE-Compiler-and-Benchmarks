@@ -93,7 +93,7 @@ public class Main {
                 dsl_compiler = new T2_2_SEAL(symbol_table);
                 break;
               case CKKS:
-//                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table);
+                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table);
                 break;
             }
             break;
