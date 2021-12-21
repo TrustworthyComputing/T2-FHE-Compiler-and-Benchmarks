@@ -143,7 +143,7 @@ void add(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
 
-  if ((num_ops == 1) && (a.size() != b.size()) { // batched w/ non-batched
+  if ((num_ops == 1) && (a.size() != b.size())) { // batched w/ non-batched
     if (a.size() == 1) {
       add_mixed(result, b, a, nb_bits, bk);
     }
@@ -343,12 +343,69 @@ void add_single(LweSample* result, const LweSample* a,
 }
 
 /// multiply for nb_bits bits. result = a * b
+void mult_mixed(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+          const std::vector<LweSample*>& b, const size_t nb_bits,
+          const TFheGateBootstrappingCloudKeySet* bk) {
+  if (nb_bits <= 0) return ;
+  std::vector<LweSample*> tmp_res;
+  size_t old_size = result.size();
+  result.resize(a.size());
+  for (int i = old_size; i < result.size(); i++) {
+    result[i] = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  }
+  LweSample* tmp_array =
+    new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* sum =
+    new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  copy(tmp_res, result, nb_bits, bk);
+
+  // initialize temp values to 0
+  for (int i = 0; i < a.size(); ++i) {
+    for (int j = 0; j < nb_bits; ++j) {
+      bootsCONSTANT(&sum[j], 0, bk);
+    }
+
+    for (int j = 0; j < nb_bits; ++j) {
+      for (int k = 0; k < nb_bits - j; ++k) {
+        bootsAND(&tmp_array[k], &a[i][j], &b[0][k], bk);
+      }
+      add_single(sum + j, tmp_array, sum + j, nb_bits - j, bk);
+    }
+    for (int j = 0; j < nb_bits; j++) {
+      bootsCOPY(&tmp_res[i][j], &sum[j], bk);
+    }
+  }
+  copy(result, tmp_res, nb_bits, bk);
+
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, tmp_array);
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, sum);
+  for (int i = 0; i < tmp_res.size(); i++) {
+    delete_gate_bootstrapping_ciphertext_array(nb_bits, tmp_res[i]);
+  }
+}
+
+/// multiply for nb_bits bits. result = a * b
 void mult(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
           const std::vector<LweSample*>& b, const size_t nb_bits,
           const TFheGateBootstrappingCloudKeySet* bk) {
   if (nb_bits <= 0) return ;
   size_t num_ops = std::min(a.size(), b.size());
+
+  if ((num_ops == 1) && (a.size() != b.size())) { // batched w/ non-batched
+    if (a.size() == 1) {
+      mult_mixed(result, b, a, nb_bits, bk);
+    }
+    else {
+      mult_mixed(result, a, b, nb_bits, bk);
+    }
+    return;
+  }
+
+  size_t old_size = result.size();
   result.resize(std::max(a.size(), b.size()));
+  for (int i = old_size; i < result.size(); i++) {
+    result[i] = new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  }
   LweSample* tmp_array =
     new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
   LweSample* sum =
