@@ -21,11 +21,11 @@ benchmarks: fibonacci factorial
 keygen: $(BIN)/keygen.o
 	$(CXX) $(CPPFLAGS) $(BIN)/keygen.o -o $(BIN)/keygen.out $(LIBS)
 
-encrypt: $(BIN)/encrypt.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/encrypt.o $(BIN)/helper.o -o $(BIN)/encrypt.out $(LIBS)
+encrypt: $(BIN)/encrypt.o
+	$(CXX) $(CPPFLAGS) $(BIN)/encrypt.o -o $(BIN)/encrypt.out $(LIBS)
 
-decrypt: $(BIN)/decrypt.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/decrypt.o $(BIN)/helper.o -o $(BIN)/decrypt.out $(LIBS)
+decrypt: $(BIN)/decrypt.o
+	$(CXX) $(CPPFLAGS) $(BIN)/decrypt.o -o $(BIN)/decrypt.out $(LIBS)
 
 fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/fibonacci.o $(BIN)/helper.o -o $(BIN)/fibonacci.out $(LIBS)
@@ -33,11 +33,11 @@ fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 factorial: $(BIN)/factorial.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/helper.o -o $(BIN)/factorial.out $(LIBS)
 
-pir: $(BIN)/pir.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/helper.o -o $(BIN)/pir.out $(LIBS)
+pir: $(BIN)/pir.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/functional_units.o -o $(BIN)/pir.out $(LIBS)
 
-simon: $(BIN)/simon.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/simon.o $(BIN)/helper.o -o $(BIN)/simon.out $(LIBS)
+simon: $(BIN)/simon.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/simon.o $(BIN)/functional_units.o -o $(BIN)/simon.out $(LIBS)
 
 test: $(BIN)/test.o $(BIN)/functional_units.o
 	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/functional_units.o -o $(BIN)/test.out $(LIBS)

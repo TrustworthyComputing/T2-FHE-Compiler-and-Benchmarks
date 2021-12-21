@@ -4,26 +4,38 @@
 #include <tfhe/tfhe_io.h>
 #include <tfhe/tfhe_generic_streams.h>
 
-#include "../../helper.hpp"
+#include "../../functional_units/functional_units.hpp"
 
-LweSample* pir(LweSample** db_, const LweSample* query_, int word_sz,
+using namespace std;
+
+bool is_pow_of_2(int n) {
+  int count = 0;
+  for (int i = 0; i < 32; i++){
+    count += (n >> i & 1);
+  }
+  return count == 1 && n > 0;
+}
+
+vector<LweSample*> pir(vector<vector<LweSample*>>& db_, const vector<LweSample*>& query_, int word_sz,
                int num_entries, const TFheGateBootstrappingCloudKeySet* bk) {
   // Initialize output ctxt to 0 and declare temp var for equality.
-  LweSample* result_ = new_gate_bootstrapping_ciphertext_array(word_sz,
+  vector<LweSample*> result_(1);
+  result_[0] = new_gate_bootstrapping_ciphertext_array(word_sz,
     bk->params);
-  LweSample* control_ = new_gate_bootstrapping_ciphertext(bk->params);
+  vector<LweSample*> control_(1);
+  control_[0] = new_gate_bootstrapping_ciphertext_array(1, bk->params);
   for (int i = 0; i < word_sz; i++) {
-    bootsCONSTANT(&result_[i], 0, bk);
+    bootsCONSTANT(&result_[0][i], 0, bk);
   }
 
   // Compute equality with each key and load value of match to output.
   for (int i = 0; i < num_entries; i++) {
     eq(control_, query_, db_[i*2], word_sz, bk);
     for (int j = 0; j < word_sz; j++) {
-      bootsMUX(&result_[j], control_, &db_[i*2+1][j], &result_[j], bk);
+      bootsMUX(&result_[0][j], &control_[0][0], &db_[i*2+1][0][j], &result_[0][j], bk);
     }
   }
-
+  delete_gate_bootstrapping_ciphertext_array(1, control_[0]);
   return result_;
 }
 
@@ -77,12 +89,14 @@ int main(int argc, char** argv) {
   // Read the KV ciphertexts from the DB.
   uint32_t num_ctxts = 2;
   db_file >> num_ctxts;
-  LweSample* user_data[num_ctxts];
+  vector<vector<LweSample*>> user_data(num_ctxts);
   for (int i = 0; i < num_ctxts; i++) {
-    user_data[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+    vector<LweSample*> tmp_vec(1);
+    tmp_vec[0] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+    user_data[i] = tmp_vec;
     for (int j = 0; j < word_sz; j++) {
       import_gate_bootstrapping_ciphertext_fromStream(db_file,
-                                                      &user_data[i][j], params);
+                                                      &user_data[i][0][j], params);
     }
   }
   db_file.close();
@@ -92,15 +106,16 @@ int main(int argc, char** argv) {
   query_file >> num_queries;
   assert(("This benchmark only supports one query at a time",
     num_queries == 1));
-  LweSample* query_ = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+  vector<LweSample*> query_(1);
+  query_[0] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
   for (int i = 0; i < word_sz; i++) {
     import_gate_bootstrapping_ciphertext_fromStream(query_file,
-      &query_[i], params);
+      &query_[0][i], params);
   }
   query_file.close();
 
   TIC(auto t1);
-  LweSample* enc_result = pir(user_data, query_, word_sz, num_ctxts/2, bk);
+  vector<LweSample*> enc_result = pir(user_data, query_, word_sz, num_ctxts/2, bk);
   auto enc_time_ms = TOC_US(t1);
   std::cout << "Encrypted execution time " << enc_time_ms << " us" << std::endl;
 
@@ -109,14 +124,14 @@ int main(int argc, char** argv) {
   // The first line of ptxt_file contains the number of lines.
   ctxt_out << 1;
   for (int j = 0; j < word_sz; j++) {
-    export_lweSample_toStream(ctxt_out, &enc_result[j], params->in_out_params);
+    export_lweSample_toStream(ctxt_out, &enc_result[0][j], params->in_out_params);
   }
-  delete_gate_bootstrapping_ciphertext_array(word_sz, enc_result);
+  delete_gate_bootstrapping_ciphertext_array(word_sz, enc_result[0]);
   ctxt_out.close();
 
   // Clean up all pointers.
   for (int i = 0; i < num_ctxts; i++) {
-    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i]);
+    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i][0]);
   }
   delete_gate_bootstrapping_cloud_keyset(bk);
   return EXIT_SUCCESS;

@@ -4,25 +4,29 @@
 #include <tfhe/tfhe_io.h>
 #include <tfhe/tfhe_generic_streams.h>
 
-#include "../../helper.hpp"
+#include "../../functional_units/functional_units.hpp"
 
 #define word_sz 64  // For Simon 128/128, the word size is 64.
-#define rounds 68 
+#define rounds 68
 
-void simon_128_128(LweSample** ctxt_, LweSample** rkeys_,
+using namespace std;
+
+void simon_128_128(vector<LweSample*>& ctxt_, vector<LweSample*>& rkeys_,
                    const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* tmp_[4];
+  vector<vector<LweSample*>> tmp_(4);
   for (int i = 0; i < 4; i++) {
-    tmp_[i] = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
-  }  
+    vector<LweSample*> tmp_vec_(1);
+    tmp_vec_[0] = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
+    tmp_[i] = tmp_vec_;
+  }
   // Start Simon decryption.
   for (int i = rounds-1; i >= 0; i--) {
     // Copy left ctxt block into temp vars.
     for (int j = 0; j < word_sz; j++) {
-      bootsCOPY(&tmp_[0][j], &ctxt_[1][j], bk);  // ROL-1
-      bootsCOPY(&tmp_[1][j], &ctxt_[1][j], bk);  // ROL-8
-      bootsCOPY(&tmp_[2][j], &ctxt_[1][j], bk);  // ROL-2
-      bootsCOPY(&tmp_[3][j], &ctxt_[1][j], bk);  // tmp
+      bootsCOPY(&tmp_[0][0][j], &ctxt_[1][j], bk);  // ROL-1
+      bootsCOPY(&tmp_[1][0][j], &ctxt_[1][j], bk);  // ROL-8
+      bootsCOPY(&tmp_[2][0][j], &ctxt_[1][j], bk);  // ROL-2
+      bootsCOPY(&tmp_[3][0][j], &ctxt_[1][j], bk);  // tmp
     }
     // Generate left rotations of left ctxt block.
     rotate_inplace(tmp_[0], LEFT, 1, word_sz, bk);
@@ -30,18 +34,18 @@ void simon_128_128(LweSample** ctxt_, LweSample** rkeys_,
     rotate_inplace(tmp_[2], LEFT, 2, word_sz, bk);
     // Compute AND and XOR operations.
     for (int j = 0; j < word_sz; j++) {
-      bootsAND(&tmp_[0][j], &tmp_[0][j], &tmp_[1][j], bk);
-      bootsXOR(&tmp_[0][j], &tmp_[0][j], &ctxt_[0][j], bk);
-      bootsXOR(&tmp_[0][j], &tmp_[0][j], &tmp_[2][j], bk);
-      bootsXOR(&ctxt_[1][j], &tmp_[0][j], &rkeys_[i][j], bk);
+      bootsAND(&tmp_[0][0][j], &tmp_[0][0][j], &tmp_[1][0][j], bk);
+      bootsXOR(&tmp_[0][0][j], &tmp_[0][0][j], &ctxt_[0][j], bk);
+      bootsXOR(&tmp_[0][0][j], &tmp_[0][0][j], &tmp_[2][0][j], bk);
+      bootsXOR(&ctxt_[1][j], &tmp_[0][0][j], &rkeys_[i][j], bk);
     }
     // Do Feistel swap.
     for (int j = 0; j < word_sz; j++) {
-      bootsCOPY(&ctxt_[0][j], &tmp_[3][j], bk);
+      bootsCOPY(&ctxt_[0][j], &tmp_[3][0][j], bk);
     }
   }
   for (int i = 0; i < 4; i++) {
-    delete_gate_bootstrapping_ciphertext_array(word_sz, tmp_[i]);
+    delete_gate_bootstrapping_ciphertext_array(word_sz, tmp_[i][0]);
   }
 }
 
@@ -50,7 +54,7 @@ int main(int argc, char** argv) {
   std::ifstream cloud_key, ctxt_file, key_file;
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] <<
-      " cloud_key db_filename query_filename wordsize max_index" << std::endl <<
+      " cloud_key ctxt_filename key_filename" << std::endl <<
       "\tcloud_key: Path to the secret key" <<  std::endl <<
       "\tctxt_filename: Path to the encrypted Simon ciphertext file" << std::endl <<
       "\tkey_filename: Path to the encrypted Simon key file" << std::endl;
@@ -79,7 +83,6 @@ int main(int argc, char** argv) {
   TFheGateBootstrappingCloudKeySet* bk =
     new_tfheGateBootstrappingCloudKeySet_fromStream(cloud_key);
   cloud_key.close();
-
   // If necessary, the params are inside the key.
   const TFheGateBootstrappingParameterSet* params = bk->params;
 
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
   uint32_t num_ctxts = 2;
   ctxt_file >> num_ctxts;
   assert(("Ctxt should be 2 blocks of 64 bits", num_ctxts == 2));
-  LweSample* simon_ctxt_[num_ctxts];
+  vector<LweSample*> simon_ctxt_(num_ctxts);
   for (int i = 0; i < num_ctxts; i++) {
     simon_ctxt_[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
     for (int j = 0; j < word_sz; j++) {
@@ -101,11 +104,11 @@ int main(int argc, char** argv) {
   uint32_t num_rkeys = 68;
   key_file >> num_rkeys;
   assert(("There should be 68 round keys (64 bits each)", num_rkeys == rounds));
-  LweSample* rkeys_[rounds];
+  vector<LweSample*> rkeys_(rounds);
   for (int i = 0; i < rounds; i++) {
     rkeys_[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
     for (int j = 0; j < word_sz; j++) {
-      import_gate_bootstrapping_ciphertext_fromStream(key_file, 
+      import_gate_bootstrapping_ciphertext_fromStream(key_file,
         &rkeys_[i][j], params);
     }
   }

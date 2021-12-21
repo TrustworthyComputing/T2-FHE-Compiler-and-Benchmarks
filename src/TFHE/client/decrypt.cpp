@@ -5,7 +5,13 @@
 #include <tfhe/tfhe_io.h>
 #include <tfhe/tfhe_generic_streams.h>
 
-#include "../helper.hpp"
+bool is_pow_of_2(int n) {
+  int count = 0;
+  for (int i = 0; i < 32; i++){
+    count += (n >> i & 1);
+  }
+  return count == 1 && n > 0;
+}
 
 int main(int argc, char** argv) {
   // Argument sanity checks.
@@ -13,7 +19,7 @@ int main(int argc, char** argv) {
   int word_sz = 0;
   if (argc < 4) {
     std::cerr << "Usage: " << argv[0] << " secret_key ctxt_filename wordsize" <<
-      std::endl << "\tsecret_key: Path to the secret key" << 
+      std::endl << "\tsecret_key: Path to the secret key" <<
       std::endl << "\tctxt_filename: Path to the ciphertext file" <<
       std::endl << "\twordsize: Number of bits per encrypted int" << std::endl;
     return EXIT_FAILURE;
@@ -53,10 +59,10 @@ int main(int argc, char** argv) {
   for (int i = 0; i < num_ctxts; i++) {
     answer[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
     for (int j = 0; j < word_sz; j++) {
-      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, 
+      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file,
                                                       &answer[i][j], params);
       uint64_t ai = bootsSymDecrypt(&answer[i][j], key) > 0;
-      int_answer[i] |= (uint64_t)(ai << j);                                               
+      int_answer[i] |= (uint64_t)(ai << j);
     }
     std::cout << "Answer " << i << ": " << int_answer[i] << std::endl;
   }
