@@ -5,20 +5,30 @@
 #include <tfhe/tfhe_io.h>
 #include <tfhe/tfhe_generic_streams.h>
 
-#include "../../helper.hpp"
+#include "../../functional_units/functional_units.hpp"
+
+using namespace std;
+
+bool is_pow_of_2(int n) {
+  int count = 0;
+  for (int i = 0; i < 32; i++){
+    count += (n >> i & 1);
+  }
+  return count == 1 && n > 0;
+}
 
 // Compute and return the Nth factorial.
-LweSample* fact(LweSample* prev_fact_, LweSample* start_num_,
+vector<LweSample*> fact(vector<LweSample*>& prev_fact_, vector<LweSample*>& start_num_,
   const uint32_t N, const uint32_t word_sz,
   const TFheGateBootstrappingCloudKeySet* bk) {
   // Initialize result to Enc(0).
-  LweSample* result_ =
-    new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
+  vector<LweSample*> result_(1);
+  result_[0] = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
   for (int i = 0; i < word_sz; i++) {
-    bootsCOPY(&result_[i], &prev_fact_[i], bk);
+    bootsCOPY(&result_[0][i], &prev_fact_[0][i], bk);
   }
   for (int i = 0; i < N; i++) {
-    mult_inplace(result_, start_num_, word_sz, bk);
+    mult(result_, result_, start_num_, word_sz, bk);
     inc_inplace(start_num_, word_sz, bk);
   }
   return result_;
@@ -73,17 +83,19 @@ int main(int argc, char** argv) {
   // Read the ciphertext objects.
   uint32_t num_ctxts = 1;
   ctxt_file >> num_ctxts;
-  LweSample* user_data[num_ctxts];
+  vector<vector<LweSample*>> user_data(num_ctxts);
   for (int i = 0; i < num_ctxts; i++) {
-    user_data[i] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+    vector<LweSample*> tmp_vec(1);
+    tmp_vec[0] = new_gate_bootstrapping_ciphertext_array(word_sz, params);
+    user_data[i] = tmp_vec;
     for (int j = 0; j < word_sz; j++) {
-      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, &user_data[i][j], params);
+      import_gate_bootstrapping_ciphertext_fromStream(ctxt_file, &user_data[i][0][j], params);
     }
   }
   ctxt_file.close();
 
   TIC(auto t1);
-  LweSample* enc_result = fact(user_data[0], user_data[1], N, word_sz, bk);
+  vector<LweSample*> enc_result = fact(user_data[0], user_data[1], N, word_sz, bk);
   auto enc_time_ms = TOC_US(t1);
   std::cout << "Encrypted execution time " << enc_time_ms << " us" << std::endl;
 
@@ -92,14 +104,14 @@ int main(int argc, char** argv) {
   // The first line of ptxt_file contains the number of lines.
   ctxt_out << 1;
   for (int j = 0; j < word_sz; j++) {
-    export_lweSample_toStream(ctxt_out, &enc_result[j], params->in_out_params);
+    export_lweSample_toStream(ctxt_out, &enc_result[0][j], params->in_out_params);
   }
-  delete_gate_bootstrapping_ciphertext_array(word_sz, enc_result);
+  delete_gate_bootstrapping_ciphertext_array(word_sz, enc_result[0]);
   ctxt_out.close();
 
   // Clean up all pointers.
   for (int i = 0; i < num_ctxts; i++) {
-    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i]);
+    delete_gate_bootstrapping_ciphertext_array(word_sz, user_data[i][0]);
   }
   delete_gate_bootstrapping_cloud_keyset(bk);
   return EXIT_SUCCESS;

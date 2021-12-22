@@ -30,8 +30,8 @@ decrypt: $(BIN)/decrypt.o
 fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
 	$(CXX) $(CPPFLAGS) $(BIN)/fibonacci.o $(BIN)/helper.o -o $(BIN)/fibonacci.out $(LIBS)
 
-factorial: $(BIN)/factorial.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/helper.o -o $(BIN)/factorial.out $(LIBS)
+factorial: $(BIN)/factorial.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/functional_units.o -o $(BIN)/factorial.out $(LIBS)
 
 pir: $(BIN)/pir.o $(BIN)/functional_units.o
 	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/functional_units.o -o $(BIN)/pir.out $(LIBS)
@@ -65,9 +65,6 @@ $(BIN)/simon.o: Crypto/Simon/simon.cpp
 
 $(BIN)/test.o: compiled/test.cpp
 	$(CXX) -c compiled/test.cpp -o $(BIN)/test.o
-
-$(BIN)/helper.o: helper.cpp helper.hpp
-	$(CXX) -c helper.cpp -o $(BIN)/helper.o
 
 $(BIN)/functional_units.o: functional_units/functional_units.cpp functional_units/functional_units.hpp
 	$(CXX) -c functional_units/functional_units.cpp -o $(BIN)/functional_units.o
