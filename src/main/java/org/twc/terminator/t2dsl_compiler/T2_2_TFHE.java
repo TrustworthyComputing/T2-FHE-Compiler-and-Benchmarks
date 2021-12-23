@@ -9,8 +9,8 @@ import java.util.List;
 
 public class T2_2_TFHE extends T2_Compiler {
 
-  public T2_2_TFHE(SymbolTable st) {
-    super(st);
+  public T2_2_TFHE(SymbolTable st, String config_file_path) {
+    super(st, config_file_path);
     this.st_.backend_types.put("EncInt", "vector<LweSample*>");
     this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }
@@ -51,7 +51,9 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
     this.indent_ = 2;
-    append_keygen();
+    if (!read_keygen_from_file()) {
+      append_keygen();
+    }
     n.f6.accept(this);
     n.f7.accept(this);
     append_idx("return ");

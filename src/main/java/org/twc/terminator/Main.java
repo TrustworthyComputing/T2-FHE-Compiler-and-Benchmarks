@@ -27,7 +27,9 @@ public class Main {
     HE_BACKEND backend_ = HE_BACKEND.NONE;
     boolean debug_ = false;
 
-    for (String arg : args) {
+    String config_file_path = "path to config";
+    for (int i = 0; i < args.length; i++) {
+      String arg = args[i];
       if (arg.equalsIgnoreCase("-DEBUG") ||
           arg.equalsIgnoreCase("--DEBUG")) {
         debug_ = true;
@@ -46,6 +48,14 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-LATTIGO") ||
                  arg.equalsIgnoreCase("--LATTIGO")) {
         backend_ = HE_BACKEND.LATTIGO;
+      } else if (arg.equalsIgnoreCase("-CONFIG") ||
+                 arg.equalsIgnoreCase("--CONFIG")) {
+        if (++i >= args.length) {
+          System.out.println("[ \033[0;31m X \033[0m ] Configuration file " +
+                             "must be passed after the -config parameter.");
+          System.exit(-1);
+        }
+        config_file_path = args[i];
       } else {
         input_files.add(arg);
       }
@@ -90,37 +100,37 @@ public class Main {
           case SEAL:
             switch (scheme_) {
               case BFV_BGV:
-                dsl_compiler = new T2_2_SEAL(symbol_table);
+                dsl_compiler = new T2_2_SEAL(symbol_table, config_file_path);
                 break;
               case CKKS:
-                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table);
+                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config_file_path);
                 break;
             }
             break;
           case TFHE:
-            dsl_compiler = new T2_2_TFHE(symbol_table);
+            dsl_compiler = new T2_2_TFHE(symbol_table, config_file_path);
             break;
           case PALISADE:
             switch (scheme_) {
               case BFV_BGV:
-                dsl_compiler = new T2_2_PALISADE(symbol_table);
+                dsl_compiler = new T2_2_PALISADE(symbol_table, config_file_path);
                 break;
               case CKKS:
-//                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table);
+//                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config_file_path);
                 break;
             }
             break;
           case HELIB:
-            dsl_compiler = new T2_2_HElib(symbol_table);
+            dsl_compiler = new T2_2_HElib(symbol_table, config_file_path);
             break;
           case LATTIGO:
             suffix = ".go";
             switch (scheme_) {
               case BFV_BGV:
-                dsl_compiler = new T2_2_Lattigo(symbol_table);
+                dsl_compiler = new T2_2_Lattigo(symbol_table, config_file_path);
                 break;
               case CKKS:
-//                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table);
+//                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config_file_path);
                 break;
             }
             break;

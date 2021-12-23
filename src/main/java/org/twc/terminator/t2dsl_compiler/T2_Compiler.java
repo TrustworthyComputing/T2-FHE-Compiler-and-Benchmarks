@@ -5,6 +5,13 @@ import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import org.twc.terminator.t2dsl_compiler.T2DSLvisitor.GJNoArguDepthFirst;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
 public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   protected SymbolTable st_;
@@ -12,8 +19,9 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected StringBuilder asm_;
   protected int indent_, tmp_cnt_;
   protected boolean semicolon_;
+  protected String config_file_path_;
 
-  public T2_Compiler(SymbolTable st) {
+  public T2_Compiler(SymbolTable st, String config_file_path) {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;
@@ -23,6 +31,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.st_.backend_types.put("double[]", "vector<double>");
     this.semicolon_ = false;
     this.asm_ = new StringBuilder();
+    this.config_file_path_ = config_file_path;
   }
 
   public String get_asm() {
@@ -45,6 +54,23 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   protected abstract void append_keygen();
+
+  protected boolean read_keygen_from_file() {
+    try {
+      Path filePath = Paths.get(config_file_path_);
+      Stream<String> lines = Files.lines(filePath);
+      lines.forEach((line)->{
+        this.asm_.append("  ").append(line).append("\n");
+      });
+      this.asm_.append("\n");
+      System.out.println("[ \033[0;32m \u2713 \033[0m ] Configuration file found");
+      return true;
+    } catch (InvalidPathException | IOException e) {
+      System.out.println("[ \033[0;31m X \033[0m ] Configuration file not " +
+                         "found, using default config.");
+      return false;
+    }
+  }
 
   /**
    * f0 -> MainClass()

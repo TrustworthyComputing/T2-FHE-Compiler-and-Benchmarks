@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
 *.out
+*.config
 
 # Compiled assembly and IR files
 *.spg
