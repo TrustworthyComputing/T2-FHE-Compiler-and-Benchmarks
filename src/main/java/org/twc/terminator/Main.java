@@ -116,7 +116,7 @@ public class Main {
                 dsl_compiler = new T2_2_PALISADE(symbol_table, config_file_path);
                 break;
               case CKKS:
-//                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config_file_path);
+                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config_file_path);
                 break;
             }
             break;

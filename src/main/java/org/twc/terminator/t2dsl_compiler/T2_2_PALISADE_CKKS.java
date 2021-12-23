@@ -7,36 +7,32 @@ import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class T2_2_SEAL_CKKS extends T2_2_SEAL {
+public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
 
-  public T2_2_SEAL_CKKS(SymbolTable st, String config_file_path) {
+  public T2_2_PALISADE_CKKS(SymbolTable st, String config_file_path) {
     super(st, config_file_path);
-    this.st_.backend_types.put("EncDouble", "Ciphertext");
-    this.st_.backend_types.put("EncDouble[]", "vector<Ciphertext>");
+    this.st_.backend_types.put("EncDouble", "Ciphertext<DCRTPoly>");
+    this.st_.backend_types.put("EncDouble[]", "vector<Ciphertext<DCRTPoly>>");
   }
 
   protected void append_keygen() {
-    append_idx("EncryptionParameters parms(scheme_type::ckks);\n");
-    append_idx("size_t poly_modulus_degree = 16384;\n");
-    append_idx("parms.set_poly_modulus_degree(poly_modulus_degree);\n");
-    append_idx("parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));\n");
-    append_idx("double scale = pow(2.0, 40);\n");
-    append_idx("SEALContext context(parms);\n");
-    append_idx("KeyGenerator keygen(context);\n");
-    append_idx("SecretKey secret_key = keygen.secret_key();\n");
-    append_idx("PublicKey public_key;\n");
-    append_idx("RelinKeys relin_keys;\n");
-    append_idx("GaloisKeys gal_keys;\n");
-    append_idx("keygen.create_public_key(public_key);\n");
-    append_idx("keygen.create_relin_keys(relin_keys);\n");
-    append_idx("keygen.create_galois_keys(gal_keys);\n");
-    append_idx("Encryptor encryptor(context, public_key);\n");
-    append_idx("Evaluator evaluator(context);\n");
-    append_idx("Decryptor decryptor(context, secret_key);\n");
-    append_idx("CKKSEncoder encoder(context);\n");
-    append_idx("size_t slot_count = encoder.slot_count();\n");
+    append_idx("uint32_t multDepth = 5;\n");
+    append_idx("uint32_t scaleFactorBits = 50;\n");
+    append_idx("uint32_t slots = 8;\n");
+    append_idx("SecurityLevel securityLevel = HEStd_128_classic;\n");
+    append_idx("uint32_t ringDimension = 0;\n");
+
+    append_idx("CryptoContext<DCRTPoly> cc = CryptoContextFactory<\n");
+    append_idx("  DCRTPoly>::genCryptoContextCKKS(multDepth,\n"); // BFV
+    append_idx("    scaleFactorBits, slots, securityLevel, ringDimension, EXACTRESCALE);\n");
+    append_idx("cc->Enable(ENCRYPTION);\n");
+    append_idx("cc->Enable(SHE);\n");
+    append_idx("cc->Enable(LEVELEDSHE);\n");
+
+    append_idx("auto keyPair = cc->KeyGen();\n");
+    append_idx("cc->EvalMultKeyGen(keyPair.secretKey);\n");
     append_idx("Plaintext tmp;\n");
-    append_idx("Ciphertext tmp_;\n\n");
+    append_idx("Ciphertext<DCRTPoly> tmp_;\n\n");
   }
 
   /**
@@ -53,17 +49,20 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     if (lhs_type.equals("EncDouble") &&
           (rhs_type.equals("double") || rhs_type.equals("int"))) {
       // if EncDouble <- int | double
-      append_idx("encoder.encode(");
-      this.asm_.append(rhs_name);
-      this.asm_.append(", scale, tmp);\n");
-      append_idx("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append(")");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs_name + ");\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+      this.asm_.append(tmp_vec).append(");\n");
+      append_idx(lhs.getName());
+      this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp);\n");
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncDouble[]") &&
                 (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
       // if EncDouble[] <- int[] | double[]
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       append_idx("for (size_t ");
@@ -71,10 +70,12 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
       this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      append_idx("encoder.encode(");
-      this.asm_.append(rhs_name).append("[").append(tmp_i).append("], scale, tmp);\n");
-      append_idx("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
+      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs_name + "[" + tmp_i + "]);\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+      this.asm_.append(tmp_vec).append(");\n");
+      append_idx(lhs.getName());
+      this.asm_.append("[").append(tmp_i).append("] = cc->Encrypt(keyPair");
+      this.asm_.append(".publicKey, tmp);\n");
       this.indent_ -= 2;
       append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
@@ -89,7 +90,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
       this.semicolon_ = true;
     } else {
       throw new Exception("Error assignment statement between different " +
-                          "types: " + lhs_type + ", " + rhs_type);
+              "types: " + lhs_type + ", " + rhs_type);
     }
     return null;
   }
@@ -102,9 +103,12 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
-      append_idx("encoder.encode(1.0, scale, tmp);\n");
-      append_idx("evaluator.add_plain_inplace(");
-      this.asm_.append(id.getName()).append(", tmp);\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, 1);\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
+      append_idx(id.getName());
+      this.asm_.append(" = cc->EvalAdd(tmp, ").append(id.getName()).append(");\n");
     } else {
       append_idx(id.getName());
       this.asm_.append("++");
@@ -121,9 +125,12 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
-      append_idx("encoder.encode(1.0, scale, tmp);\n");
-      append_idx("evaluator.sub_plain_inplace(");
-      this.asm_.append(id.getName()).append(", tmp);\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, 1);\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
+      append_idx(id.getName());
+      this.asm_.append(" = cc->EvalSub(").append(id.getName()).append(", tmp);\n");
     } else {
       append_idx(id.getName());
       this.asm_.append("--");
@@ -149,35 +156,32 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
       this.asm_.append(" ").append(op).append(" ");
       this.asm_.append(rhs.getName());
     } else if (lhs_type.equals("EncDouble") && rhs_type.equals("EncDouble")) {
-      append_idx("evaluator.");
+      append_idx(lhs.getName());
       switch (op) {
-        case "+=": this.asm_.append("add("); break;
-        case "*=": this.asm_.append("multiply("); break;
-        case "-=": this.asm_.append("sub("); break;
+        case "+=": this.asm_.append(" = cc->EvalAdd("); break;
+        case "*=": this.asm_.append(" = cc->EvalMultAndRelinearize("); break;
+        case "-=": this.asm_.append(" = cc->EvalSub("); break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-      this.asm_.append(", ").append(lhs.getName()).append(")");
-      if (op.equals("*=")) {
-        this.asm_.append(";\n");
-        append_idx("evaluator.relinearize_inplace(");
-        this.asm_.append(lhs.getName()).append(", relin_keys)");
-      }
+      this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      append_idx("encoder.encode(");
-      this.asm_.append(rhs.getName()).append(", scale, tmp);\n");
-      append_idx("evaluator.");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+      this.asm_.append(tmp_vec).append(");\n");
+      append_idx(lhs.getName());
       switch (op) {
-        case "+=": this.asm_.append("add_plain("); break;
-        case "*=": this.asm_.append("multiply_plain("); break;
-        case "-=": this.asm_.append("sub_plain("); break;
+        case "+=": this.asm_.append(" = cc->EvalAdd("); break;
+        case "*=": this.asm_.append(" = cc->EvalMult("); break;
+//        auto c2_depth1 = cc->Rescale(c2_depth2);
+        case "-=": this.asm_.append(" = cc->EvalSub("); break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      this.asm_.append(lhs.getName()).append(", tmp, ");
-      this.asm_.append(lhs.getName()).append(")");
+      this.asm_.append(lhs.getName()).append(", tmp)");
     }
     this.semicolon_ = true;
     return null;
@@ -208,26 +212,20 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         break;
       case "EncDouble[]":
         if (rhs_type.equals("EncDouble")) {
-          append_idx("evaluator.");
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("]");
           if (op.equals("+=")) {
-            this.asm_.append("add(");
+            this.asm_.append(" = cc->EvalAdd(");
           } else if (op.equals("*=")) {
-            this.asm_.append("multiply(");
+            this.asm_.append(" = cc->EvalMultAndRelinearize(");
+//            auto c2_depth1 = cc->Rescale(c2_depth2);
           } else if (op.equals("-=")) {
-            this.asm_.append("sub(");
+            this.asm_.append(" = cc->EvalSub(");
           } else {
             throw new Exception("Error in compound array assignment");
           }
           this.asm_.append(id.getName()).append("[").append(idx.getName());
-          this.asm_.append("], ").append(rhs.getName()).append(", ");
-          this.asm_.append(id.getName()).append("[").append(idx.getName());
-          this.asm_.append("])");
-          if (op.equals("*=")) {
-            this.asm_.append(";\n");
-            append_idx("evaluator.relinearize_inplace(");
-            this.asm_.append(id.getName()).append("[").append(idx.getName());
-            this.asm_.append("], relin_keys)");
-          }
+          this.asm_.append("], ").append(rhs.getName()).append(")");
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
           throw new Exception("Encrypt and move to temporary var.");
@@ -268,10 +266,14 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          append_idx("encoder.encode(");
-          this.asm_.append(rhs.getName()).append(", scale, tmp);\n");
-          append_idx("encryptor.encrypt(tmp, ");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
+          tmp_cnt_++;
+          String tmp_vec = "tmp_vec_" + tmp_cnt_;
+          append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+          append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+          this.asm_.append(tmp_vec).append(");\n");
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("] = cc->Encrypt(");
+          this.asm_.append("keyPair.publicKey, tmp);\n");
           break;
         }
       default:
@@ -293,6 +295,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String id_type = st_.findType(id);
     Var_t exp = n.f3.accept(this);
     String exp_type = st_.findType(exp);
+    String tmp_vec = null;
     switch (id_type) {
       case "int[]":
       case "double[]":
@@ -306,9 +309,8 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         this.asm_.append(" };\n");
         break;
       case "EncDouble":
-        tmp_cnt_++;
-        String tmp_vec = "tmp_vec_" + tmp_cnt_;
         append_idx("vector<double> ");
+        tmp_vec = "tmp_vec_" + (++tmp_cnt_);
         this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
@@ -316,18 +318,20 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           }
         }
         this.asm_.append(" };\n");
-        append_idx("encoder.encode(");
-        this.asm_.append(tmp_vec).append(", scale, tmp);\n");
-        append_idx("encryptor.encrypt(tmp, ");
-        this.asm_.append(id.getName()).append(");\n");
+        append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+        this.asm_.append(tmp_vec).append(");\n");
+        append_idx(id.getName());
+        this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp);\n");
         break;
       case "EncDouble[]":
+        tmp_vec = "tmp_vec_" + (++tmp_cnt_);
         String exp_var;
         if (exp_type.equals("int") || exp_type.equals("double")) {
           exp_var = new_ctxt_tmp();
-          append_idx("encoder.encode(" + exp.getName() + ", scale, tmp);\n");
-          append_idx("encryptor.encrypt(tmp, ");
-          this.asm_.append(exp_var).append(");\n");
+          append_idx("vector<double> " + tmp_vec + " = { " + exp.getName() + " };\n");
+          append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
+          append_idx(exp_var);
+          this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp);\n");
         } else { // exp type is EncDouble
           exp_var = exp.getName();
         }
@@ -337,9 +341,12 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int") || exp_type.equals("double")) {
               String tmp_ = new_ctxt_tmp();
-              append_idx("encoder.encode(" + init + ", scale, tmp);\n");
-              append_idx("encryptor.encrypt(tmp, ");
-              this.asm_.append(tmp_).append(");\n");
+              tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+              append_idx("vector<double> ");
+              this.asm_.append(tmp_vec).append(" = { ").append(init).append(" };\n");
+              append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
+              append_idx(tmp_);
+              append_idx(" = cc->Encrypt(keyPair.publicKey, tmp);\n");
               inits.add(tmp_);
             } else { // exp type is EncDouble
               inits.add(init);
@@ -387,10 +394,11 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
       }
     }
     this.asm_.append(" };\n");
-    append_idx("encoder.encode(");
-    this.asm_.append(tmp_vec).append(", scale, tmp);\n");
-    append_idx("encryptor.encrypt(tmp, ");
-    this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
+    append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+    this.asm_.append(tmp_vec).append(");\n");
+    append_idx(id.getName());
+    this.asm_.append("[").append(index.getName()).append("] = ");
+    this.asm_.append("cc->Encrypt(keyPair.publicKey, tmp);\n");
     return null;
   }
 
@@ -411,14 +419,10 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         this.asm_.append(" << endl");
         break;
       case "EncDouble":
-        append_idx("decryptor.decrypt(");
-        this.asm_.append(expr.getName()).append(", tmp);\n");
-        String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-        append_idx("vector<double> " + tmp_vec + ";\n");
-        append_idx("encoder.decode(tmp, " + tmp_vec + ");\n");
+        append_idx("cc->Decrypt(keyPair.secretKey,");
+        this.asm_.append(expr.getName()).append(", &tmp);\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << ").append(tmp_vec);
-        this.asm_.append("[0]").append(" << endl");
+        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -443,14 +447,16 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String size_type = st_.findType(expr);
     assert(size_type.equals("int"));
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-    append_idx("decryptor.decrypt(");
-    this.asm_.append(expr.getName()).append(", tmp);\n");
-    append_idx("vector<double> " + tmp_vec + ";\n");
-    append_idx("encoder.decode(tmp, " + tmp_vec + ");\n");
-    append_idx("for (int i = 0; i < ");
-    this.asm_.append(size.getName()).append("; ++i) {\n");
-    append_idx("  cout << " + tmp_vec + "[i] << \"\\t\";\n");
-    append_idx("}\n");
+    append_idx("cc->Decrypt(keyPair.secretKey, ");
+    this.asm_.append(expr.getName()).append(", ").append("&tmp);\n");
+    append_idx("tmp->SetLength(");
+    this.asm_.append(size.getName()).append(");\n");
+//    append_idx("vector<double> ");
+//    this.asm_.append(tmp_vec).append(" = tmp->GetPackedValue();\n");
+//    append_idx("for (auto v : ");
+//    this.asm_.append(tmp_vec).append(") {\n");
+    append_idx("  cout << tmp << \"\\t\";\n");
+//    append_idx("}\n");
     append_idx("cout << endl");
     this.semicolon_ = true;
     return null;
@@ -466,7 +472,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
     assert(expr_type.equals("EncDouble"));
-    append_idx("evaluator.rescale_to_next_inplace(");
+    append_idx("cc->Rescale(");
     this.asm_.append(expr.getName()).append(");\n");
     return null;
   }
@@ -484,68 +490,66 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String rhs_type = st_.findType(rhs);
     if (lhs_type.equals("int") && rhs_type.equals("int")) {
       if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
-              ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
-              "/".equals(op) || "%".equals(op)
-      ) {
-        return new Var_t("int", lhs.getName() + op + rhs.getName());
-      } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
-              "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
-              "&&".equals(op) || "||".equals(op)) {
-        return new Var_t("bool", lhs.getName() + op + rhs.getName());
-      }
-    } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
-                (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
           ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
           "/".equals(op) || "%".equals(op)
       ) {
-        return new Var_t("double", lhs.getName() + op + rhs.getName());
+        return new Var_t("int", lhs.getName() + op + rhs.getName());
       } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
                  "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
                  "&&".equals(op) || "||".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
+            (rhs_type.equals("int") || rhs_type.equals("double"))) {
+      if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
+              ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
+              "/".equals(op) || "%".equals(op)
+      ) {
+        return new Var_t("double", lhs.getName() + op + rhs.getName());
+      } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
+              "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
+              "&&".equals(op) || "||".equals(op)) {
+        return new Var_t("bool", lhs.getName() + op + rhs.getName());
+      }
+    } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
                   rhs_type.equals("EncDouble")) {
       String res_ = new_ctxt_tmp();
-      append_idx("encoder.encode(" + lhs.getName() + ", scale, tmp);\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, " + lhs.getName() + ");\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
+      append_idx(res_);
+      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
-          append_idx("evaluator.add_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          this.asm_.append("EvalAdd(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "*":
-          append_idx("evaluator.multiply_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
+          this.asm_.append("EvalMult(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "-":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
-          break;
-        case "^":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(tmp_, ").append(rhs.getName());
-          this.asm_.append(", evaluator, relin_keys);\n");
+          this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(");\n");
           break;
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(rhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
+          // TODO:
+          throw new RuntimeException("equality not yet supported");
+//          this.asm_.append(" = eq_plain(evaluator, ").append(rhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus);\n");
+//          break;
         case "<":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = lt(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less than not yet supported");
+//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+//          append_idx(res_);
+//          this.asm_.append(" = lt(evaluator, tmp_, ");
+//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+//          break;
         case "<=":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = leq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less or equal than not yet supported");
+//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
+//          append_idx(res_);
+//          this.asm_.append(" = leq(evaluator, tmp_, ");
+//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+//          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -553,93 +557,84 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       String res_ = new_ctxt_tmp();
-      append_idx("encoder.encode(" + rhs.getName() + ", scale, tmp);\n");
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+      append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec+ ");\n");
+      append_idx(res_);
+      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
-          append_idx("evaluator.add_plain(");
-          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          this.asm_.append("EvalAdd(").append(lhs.getName()).append(", tmp);\n");
           break;
         case "*":
-          append_idx("evaluator.multiply_plain(");
-          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
+          this.asm_.append("EvalMult(").append(lhs.getName()).append(", tmp);\n");
+//          auto c2_depth1 = cc->Rescale(c2_depth2);
           break;
         case "-":
-          append_idx("evaluator.sub_plain(");
-          this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
-          break;
-        case "^":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(").append(lhs.getName());
-          this.asm_.append(", tmp_, evaluator, relin_keys);\n");
+          this.asm_.append("EvalSub(").append(lhs.getName()).append(", tmp);\n");
           break;
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("equality not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = eq_plain(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus);\n");
+//          break;
         case "<":
-          append_idx(res_);
-          this.asm_.append(" = lt_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less than not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = lt_plain(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus);\n");
+//          break;
         case "<=":
-          append_idx(res_);
-          this.asm_.append(" = leq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less or equal than not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = leq_plain(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", tmp, plaintext_modulus);\n");
+//          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncDouble", res_);
     } else if (lhs_type.equals("EncDouble") && rhs_type.equals("EncDouble")) {
       String res_ = new_ctxt_tmp();
+      append_idx(res_);
+      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
-          append_idx("evaluator.add(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-          this.asm_.append(", ").append(res_).append(");\n");
+          this.asm_.append("EvalAdd(").append(lhs.getName()).append(", ");
+          this.asm_.append(rhs.getName()).append(");\n");
           break;
         case "*":
-          append_idx("evaluator.multiply(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-          this.asm_.append(", ").append(res_).append(");\n");
-          append_idx("evaluator.relinearize_inplace(");
-          this.asm_.append(res_).append(", relin_keys);\n");
+          this.asm_.append("EvalMultAndRelinearize(").append(lhs.getName());
+//          auto c2_depth1 = cc->Rescale(c2_depth2);
+          this.asm_.append(", ").append(rhs.getName()).append(");\n");
           break;
         case "-":
-          append_idx("evaluator.sub(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-          this.asm_.append(", ").append(res_).append(");\n");
-          break;
-        case "^":
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(").append(lhs.getName());
-          this.asm_.append(", ").append(lhs.getName());
-          this.asm_.append(", evaluator, relin_keys);\n");
+          this.asm_.append("EvalSub(").append(lhs.getName()).append(", ");
+          this.asm_.append(rhs.getName()).append(");\n");
           break;
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("equality not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = eq(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", ").append(rhs.getName());
+//          this.asm_.append(", plaintext_modulus);\n");
+//          break;
         case "<":
-          append_idx(res_);
-          this.asm_.append(" = lt(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less than not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = lt(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", ").append(rhs.getName());
+//          this.asm_.append(", plaintext_modulus);\n");
+//          break;
         case "<=":
-          append_idx(res_);
-          this.asm_.append(" = leq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("less or equal than not yet supported");
+//          append_idx(res_);
+//          this.asm_.append(" = leq(evaluator, ").append(lhs.getName());
+//          this.asm_.append(", ").append(rhs.getName());
+//          this.asm_.append(", plaintext_modulus);\n");
+//          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
