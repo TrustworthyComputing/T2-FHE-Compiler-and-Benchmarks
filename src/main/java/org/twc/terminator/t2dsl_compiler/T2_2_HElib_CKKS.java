@@ -7,124 +7,25 @@ import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class T2_2_HElib extends T2_Compiler {
+public class T2_2_HElib_CKKS extends T2_2_HElib {
 
-  public T2_2_HElib(SymbolTable st, String config_file_path) {
+  public T2_2_HElib_CKKS(SymbolTable st, String config_file_path) {
     super(st, config_file_path);
-    this.st_.backend_types.put("EncInt", "Ctxt");
-    this.st_.backend_types.put("EncInt[]", "vector<Ctxt>");
-  }
-
-  protected String new_ctxt_tmp() {
-    tmp_cnt_++;
-    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
-    append_idx(this.st_.backend_types.get("EncInt"));
-    this.asm_.append(" ").append(ctxt_tmp_).append("(public_key);\n");
-    return ctxt_tmp_;
-  }
-
-  protected void assign_to_all_slots(String lhs, String rhs,
-                                     String rhs_idx, String type) {
-    append_idx("for (int ");
-    this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i);
-    this.asm_.append(" < slots; ").append(this.tmp_i).append("++) {\n");
-    this.indent_ += 2;
-    append_idx(lhs);
-    this.asm_.append("[").append(this.tmp_i);
-    if (type.equals("uint64")) {
-      this.asm_.append("] = ");
-      if (rhs_idx != null) {
-        this.asm_.append(rhs).append("[").append(rhs_idx).append("];\n");
-      } else {
-        this.asm_.append(rhs).append(";\n");
-      }
-    } else if (type.equals("float64")) {
-      if (rhs_idx != null) {
-        this.asm_.append("] = std::complex<double>(");
-        this.asm_.append(rhs).append("[").append(rhs_idx).append("], 0);\n");
-      } else {
-        this.asm_.append("] = std::complex<double>(");
-        this.asm_.append(rhs).append(", 0);\n");
-      }
-    }
-    this.indent_ -= 2;
-    append_idx("}\n");
+    this.st_.backend_types.put("EncDouble", "Ctxt");
+    this.st_.backend_types.put("EncDouble[]", "vector<Ctxt>");
   }
 
   protected void append_keygen() {
-    append_idx("unsigned long p = 509, m = 14481, r = 1, bits = 120;\n");
-    append_idx("unsigned long c = 2;\n");
-    append_idx("Context context = helib::ContextBuilder<helib::BGV>()\n");
-    append_idx("  .m(m).p(p).r(r).bits(bits).c(c).build();\n");
+    append_idx("Context context = helib::ContextBuilder<helib::CKKS>()\n");
+    append_idx("  .m(128).precision(20).bits(30).c(3).build();\n");
     append_idx("SecKey secret_key(context);\n");
     append_idx("secret_key.GenSecKey();\n");
     append_idx("addSome1DMatrices(secret_key);\n");
     append_idx("const PubKey& public_key = secret_key;\n");
-    append_idx("const EncryptedArray& ea = context.getEA();\n");
-    append_idx("long slots = ea.size();\n\n");
-    append_idx("Ptxt<helib::BGV> tmp(context);\n");
+    append_idx("long slots = context.getNSlots();\n");
+    append_idx("vector<std::complex<double>> tmp(slots);\n");
+    append_idx("PtxtArray ptxt(context);\n");
     append_idx("Ctxt tmp_(public_key);\n\n");
-  }
-
-  /**
-   * f0 -> "int"
-   * f1 -> "main"
-   * f2 -> "("
-   * f3 -> "void"
-   * f4 -> ")"
-   * f5 -> "{"
-   * f6 -> ( VarDeclaration() )*
-   * f7 -> ( Statement() )*
-   * f8 -> "return"
-   * f9 -> Expression()
-   * f10 -> ";"
-   * f11 -> "}"
-   */
-  public Var_t visit(MainClass n) throws Exception {
-    append_idx("#include <iostream>\n\n");
-    append_idx("#include <helib/helib.h>\n");
-//    append_idx("#include \"../helper.hpp\"\n\n");
-    append_idx("using namespace helib;\n");
-    append_idx("using namespace std;\n\n");
-    append_idx("int main(void) {\n");
-    this.indent_ = 2;
-    if (!read_keygen_from_file()) {
-      append_keygen();
-    }
-    n.f6.accept(this);
-    n.f7.accept(this);
-    append_idx("return ");
-    Var_t ret = n.f9.accept(this);
-    this.asm_.append(ret.getName()).append(";\n}");
-    return null;
-  }
-
-  /**
-   * f0 -> Type()
-   * f1 -> Identifier()
-   * f2 -> ( VarDeclarationRest() )*
-   * f3 -> ";"
-   */
-  public Var_t visit(VarDeclaration n) throws Exception {
-    append_idx("");
-    String type = n.f0.accept(this).getType();
-    this.asm_.append(this.st_.backend_types.get(type));
-    this.asm_.append(" ");
-    Var_t id = n.f1.accept(this);
-    this.asm_.append(id.getName());
-    if (type.equals("EncInt") || type.equals("EncDouble")) {
-      this.asm_.append("(public_key)");
-    }
-    if (n.f2.present()) {
-      for (int i = 0; i < n.f2.size(); i++) {
-        n.f2.nodes.get(i).accept(this);
-        if (type.equals("EncInt") || type.equals("EncDouble")) {
-          this.asm_.append("(public_key)");
-        }
-      }
-    }
-    this.asm_.append(";\n");
-    return null;
   }
 
   /**
@@ -138,14 +39,17 @@ public class T2_2_HElib extends T2_Compiler {
     Var_t rhs = n.f2.accept(this);
     String rhs_type = st_.findType(rhs);
     String rhs_name = rhs.getName();
-    if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      // if EncInt <- int
-      assign_to_all_slots("tmp", rhs_name, null,"uint64");
-      append_idx("public_key.Encrypt(");
-      this.asm_.append(lhs.getName()).append(", tmp)");
+    if (lhs_type.equals("EncDouble") &&
+          (rhs_type.equals("double") || rhs_type.equals("int"))) {
+      // if EncDouble <- int
+      assign_to_all_slots("tmp", rhs_name, null, "float64");
+      append_idx("ptxt = tmp; // encode\n");
+      append_idx("ptxt.encrypt(");
+      this.asm_.append(lhs.getName()).append(")");
       this.semicolon_ = true;
-    } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
-      // if EncInt[] <- int[]
+    } else if (lhs_type.equals("EncDouble[]") &&
+                (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
+      // if EncDouble[] <- int[]
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
@@ -155,10 +59,11 @@ public class T2_2_HElib extends T2_Compiler {
       this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      assign_to_all_slots("tmp", rhs_name, tmp_i, "uint64");
-      append_idx("public_key.Encrypt(");
+      assign_to_all_slots("tmp", rhs_name, tmp_i, "float64");
+      append_idx("ptxt = tmp; // encode\n");
+      append_idx("ptxt.encrypt(");
       this.asm_.append(lhs.getName()).append("[").append(tmp_i);
-      this.asm_.append("], tmp);\n");
+      this.asm_.append("]);\n");
       this.indent_ -= 2;
       append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
@@ -183,9 +88,10 @@ public class T2_2_HElib extends T2_Compiler {
    * f1 -> "++"
    */
   public Var_t visit(IncrementAssignmentStatement n) throws Exception {
+//    TODO
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
-    if (id_type.equals("EncInt")) {
+    if (id_type.equals("EncDouble")) {
       append_idx(id.getName());
       this.asm_.append(".addConstant(NTL::ZZX(1));\n");
     } else {
@@ -201,9 +107,11 @@ public class T2_2_HElib extends T2_Compiler {
    * f1 -> "--"
    */
   public Var_t visit(DecrementAssignmentStatement n) throws Exception {
+    //    TODO
+
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
-    if (id_type.equals("EncInt")) {
+    if (id_type.equals("EncDouble")) {
       append_idx(id.getName());
       this.asm_.append(".subConstant(NTL::ZZX(1));\n");
     } else {
@@ -225,41 +133,17 @@ public class T2_2_HElib extends T2_Compiler {
     Var_t rhs = n.f2.accept(this);
     String lhs_type = st_.findType(lhs);
     String rhs_type = st_.findType(rhs);
-    if (lhs_type.equals("int") && rhs_type.equals("int")) {
+    if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
+          (rhs_type.equals("int") || rhs_type.equals("double"))) {
       append_idx(lhs.getName());
       this.asm_.append(" ").append(op).append(" ");
       this.asm_.append(rhs.getName());
-    } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+    } else if (lhs_type.equals("EncDouble") &&
+                (rhs_type.equals("int") || rhs_type.equals("double") ||
+                 rhs_type.equals("EncDouble"))
+    ) {
       append_idx(lhs.getName());
-      switch (op) {
-        case "+=":
-          this.asm_.append(" += ").append(rhs.getName());
-          break;
-        case "*=":
-          this.asm_.append(".multiplyBy(");
-          this.asm_.append(rhs.getName()).append(")");
-          break;
-        case "-=":
-          this.asm_.append(" -= ").append(rhs.getName());
-          break;
-        default:
-          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-      }
-    } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      append_idx(lhs.getName());
-      switch (op) {
-        case "+=":
-          this.asm_.append(".addConstant(NTL::ZZX(").append(rhs.getName()).append("))");
-          break;
-        case "*=":
-          this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("))");
-          break;
-        case "-=":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("))");
-          break;
-        default:
-          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-      }
+      this.asm_.append(" ").append(op).append(" ").append(rhs.getName());
     }
     this.semicolon_ = true;
     return null;
@@ -283,24 +167,22 @@ public class T2_2_HElib extends T2_Compiler {
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
       case "int[]":
+      case "double[]":
         append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] ").append(op);
         this.asm_.append(" ").append(rhs.getName());
         break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
+      case "EncDouble[]":
+        if (rhs_type.equals("EncDouble")) {
           append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] ");
-          if (op.equals("+=") || op.equals("-=")) {
+          if (op.equals("+=") || op.equals("-=") || op.equals("*=")) {
             this.asm_.append(op).append(" ").append(rhs.getName());
-          } else if (op.equals("*=")) {
-            this.asm_.append(".multiplyBy(");
-            this.asm_.append(rhs.getName()).append(")");
           } else {
             throw new Exception("Error in compound array assignment");
           }
           break;
-        } else if (rhs_type.equals("int")) {
+        } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
           throw new Exception("Encrypt and move to temporary var.");
         }
       default:
@@ -327,20 +209,22 @@ public class T2_2_HElib extends T2_Compiler {
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
       case "int[]":
+      case "double[]":
         append_idx(id.getName());
         this.asm_.append("[").append(idx.getName()).append("] = ");
         this.asm_.append(rhs.getName());
         break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
+      case "EncDouble[]":
+        if (rhs_type.equals("EncDouble")) {
           append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] = ");
           this.asm_.append(rhs.getName()).append(";\n");
           break;
-        } else if (rhs_type.equals("int")) {
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
-          append_idx("public_key.Encrypt(");
-          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("], tmp)");
+        } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
+          assign_to_all_slots("tmp", rhs.getName(), null, "float64");
+          append_idx("ptxt = tmp; // encode\n");
+          append_idx("ptxt.encrypt(");
+          this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
           break;
         }
       default:
@@ -364,6 +248,7 @@ public class T2_2_HElib extends T2_Compiler {
     String exp_type = st_.findType(exp);
     switch (id_type) {
       case "int[]":
+      case "double[]":
         append_idx(id.getName());
         this.asm_.append(" = { ").append(exp.getName());
         if (n.f4.present()) {
@@ -373,7 +258,7 @@ public class T2_2_HElib extends T2_Compiler {
         }
         this.asm_.append(" };\n");
         break;
-      case "EncInt":
+      case "EncDouble":
         append_idx("tmp[0] = ");
         this.asm_.append(exp.getName()).append(";\n");
         if (n.f4.present()) {
@@ -383,30 +268,33 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append((n.f4.nodes.get(i).accept(this)).getName()).append(";\n");
           }
         }
-        append_idx("public_key.Encrypt(");
-        this.asm_.append(id.getName()).append(", tmp);\n");
+        append_idx("ptxt = tmp; // encode\n");
+        append_idx("ptxt.encrypt(");
+        this.asm_.append(id.getName()).append(");\n");
         break;
-      case "EncInt[]":
+      case "EncDouble[]":
         String exp_var;
-        if (exp_type.equals("int")) {
+        if (exp_type.equals("int") || exp_type.equals("double")) {
           exp_var = new_ctxt_tmp();
-          assign_to_all_slots("tmp", exp.getName(), null, "uint64");
-          append_idx("public_key.Encrypt(");
-          this.asm_.append(exp_var).append(", tmp);\n");
-        } else { // exp type is EncInt
+          assign_to_all_slots("tmp", exp.getName(), null, "float64");
+          append_idx("ptxt = tmp; // encode\n");
+          append_idx("ptxt.encrypt(");
+          this.asm_.append(exp_var).append(");\n");
+        } else { // exp type is EncDouble
           exp_var = exp.getName();
         }
         List<String> inits = new ArrayList<>();
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
-            if (exp_type.equals("int")) {
+            if (exp_type.equals("int") || exp_type.equals("double")) {
               String tmp_ = new_ctxt_tmp();
-              assign_to_all_slots("tmp", init, null, "uint64");
-              append_idx("public_key.Encrypt(");
-              this.asm_.append(tmp_).append(", tmp);\n");
+              assign_to_all_slots("tmp", init, null, "float64");
+              append_idx("ptxt = tmp; // encode\n");
+              append_idx("ptxt.encrypt(");
+              this.asm_.append(tmp_).append(");\n");
               inits.add(tmp_);
-            } else { // exp type is EncInt
+            } else { // exp type is EncDouble
               inits.add(init);
             }
           }
@@ -436,11 +324,12 @@ public class T2_2_HElib extends T2_Compiler {
    * f8 -> "}"
    */
   public Var_t visit(BatchArrayAssignmentStatement n) throws Exception {
+//    TODO: merge with bfv
     Var_t id = n.f0.accept(this);
     Var_t index = n.f2.accept(this);
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
-    assert(id_type.equals("EncInt[]"));
+    assert(id_type.equals("EncDouble[]"));
     String index_type = st_.findType(index);
     tmp_cnt_++;
     append_idx("tmp[0] = ");
@@ -452,8 +341,9 @@ public class T2_2_HElib extends T2_Compiler {
         this.asm_.append((n.f7.nodes.get(i).accept(this)).getName()).append(";\n");
       }
     }
-    append_idx("public_key.Encrypt(");
-    this.asm_.append(id.getName()).append("[").append(index.getName()).append("], tmp);\n");
+    append_idx("ptxt = tmp; // encode\n");
+    append_idx("ptxt.encrypt(");
+    this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
     return null;
   }
 
@@ -468,15 +358,17 @@ public class T2_2_HElib extends T2_Compiler {
     String expr_type = st_.findType(expr);
     switch (expr_type) {
       case "int":
+      case "double":
         append_idx("cout << ");
         this.asm_.append(expr.getName());
-        this.asm_.append(" << endl;\n");
+        this.asm_.append(" << endl");
         break;
-      case "EncInt":
-        append_idx("secret_key.Decrypt(tmp, ");
-        this.asm_.append(expr.getName()).append(");\n");
+      case "EncDouble":
+        append_idx("ptxt.decryptComplex(");
+        this.asm_.append(expr.getName()).append(", secret_key);\n");
+        append_idx("ptxt.store(tmp);\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
+        this.asm_.append(expr.getName()).append(") = \" << tmp[0] << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -496,12 +388,13 @@ public class T2_2_HElib extends T2_Compiler {
   public Var_t visit(PrintBatchedStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncInt"));
+    assert(expr_type.equals("EncDouble"));
     Var_t size = n.f4.accept(this);
     String size_type = st_.findType(expr);
     assert(size_type.equals("int"));
-    append_idx("secret_key.Decrypt(tmp, ");
-    this.asm_.append(expr.getName()).append(");\n");
+    append_idx("ptxt.decryptComplex(");
+    this.asm_.append(expr.getName()).append(", secret_key);\n");
+    append_idx("ptxt.store(tmp);\n");
     append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
     append_idx("  cout << tmp[" + this.tmp_i + "] << \"\\t\";\n");
@@ -544,25 +437,34 @@ public class T2_2_HElib extends T2_Compiler {
                  "&&".equals(op) || "||".equals(op)) {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
-    } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+    } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
+            (rhs_type.equals("int") || rhs_type.equals("double"))) {
+      if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
+              ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
+              "/".equals(op) || "%".equals(op)
+      ) {
+        return new Var_t("double", lhs.getName() + op + rhs.getName());
+      } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
+              "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
+              "&&".equals(op) || "||".equals(op)) {
+        return new Var_t("bool", lhs.getName() + op + rhs.getName());
+      }
+    } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
+                  rhs_type.equals("EncDouble"))  {
       String res_ = new_ctxt_tmp();
       switch (op) {
         case "+":
-          append_idx(res_);
-          this.asm_.append(" = ").append(rhs.getName()).append(";\n");
-          append_idx(res_);
-          this.asm_.append(".addConstant(NTL::ZZX(").append(lhs.getName()).append("));\n");
-          break;
         case "*":
           append_idx(res_);
           this.asm_.append(" = ").append(rhs.getName()).append(";\n");
           append_idx(res_);
-          this.asm_.append(".multByConstant(NTL::ZZX(").append(lhs.getName()).append("));\n");
+          this.asm_.append(" ").append(op).append("= (double)").append(lhs.getName()).append(";\n");
           break;
         case "-":
-          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
-          append_idx("public_key.Encrypt(");
-          this.asm_.append(res_).append(", tmp);\n");
+          assign_to_all_slots("tmp", lhs.getName(), null, "float64");
+          append_idx("ptxt = tmp; // encode\n");
+          append_idx("ptxt.encrypt(");
+          this.asm_.append(res_).append(");\n");
           append_idx(res_);
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
@@ -573,21 +475,18 @@ public class T2_2_HElib extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      return new Var_t("EncInt", res_);
-    } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      return new Var_t("EncDouble", res_);
+    } else if (lhs_type.equals("EncDouble") &&
+                (rhs_type.equals("int") || rhs_type.equals("double"))) {
       String res_ = new_ctxt_tmp();
       append_idx(res_);
       this.asm_.append(" = ").append(lhs.getName()).append(";\n");
       append_idx(res_);
       switch (op) {
         case "+":
-          this.asm_.append(".addConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
-          break;
         case "*":
-          this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
-          break;
         case "-":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
+          this.asm_.append(" ").append(op).append("= (double)").append(rhs.getName()).append(";\n");
           break;
         case "==":
         case "<":
@@ -596,8 +495,8 @@ public class T2_2_HElib extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      return new Var_t("EncInt", res_);
-    } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
+      return new Var_t("EncDouble", res_);
+    } else if (lhs_type.equals("EncDouble") && rhs_type.equals("EncDouble")) {
       String res_ = new_ctxt_tmp();
       append_idx(res_);
       this.asm_.append(" = ").append(lhs.getName()).append(";\n");
@@ -616,21 +515,21 @@ public class T2_2_HElib extends T2_Compiler {
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      return new Var_t("EncInt", res_);
+      return new Var_t("EncDouble", res_);
     }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
   }
 
   /**
    * f0 -> "new"
-   * f1 -> "EncInt"
+   * f1 -> "EncDouble"
    * f2 -> "["
    * f3 -> Expression()
    * f4 -> "]"
    */
-  public Var_t visit(EncryptedArrayAllocationExpression n) throws Exception {
+  public Var_t visit(EncryptedArrayDoubleAllocationExpression n) throws Exception {
     String size = n.f3.accept(this).getName();
-    return new Var_t("EncInt[]", "resize(" + size + ", tmp_)");
+    return new Var_t("EncDouble[]", "resize(" + size + ", tmp_)");
   }
 
 }

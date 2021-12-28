@@ -125,9 +125,9 @@ public class Main {
               case BFV_BGV:
                 dsl_compiler = new T2_2_HElib(symbol_table, config_file_path);
                 break;
-//              case CKKS:
-//                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config_file_path);
-//                break;
+              case CKKS:
+                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config_file_path);
+                break;
             }
             break;
           case LATTIGO:
