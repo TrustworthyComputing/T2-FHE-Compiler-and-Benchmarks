@@ -421,6 +421,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
       case "EncDouble":
         append_idx("cc->Decrypt(keyPair.secretKey,");
         this.asm_.append(expr.getName()).append(", &tmp);\n");
+        append_idx("tmp->SetLength(1);\n");
         append_idx("cout << \"dec(");
         this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
         break;
@@ -451,13 +452,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     this.asm_.append(expr.getName()).append(", ").append("&tmp);\n");
     append_idx("tmp->SetLength(");
     this.asm_.append(size.getName()).append(");\n");
-//    append_idx("vector<double> ");
-//    this.asm_.append(tmp_vec).append(" = tmp->GetPackedValue();\n");
-//    append_idx("for (auto v : ");
-//    this.asm_.append(tmp_vec).append(") {\n");
-    append_idx("  cout << tmp << \"\\t\";\n");
-//    append_idx("}\n");
-    append_idx("cout << endl");
+    append_idx("cout << tmp << \"\\t\" << endl");
     this.semicolon_ = true;
     return null;
   }

@@ -12,7 +12,7 @@ int main(void) {
   ctxt_arr1 = { 0.5, 0.6, 0.7 }; // encrypted array
 
   ctxt_arr2 = new EncDouble[2];
-  ctxt_arr2[0] = { 0.1, 0.2, 0.3 }; // encrypted array with batching
+  ctxt_arr2[i] = { 0.1, 0.2, 0.3 }; // encrypted array with batching
   ctxt_arr2[1] = { 0.4, 0.5, 0.6 }; // encrypted array with batching
 
   ctxt1++;
@@ -27,6 +27,7 @@ int main(void) {
   ctxt_arr2[1] = (ctxt_arr2[0]) * 2;
   print(ctxt1);
   print(ctxt2);
+  print((arr[0]));
   print((ctxt_arr1[0]));
   print((ctxt_arr2[1]));
   print_batched((ctxt_arr2[0]), 3);

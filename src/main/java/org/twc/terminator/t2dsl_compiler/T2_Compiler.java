@@ -20,6 +20,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected int indent_, tmp_cnt_;
   protected boolean semicolon_;
   protected String config_file_path_;
+  protected String tmp_i;
 
   public T2_Compiler(SymbolTable st, String config_file_path) {
     this.indent_ = 0;
@@ -32,6 +33,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.semicolon_ = false;
     this.asm_ = new StringBuilder();
     this.config_file_path_ = config_file_path;
+    this.tmp_i = "tmp_i";
   }
 
   public String get_asm() {

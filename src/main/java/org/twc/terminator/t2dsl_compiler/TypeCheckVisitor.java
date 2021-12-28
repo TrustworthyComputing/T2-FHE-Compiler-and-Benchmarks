@@ -243,10 +243,10 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     String t1_type = st_.findType(t1);
     String t2_type = st_.findType(t2);
     if (t1_type.equals(t2_type) ||
-        (t1_type.equals("EncInt") && t2_type.equals("int")) ||
-        (t1_type.equals("EncInt[]") && t2_type.equals("int[]")) ||
-        (t1_type.equals("EncDouble") && t2_type.equals("double")) ||
-        (t1_type.equals("EncDouble[]") && t2_type.equals("double[]"))
+      (t1_type.equals("EncInt") && t2_type.equals("int")) ||
+      (t1_type.equals("EncInt[]") && t2_type.equals("int[]")) ||
+      (t1_type.equals("EncDouble") && (t2_type.equals("double") || t2_type.equals("int"))) ||
+      (t1_type.equals("EncDouble[]") && (t2_type.equals("double[]") || t2_type.equals("int[]")))
     ) {
       return null;
     }
@@ -808,6 +808,8 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     switch (array_type) {
       case "int[]":
         return new Var_t("int", null);
+      case "double[]":
+        return new Var_t("double", null);
       case "EncInt[]":
         return new Var_t("EncInt", null);
       case "EncDouble[]":

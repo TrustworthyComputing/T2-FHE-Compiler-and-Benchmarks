@@ -121,7 +121,14 @@ public class Main {
             }
             break;
           case HELIB:
-            dsl_compiler = new T2_2_HElib(symbol_table, config_file_path);
+            switch (scheme_) {
+              case BFV_BGV:
+                dsl_compiler = new T2_2_HElib(symbol_table, config_file_path);
+                break;
+//              case CKKS:
+//                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config_file_path);
+//                break;
+            }
             break;
           case LATTIGO:
             suffix = ".go";
@@ -130,12 +137,16 @@ public class Main {
                 dsl_compiler = new T2_2_Lattigo(symbol_table, config_file_path);
                 break;
               case CKKS:
-//                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config_file_path);
+                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config_file_path);
                 break;
             }
             break;
           default:
             throw new RuntimeException("Backend is not supported yet");
+        }
+        if (dsl_compiler == null) {
+          throw new RuntimeException("Combination of backend and scheme is " +
+                                     "not supported.");
         }
         t2dsl_goal.accept(dsl_compiler);
         String code = dsl_compiler.get_asm();
