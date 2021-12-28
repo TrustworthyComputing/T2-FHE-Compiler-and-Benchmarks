@@ -1,5 +1,5 @@
-#ifndef HELPER_HPP_
-#define HELPER_HPP_
+#ifndef FUNCTIONAL_UNITS_HPP_
+#define FUNCTIONAL_UNITS_HPP_
 
 #include "seal/seal.h"
 #include <algorithm>
@@ -36,7 +36,6 @@
 #define TOC_US(t) duration_us(timeNow() - t)
 #define TOC_MS(t) duration_ms(timeNow() - t)
 
-
 /// Encrypt/Decrypt an integer to a vector of encryptions of zero and one
 std::vector<seal::Ciphertext> encrypt_num_to_binary_array(
     seal::Encryptor& encryptor, uint64_t number, size_t word_sz);
@@ -54,8 +53,8 @@ uint64_t decrypt_binary_array_batch(
     seal::Ciphertext encrypted_vec, size_t word_sz, size_t padding = 1);
 
 /// Encrypt/Decrypt a vector of integers to a batched ciphertext
-seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
-    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums,
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
     size_t num_elems, size_t slots, size_t padding = 1);
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(
@@ -66,6 +65,60 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(
 seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
                            seal::Evaluator& evaluator,
                            const seal::RelinKeys& relinKeys);
+
+seal::Ciphertext eq_bin_batched(
+    seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
+    seal::GaloisKeys& galios_keys, size_t slots, size_t padding);
+
+seal::Ciphertext lt_bin_batched(
+    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
+    size_t slots);
+
+seal::Ciphertext lt_bin_batched_plain(
+    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    size_t slots);
+
+seal::Ciphertext lte_bin_batched_plain(
+    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    size_t slots);
+
+seal::Ciphertext lte_bin_batched(
+    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    size_t slots);
+
+seal::Ciphertext eq_bin_batched_plain(
+    seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    seal::GaloisKeys& galios_keys, size_t slots, size_t padding);
+
+seal::Ciphertext eq(
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator,
+    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
+
+seal::Ciphertext lt(
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
+
+seal::Ciphertext lt_plain(
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
+
+seal::Ciphertext eq_plain(
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
+    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
+
+seal::Plaintext encode_all_slots(
+    seal::BatchEncoder& batch_encoder,
+    uint64_t num, size_t slots);
 
 /// Helper function: Prints the name of the example in a fancy banner.
 inline void print_example_banner(std::string title) {
@@ -223,58 +276,4 @@ inline std::string uint64_to_hex_string(std::uint64_t value) {
   return seal::util::uint_to_hex_string(&value, std::size_t(1));
 }
 
-seal::Ciphertext eq_bin_batched(
-    seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
-    seal::GaloisKeys& galios_keys, size_t slots, size_t padding);
-
-seal::Ciphertext lt_bin_batched(
-    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
-    size_t slots);
-
-seal::Ciphertext lt_bin_batched_plain(
-    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
-    size_t slots);
-
-seal::Ciphertext lte_bin_batched_plain(
-    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
-    size_t slots);
-
-seal::Ciphertext lte_bin_batched(
-    seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
-    size_t slots);
-
-seal::Ciphertext eq_bin_batched_plain(
-    seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
-    seal::GaloisKeys& galios_keys, size_t slots, size_t padding);
-
-seal::Ciphertext eq(
-    seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
-
-seal::Ciphertext lt(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
-
-seal::Ciphertext lt_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
-
-seal::Ciphertext eq_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
-
-seal::Plaintext encode_all_slots(
-    seal::BatchEncoder& batch_encoder,
-    uint64_t num, size_t slots);
-
-#endif  // HELPER_HPP_
+#endif  // FUNCTIONAL_UNITS_HPP_

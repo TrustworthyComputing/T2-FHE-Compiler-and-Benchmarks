@@ -112,8 +112,8 @@ uint64_t decrypt_binary_array_batch(
   return result;
 }
 
-seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
-    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums,
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
     size_t num_elems, size_t slots, size_t padding /* = 1 */) {
   std::vector<uint64_t> ptxt_vec(slots);
   for (int i = 0; i < num_elems; ++i) {
@@ -123,7 +123,7 @@ seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
   batch_encoder.encode(ptxt_vec, ptxt_vec_encoded);
   seal::Ciphertext encrypted_vec;
   encryptor.encrypt(ptxt_vec_encoded, encrypted_vec);
-  return encrypted_vec;
+  return encrypted_vec; 
 }
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(
