@@ -156,16 +156,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       this.asm_.append(rhs_name).append("); ").append(tmp_i);
       this.asm_.append("++ {\n");
       this.indent_ += 2;
-
       assign_to_all_slots("tmp", rhs_name, tmp_i, "uint64");
-
-//      append_idx("for " + tmp_j + " := 0; " + tmp_j + " < slots; " + tmp_j + "++ {\n");
-//      this.indent_ += 2;
-//      append_idx("tmp[" + tmp_j + "] = uint64(");
-//      this.asm_.append(rhs_name).append("[").append(tmp_i).append("])\n");
-//      this.indent_ -= 2;
-//      append_idx("}\n");
-
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx(lhs.getName());
       this.asm_.append("[").append(tmp_i).append("] = encryptorSk.EncryptNew(ptxt)\n");
