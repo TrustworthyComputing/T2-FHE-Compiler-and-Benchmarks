@@ -11,6 +11,9 @@ all: directories example
 example: $(BIN)/helib_example.o
 	$(CXX) $(CPPFLAGS) $(BIN)/helib_example.o -o $(BIN)/helib_example.out $(LIBS)
 
+functional_units_test: $(BIN)/functional_units_test.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/functional_units_test.o $(BIN)/functional_units.o -o $(BIN)/functional_units_test.out $(LIBS)
+
 test: $(BIN)/test.o
 	$(CXX) $(CPPFLAGS) $(BIN)/test.o -o $(BIN)/test.out $(LIBS)
 
@@ -19,6 +22,12 @@ $(BIN)/helib_example.o: examples/helib.cpp
 
 $(BIN)/test.o: compiled/test.cpp
 	$(CXX) $(CPPFLAGS) -c compiled/test.cpp -o $(BIN)/test.o
+
+$(BIN)/functional_units.o: functional_units/functional_units.cpp
+	$(CXX) $(CPPFLAGS) -c functional_units/functional_units.cpp -o $(BIN)/functional_units.o
+
+$(BIN)/functional_units_test.o: functional_units/functional_units_test.cpp
+	$(CXX) $(CPPFLAGS) -c functional_units/functional_units_test.cpp -o $(BIN)/functional_units_test.o
 
 directories: ${BIN}
 
