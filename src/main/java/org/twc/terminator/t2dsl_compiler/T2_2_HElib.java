@@ -476,7 +476,7 @@ public class T2_2_HElib extends T2_Compiler {
         append_idx("secret_key.Decrypt(tmp, ");
         this.asm_.append(expr.getName()).append(");\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
+        this.asm_.append(expr.getName()).append(") = \" << tmp[0] << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
