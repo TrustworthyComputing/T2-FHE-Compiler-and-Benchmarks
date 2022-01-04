@@ -53,8 +53,8 @@ uint64_t decrypt_binary_array_batch(
     seal::Ciphertext encrypted_vec, size_t word_sz, size_t padding = 1);
 
 /// Encrypt/Decrypt a vector of integers to a batched ciphertext
-seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
-    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums,
     size_t num_elems, size_t slots, size_t padding = 1);
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(
@@ -98,23 +98,29 @@ seal::Ciphertext eq_bin_batched_plain(
 
 seal::Ciphertext eq(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
+    size_t ptxt_mod);
 
 seal::Ciphertext lt(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots);
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
+    size_t ptxt_mod);
+
+seal::Ciphertext leq(
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod);
 
 seal::Ciphertext lt_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod);
 
 seal::Ciphertext eq_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots);
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod);
+
+seal::Ciphertext leq_plain(
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod);
 
 seal::Plaintext encode_all_slots(
     seal::BatchEncoder& batch_encoder,

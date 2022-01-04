@@ -537,23 +537,23 @@ public class T2_2_SEAL extends T2_Compiler {
           break;
         case "==":
           append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = eq_plain(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(rhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
+          this.asm_.append(", tmp, plaintext_modulus);\n");
           break;
         case "<":
           append_idx("encryptor.encrypt(tmp, tmp_);\n");
           append_idx(res_);
-          this.asm_.append(" = lt(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = lt(encryptor, evaluator, ");
           this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
+          this.asm_.append(", plaintext_modulus);\n");
           break;
         case "<=":
           append_idx("encryptor.encrypt(tmp, tmp_);\n");
           append_idx(res_);
-          this.asm_.append(" = leq(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = leq(encryptor, evaluator, ");
           this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
+          this.asm_.append(", plaintext_modulus);\n");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -583,21 +583,21 @@ public class T2_2_SEAL extends T2_Compiler {
           break;
         case "==":
           append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = eq_plain(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
+          this.asm_.append(", tmp, plaintext_modulus);\n");
           break;
         case "<":
           append_idx(res_);
-          this.asm_.append(" = lt_plain(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = lt_plain(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
+          this.asm_.append(", tmp, plaintext_modulus);\n");
           break;
         case "<=":
           append_idx(res_);
-          this.asm_.append(" = leq_plain(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = leq_plain(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
+          this.asm_.append(", tmp, plaintext_modulus);\n");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -631,22 +631,22 @@ public class T2_2_SEAL extends T2_Compiler {
           break;
         case "==":
           append_idx(res_);
-          this.asm_.append(" = eq(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = eq(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
+          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
           break;
         case "<":
           append_idx(res_);
-          this.asm_.append(" = lt(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = lt(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName());
           this.asm_.append(", ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
+          this.asm_.append(", plaintext_modulus);\n");
           break;
         case "<=":
           append_idx(res_);
-          this.asm_.append(" = leq(encryptor, batch_encoder, evaluator, ");
+          this.asm_.append(" = leq(encryptor, evaluator, ");
           this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
+          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

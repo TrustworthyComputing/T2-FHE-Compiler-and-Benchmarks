@@ -112,8 +112,8 @@ uint64_t decrypt_binary_array_batch(
   return result;
 }
 
-seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor, 
-    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums, 
+seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, std::vector<uint64_t> nums,
     size_t num_elems, size_t slots, size_t padding /* = 1 */) {
   std::vector<uint64_t> ptxt_vec(slots);
   for (int i = 0; i < num_elems; ++i) {
@@ -123,7 +123,7 @@ seal::Ciphertext encrypt_nums_to_array_batch(seal::Encryptor& encryptor,
   batch_encoder.encode(ptxt_vec, ptxt_vec_encoded);
   seal::Ciphertext encrypted_vec;
   encryptor.encrypt(ptxt_vec_encoded, encrypted_vec);
-  return encrypted_vec; 
+  return encrypted_vec;
 }
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(
@@ -273,8 +273,8 @@ seal::Ciphertext eq_bin_batched_plain(
 // Compute res = 1 - (x-y)^(ptxt_mod-1)
 seal::Ciphertext eq(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots) {
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Ciphertext ct2_,
+    size_t ptxt_mod) {
   seal::Ciphertext result_, tmp_, tmp2_;
   int num_squares = (int)log2(ptxt_mod-1);
   evaluator.sub(ct1_, ct2_, tmp_);
@@ -287,17 +287,18 @@ seal::Ciphertext eq(
     evaluator.multiply_inplace(tmp2_, tmp_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
-  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  seal::Plaintext one("1");
   encryptor.encrypt(one, result_);
   evaluator.sub(result_, tmp2_, result_);
   return result_;
 }
 
 seal::Ciphertext lt(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod, size_t slots) {
-  seal::Ciphertext one_ = encrypt_all_slots(encryptor, batch_encoder, 1, slots);
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod) {
+  seal::Plaintext one("1");
+  seal::Ciphertext one_;
+  encryptor.encrypt(one, one_);
   seal::Ciphertext tmp_, tmp2_, result_;
   seal::Plaintext plain_zero("0");
   encryptor.encrypt(plain_zero, result_);
@@ -305,7 +306,8 @@ seal::Ciphertext lt(
   int num_squares = (int)log2(ptxt_mod-1);
 
   for (int i = -(ptxt_mod-1)/2; i < 0; i++) {
-    seal::Plaintext a = encode_all_slots(batch_encoder, i, slots);
+    seal::Plaintext a = uint64_to_hex_string(i);
+
     evaluator.sub(ct1_, ct2_, tmp_);
     evaluator.sub_plain(tmp_, a, tmp_);
     tmp2_ = tmp_;
@@ -323,11 +325,29 @@ seal::Ciphertext lt(
   return result_;
 }
 
+seal::Ciphertext leq(
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Ciphertext ct2_, size_t ptxt_mod) {
+  seal::Ciphertext less_ = lt(encryptor, evaluator, relin_keys, ct1_, ct2_, ptxt_mod);
+  seal::Ciphertext equal_ = eq(encryptor, evaluator, relin_keys, ct1_, ct2_, ptxt_mod);
+  seal::Ciphertext tmp_, res_;
+
+  evaluator.multiply(less_, equal_, tmp_);
+  evaluator.relinearize_inplace(tmp_, relin_keys);
+  evaluator.add(less_, equal_, res_);
+  evaluator.sub(res_, tmp_, res_);
+
+  return res_;
+}
+
 seal::Ciphertext lt_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots) {
-  seal::Ciphertext one_ = encrypt_all_slots(encryptor, batch_encoder, 1, slots);
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    size_t ptxt_mod) {
+  seal::Plaintext one("1");
+  seal::Ciphertext one_;
+  encryptor.encrypt(one, one_);
+
   seal::Ciphertext tmp_, tmp2_, result_;
   seal::Plaintext plain_zero("0");
   encryptor.encrypt(plain_zero, result_);
@@ -335,7 +355,7 @@ seal::Ciphertext lt_plain(
   int num_squares = (int)log2(ptxt_mod-1);
 
   for (int i = -(ptxt_mod-1)/2; i < 0; i++) {
-    seal::Plaintext a = encode_all_slots(batch_encoder, i, slots);
+    seal::Plaintext a = uint64_to_hex_string(i);
     evaluator.sub_plain(ct1_, pt1_, tmp_);
     evaluator.sub_plain(tmp_, a, tmp_);
     tmp2_ = tmp_;
@@ -354,9 +374,9 @@ seal::Ciphertext lt_plain(
 }
 
 seal::Ciphertext eq_plain(
-    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod, size_t slots) {
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator,
+    seal::RelinKeys& relin_keys, seal::Ciphertext ct1_, seal::Plaintext pt1_,
+    size_t ptxt_mod) {
   seal::Ciphertext result_, tmp_, tmp2_;
   int num_squares = (int)log2(ptxt_mod-1);
   evaluator.sub_plain(ct1_, pt1_, tmp_);
@@ -369,8 +389,23 @@ seal::Ciphertext eq_plain(
     evaluator.multiply_inplace(tmp2_, tmp_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
-  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  seal::Plaintext one("1");
   encryptor.encrypt(one, result_);
   evaluator.sub(result_, tmp2_, result_);
   return result_;
+}
+
+seal::Ciphertext leq_plain(
+    seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
+    seal::Ciphertext ct1_, seal::Plaintext pt1_, size_t ptxt_mod) {
+  seal::Ciphertext less_ = lt_plain(encryptor, evaluator, relin_keys, ct1_, pt1_, ptxt_mod);
+  seal::Ciphertext equal_ = eq_plain(encryptor, evaluator, relin_keys, ct1_, pt1_, ptxt_mod);
+  seal::Ciphertext tmp_, res_;
+
+  evaluator.multiply(less_, equal_, tmp_);
+  evaluator.relinearize_inplace(tmp_, relin_keys);
+  evaluator.add(less_, equal_, res_);
+  evaluator.sub(res_, tmp_, res_);
+
+  return res_;
 }
