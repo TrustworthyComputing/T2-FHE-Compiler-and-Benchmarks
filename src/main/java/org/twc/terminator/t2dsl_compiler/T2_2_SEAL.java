@@ -17,7 +17,6 @@ public class T2_2_SEAL extends T2_Compiler {
 
   protected void append_keygen() {
     append_idx("size_t poly_modulus_degree = 16384;\n");
-    append_idx("size_t plaintext_modulus = 20;\n");
     append_idx("EncryptionParameters parms(scheme_type::bfv);\n");
     append_idx("parms.set_poly_modulus_degree(poly_modulus_degree);\n");
     append_idx("parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));\n");

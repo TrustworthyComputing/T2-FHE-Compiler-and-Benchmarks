@@ -1,7 +1,7 @@
 int main(void) {
   EncInt res_, a_, b_;
   a_ = 10; // encrypted
-  b_ = 20; // encrypted
+  b_ = 15; // encrypted
 
   res_ = a_ == b_;  // 0
   print(res_);      // 0
