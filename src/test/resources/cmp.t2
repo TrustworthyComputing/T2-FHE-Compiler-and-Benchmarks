@@ -1,35 +1,32 @@
 int main(void) {
   EncInt res_, a_, b_;
-  int x, y;
-  x = 5;
-  y = 10;
-
   a_ = 10; // encrypted
   b_ = 20; // encrypted
 
   res_ = a_ == b_;  // 0
   print(res_);      // 0
 
-  res_ = a_ == 10;  // 1 -- ctxt comparison
+  res_ += a_ == 10; // 1 -- ctxt comparison
   print(res_);      // 1
 
-  res_ = 10 == a_;  // 1 -- ctxt comparison
+  res_ += 10 == a_; // 1 -- ctxt comparison
   print(res_);      // 2
 
-  res_ = a_ <= a_;  // 1 -- ctxt comparison
+  res_ += a_ <= a_; // 1 -- ctxt comparison
   print(res_);      // 3
 
-  res_ = a_ < b_;   // 1 -- ctxt comparison
+  res_ += a_ < b_;  // 1 -- ctxt comparison
   print(res_);      // 4
 
-  res_ = a_ <= b_;  // 1 -- ctxt comparison
+  res_ += a_ <= b_; // 1 -- ctxt comparison
   print(res_);      // 5
 
-  res_ = a_ <= y;   // 1 -- ctxt comparison
+  res_ += a_ <= 10; // 1 -- ctxt comparison
   print(res_);      // 6
 
-  res_ = b_ <= a_;  // 0 -- ctxt comparison
-  res_ = b_ < a_;   // 0 -- ctxt comparison
+  res_ += a_ <= 5;  // 0 -- ctxt comparison
+  res_ += b_ <= a_; // 0 -- ctxt comparison
+  res_ += b_ < a_;  // 0 -- ctxt comparison
 
   print(res_);      // 6
   return 0;
