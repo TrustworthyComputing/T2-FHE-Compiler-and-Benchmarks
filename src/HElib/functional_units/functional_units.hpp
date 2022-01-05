@@ -60,28 +60,32 @@ helib::Ctxt encrypt_nums_to_array_batch(helib::PubKey& public_key,
     size_t slots, size_t padding = 1);
 
 std::vector<uint64_t> decrypt_array_batch_to_nums( helib::SecKey& secret_key, 
-    helib::Ctxt encrypted_vec, size_t slots, size_t padding = 1);
+    helib::Context& context, helib::Ctxt encrypted_vec, size_t slots, 
+    size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
-helib::Ctxt xor_batch(helib::Ctxt& ctxt_1, helib::Ctxt& ctxt_2);
+helib::Ctxt xor_batch(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+    helib::Ctxt& ctxt_2);
 
-helib::Ctxt eq_bin_batched(helib::PubKey& public_key,  helib::Ctxt ct1_, 
-    helib::Ctxt ct2_, helib::EncryptedArray& ea, size_t slots, size_t padding);
-
-helib::Ctxt lt_bin_batched(helib::Ctxt ct1_, helib::Ctxt ct2_, size_t slots);
-
-helib::Ctxt lt_bin_batched_plain(helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_,
-    size_t slots);
-
-helib::Ctxt lte_bin_batched_plain(helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_,
-    size_t slots);
-
-helib::Ctxt lte_bin_batched(helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_,
-    size_t slots);
-
-helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ptxt<helib::BGV> pt1_, helib::EncryptedArray& ea, size_t slots, 
+helib::Ctxt eq_bin_batched(helib::PubKey& public_key, helib::Context& context, 
+    helib::Ctxt ct1_, helib::Ctxt ct2_, size_t slots, const helib::EncryptedArray& ea,
     size_t padding);
+
+helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
+    helib::Ctxt ct2_, size_t slots);
+    
+helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
+    helib::Ptxt<helib::BGV> pt1_, size_t slots);
+
+helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
+    helib::Ptxt<helib::BGV> pt1_, size_t slots);
+    
+helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
+    helib::Ctxt ct2_, size_t slots);
+
+helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key, 
+    helib::Context& context, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::EncryptedArray& ea, size_t slots, size_t padding);
 
 helib::Ctxt eq(
     helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
@@ -98,8 +102,6 @@ helib::Ctxt lt_plain(
 helib::Ctxt eq_plain(
     helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
     size_t ptxt_mod, size_t slots);
-
-helib::Ptxt<helib::BGV> encode_all_slots(uint64_t num, size_t slots);
 
 /// Helper function: Prints the name of the example in a fancy banner.
 inline void print_example_banner(std::string title) {

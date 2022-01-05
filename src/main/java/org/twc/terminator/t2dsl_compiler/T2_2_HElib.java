@@ -205,7 +205,7 @@ public class T2_2_HElib extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       append_idx(id.getName());
-      this.asm_.append(".subConstant(NTL::ZZX(1));\n");
+      this.asm_.append(".addConstant(NTL::ZZX(-1));\n");
     } else {
       append_idx(id.getName());
       this.asm_.append("--");
@@ -255,7 +255,7 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("))");
           break;
         case "-=":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("))");
+          this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("))");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -567,8 +567,11 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
         case "==":
-        case "<":
-        case "<=":
+          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = eq_plain(public_key, ").append(rhs.getName()).append(", tmp, p, slots);\n");
+        case "<": // TODO: Add functional unit for int < EncInt
+        case "<=": // TODO: Add functional unit for int <= EncInt
           throw new RuntimeException("Not yet supported");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -587,10 +590,15 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
           break;
         case "-":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
+          this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("));\n");
           break;
         case "==":
+          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          append_idx(res_);
         case "<":
+          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = lt_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
         case "<=":
           throw new RuntimeException("Not yet supported");
         default:
