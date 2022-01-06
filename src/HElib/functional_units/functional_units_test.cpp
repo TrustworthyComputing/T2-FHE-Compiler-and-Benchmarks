@@ -120,6 +120,14 @@ int main(int argc, char *argv[]) {
   assert(decrypt_binary_array_batch(secret_key, context, lt_int_res, 5, 1) == 0);
   lt_int_res = lt(public_key, batch, batch_2, p, nslots);
   assert(decrypt_binary_array_batch(secret_key, context, lt_int_res, 5, 1) == 31);
+  
+  helib::Ptxt<helib::BGV> ptxt_test(context);
+  for (int i = 0; i < nslots; i++) {
+    pt_test[i] = 1;
+  }
 
+  eq_int_res = eq_plain(public_key, batch, ptxt_test, p, nslots);
+  cout << decrypt_binary_array_batch(secret_key, context, eq_int_res, 5, 1) << endl;
+  
   return EXIT_SUCCESS;
 }

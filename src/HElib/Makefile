@@ -14,8 +14,8 @@ example: $(BIN)/helib_example.o
 functional_units_test: $(BIN)/functional_units_test.o $(BIN)/functional_units.o
 	$(CXX) $(CPPFLAGS) $(BIN)/functional_units_test.o $(BIN)/functional_units.o -o $(BIN)/functional_units_test.out $(LIBS)
 
-test: $(BIN)/test.o
-	$(CXX) $(CPPFLAGS) $(BIN)/test.o -o $(BIN)/test.out $(LIBS)
+test: $(BIN)/test.o $(BIN)/functional_units.o
+	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/functional_units.o -o $(BIN)/test.out $(LIBS)
 
 $(BIN)/helib_example.o: examples/helib.cpp
 	$(CXX) $(CPPFLAGS) -c examples/helib.cpp -o $(BIN)/helib_example.o

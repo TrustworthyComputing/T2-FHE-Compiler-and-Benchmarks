@@ -95,12 +95,28 @@ helib::Ctxt lt(
     helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
     size_t ptxt_mod, size_t slots);
 
+helib::Ctxt leq(
+    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, size_t ptxt_mod, 
+    size_t slots);
+    
 helib::Ctxt lt_plain(
     helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
     size_t ptxt_mod, size_t slots);
 
+helib::Ctxt lt_plain(
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_,
+    size_t ptxt_mod, size_t slots);
+
 helib::Ctxt eq_plain(
     helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    size_t ptxt_mod, size_t slots);
+
+helib::Ctxt leq_plain(
+    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    size_t ptxt_mod, size_t slots);
+
+helib::Ctxt leq_plain(
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_, 
     size_t ptxt_mod, size_t slots);
 
 /// Helper function: Prints the name of the example in a fancy banner.
