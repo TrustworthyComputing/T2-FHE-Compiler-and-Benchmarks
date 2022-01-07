@@ -59,7 +59,7 @@ public class T2_2_HElib extends T2_Compiler {
     append_idx("SecKey secret_key(context);\n");
     append_idx("secret_key.GenSecKey();\n");
     append_idx("addSome1DMatrices(secret_key);\n");
-    append_idx("const PubKey& public_key = secret_key;\n");
+    append_idx("PubKey& public_key = secret_key;\n");
     append_idx("const EncryptedArray& ea = context.getEA();\n");
     append_idx("long slots = ea.size();\n\n");
     append_idx("Ptxt<helib::BGV> tmp(context);\n");
@@ -83,7 +83,7 @@ public class T2_2_HElib extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include <helib/helib.h>\n");
-//    append_idx("#include \"../helper.hpp\"\n\n");
+    append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace helib;\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
@@ -205,7 +205,7 @@ public class T2_2_HElib extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       append_idx(id.getName());
-      this.asm_.append(".subConstant(NTL::ZZX(1));\n");
+      this.asm_.append(".addConstant(NTL::ZZX(-1));\n");
     } else {
       append_idx(id.getName());
       this.asm_.append("--");
@@ -255,7 +255,7 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("))");
           break;
         case "-=":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("))");
+          this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("))");
           break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -567,9 +567,20 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
         case "==":
+          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = eq_plain(public_key, ").append(rhs.getName()).append(", tmp, p, slots);\n");
+          break;
         case "<":
-        case "<=":
-          throw new RuntimeException("Not yet supported");
+          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = lt_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
+          break;
+        case "<=": 
+          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = leq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -578,41 +589,65 @@ public class T2_2_HElib extends T2_Compiler {
       String res_ = new_ctxt_tmp();
       append_idx(res_);
       this.asm_.append(" = ").append(lhs.getName()).append(";\n");
-      append_idx(res_);
       switch (op) {
         case "+":
+          append_idx(res_);
           this.asm_.append(".addConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
           break;
         case "*":
+          append_idx(res_);
           this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
           break;
         case "-":
-          this.asm_.append(".subConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
+          append_idx(res_);
+          this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("));\n");
           break;
         case "==":
+          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = eq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+          break;
         case "<":
+          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = lt_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+          break;
         case "<=":
-          throw new RuntimeException("Not yet supported");
+          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          append_idx(res_);
+          this.asm_.append(" = leq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
-      append_idx(res_);
-      this.asm_.append(" = ").append(lhs.getName()).append(";\n");
-      append_idx(res_);
       switch (op) {
         case "*":
         case "+":
         case "-":
+          append_idx(res_);
+          this.asm_.append(" = ").append(lhs.getName()).append(";\n");
+          append_idx(res_);
           this.asm_.append(" ").append(op).append("= ");
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         case "==":
+          append_idx(res_);
+          this.asm_.append(" = eq(public_key, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
+          break;
         case "<":
+          append_idx(res_);
+          this.asm_.append(" = lt(public_key, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
+          break;
         case "<=":
-          throw new RuntimeException("Not yet supported");
+          append_idx(res_);
+          this.asm_.append(" = leq(public_key, ").append(lhs.getName());
+          this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
