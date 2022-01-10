@@ -11,6 +11,7 @@ public class T2_2_Lattigo extends T2_Compiler {
 
   public T2_2_Lattigo(SymbolTable st, String config_file_path) {
     super(st, config_file_path);
+    this.st_.backend_types.put("scheme", "bfv");
     this.st_.backend_types.put("int", "uint64");
     this.st_.backend_types.put("int[]", "[]uint64");
     this.st_.backend_types.put("EncInt", "*bfv.Ciphertext");
@@ -89,7 +90,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("import (\n");
     append_idx("  \"fmt\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/bfv\"\n");
+    append_idx("  \"github.com/ldsec/lattigo/v2/" + this.st_.backend_types.get("scheme")+ "\"\n");
     append_idx("  funits \"Lattigo/functional_units\"\n");
     append_idx(")\n\n");
     append_idx("func main() {\n");
@@ -673,14 +674,17 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append(rhs.getName()).append(")\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -707,14 +711,17 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append(lhs.getName()).append(", tmp_)\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -738,14 +745,17 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }

@@ -11,6 +11,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
 
   public T2_2_Lattigo_CKKS(SymbolTable st, String config_file_path) {
     super(st, config_file_path);
+    this.st_.backend_types.put("scheme", "ckks");
     this.st_.backend_types.put("double", "float64");
     this.st_.backend_types.put("double[]", "[]float64");
     this.st_.backend_types.put("EncDouble", "*ckks.Ciphertext");
@@ -31,49 +32,12 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("decryptor := ckks.NewDecryptor(params, clientSk)\n");
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
+    append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
+                   "&params, 0x3ee0001, slots) // TODO: change ptxt_mod\n");
     append_idx("var ptxt *ckks.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
     append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
     append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n\n");
-  }
-
-  /**
-   * f0 -> "int"
-   * f1 -> "main"
-   * f2 -> "("
-   * f3 -> "void"
-   * f4 -> ")"
-   * f5 -> "{"
-   * f6 -> ( VarDeclaration() )*
-   * f7 -> ( Statement() )*
-   * f8 -> "return"
-   * f9 -> Expression()
-   * f10 -> ";"
-   * f11 -> "}"
-   */
-  public Var_t visit(MainClass n) throws Exception {
-    append_idx("package main\n\n");
-    append_idx("import (\n");
-    append_idx("  \"fmt\"\n");
-//    append_idx("  \"math\"\n");
-//    append_idx("  \"math/cmplx\"\n\n");
-//    append_idx("  \"math/bits\"\n\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
-//    append_idx("  \"github.com/ldsec/lattigo/v2/utils\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/ckks\"\n");
-//    append_idx("  \"github.com/ldsec/lattigo/v2/ring\"\n");
-    append_idx(")\n\n");
-    append_idx("func main() {\n");
-    this.indent_ = 2;
-    if (!read_keygen_from_file()) {
-      append_keygen();
-    }
-    n.f6.accept(this);
-    n.f7.accept(this);
-    n.f9.accept(this);
-    this.indent_ = 0;
-    append_idx("}\n");
-    return null;
   }
 
   /**
@@ -562,14 +526,17 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(rhs.getName()).append(")\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(tmp_, ");
+          this.asm_.append(rhs.getName()).append(")\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -597,14 +564,17 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(lhs.getName()).append(", tmp_)\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(");
+          this.asm_.append(rhs.getName()).append(", tmp_)\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -628,14 +598,17 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
           break;
         case "==":
+          append_idx(res_ + " := funits.Eq(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         case "<":
+          append_idx(res_ + " := funits.Lt(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         case "<=":
-//          append_idx(res_);
-//          this.asm_.append(" = eq(encryptor, batch_encoder, evaluator, ");
-//          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots)\n");
-//          break;
-          throw new Exception("Operation " + op + " not yet supported");
+          append_idx(res_ + " := funits.Leq(");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
