@@ -2,25 +2,32 @@ int main(void) {
   EncInt enc_sum_, enc_num_;
   int x;
   x = 2;
-  enc_num_ = 100; // encrypt
+  enc_num_ = 10; // encrypt
   enc_sum_ = enc_num_;
   enc_sum_ = enc_num_ + enc_num_;
   enc_sum_++; // addition with plaintext 1
-  enc_sum_ = enc_sum_ * x; // plain mult
+  print(enc_sum_);
+  enc_sum_ = enc_sum_ * x; // plain
+  print(enc_sum_);
   enc_sum_ = x * enc_sum_; // plain mult
+  print(enc_sum_);
   enc_sum_ = enc_sum_ - x; // plain sub
-  enc_sum_ = x - enc_sum_; // encrypt x and sub
+  print(enc_sum_);
+  enc_sum_ = x + enc_sum_; // encrypt x and sub
+  print(enc_sum_);
 
   x += 2; // ok
   enc_sum_ += enc_num_; // ok
   enc_sum_ += x; // ok
-  enc_sum_ *= enc_num_; // ok
+  print(enc_sum_);
+  enc_sum_ *= 2; // ok
+  print(enc_sum_);
 
-  enc_sum_ = x ^ enc_num_; // ok
-  enc_sum_ = enc_num_ ^ x; // ok
-  enc_sum_ = enc_num_ ^ enc_num_; // ok
+//  enc_sum_ = x ^ enc_num_; // ok
+//  enc_sum_ = enc_num_ ^ x; // ok
+//  enc_sum_ = enc_num_ ^ enc_num_; // ok
 
   reduce_noise(enc_sum_);
-
+  print(enc_sum_);
   return 0;
 }
