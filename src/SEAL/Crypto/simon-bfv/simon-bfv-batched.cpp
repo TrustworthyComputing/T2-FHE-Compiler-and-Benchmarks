@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "../../helper.hpp"
+#include "../../functional_units/functional_units.hpp"
 
 using namespace seal;
 using namespace std;

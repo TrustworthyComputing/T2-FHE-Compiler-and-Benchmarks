@@ -1,0 +1,28 @@
+int main(void) {
+  EncInt ctxt1, ctxt2;
+  EncInt[] ctxt_arr;
+  int[] arr;
+  int i;
+  i = 1;
+  ctxt1 = i;
+  print_batched(ctxt1, 32);
+  ctxt2 = 2;
+  print_batched(ctxt2, 32);
+  ctxt2 = ctxt1;
+  print_batched(ctxt2, 32);
+  ctxt_arr = new EncInt[2];
+  arr = new int[2];
+  arr[0] = 3;
+  ctxt_arr = arr;
+  print_batched(ctxt_arr[0], 32);
+
+  ctxt_arr[1] = 4;
+  print_batched(ctxt_arr[1], 32);
+
+  i = 6;
+  ctxt_arr = { 5, i };
+  print_batched(ctxt_arr[0], 32);
+  print_batched(ctxt_arr[1], 32);
+
+  return 0;
+}
