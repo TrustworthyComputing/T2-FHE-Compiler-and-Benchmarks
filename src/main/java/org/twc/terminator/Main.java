@@ -163,7 +163,7 @@ public class Main {
         writer = new PrintWriter(output_path);
         writer.print(code);
         writer.close();
-        System.out.println(code);
+        if (debug_) System.out.println(code);
         System.out.println("[ \033[0;32m \u2713 \033[0m ] " + backend_.name() +
                            " code generated to \"" + output_path + "\"");
         input_stream = new FileInputStream(output_path);
