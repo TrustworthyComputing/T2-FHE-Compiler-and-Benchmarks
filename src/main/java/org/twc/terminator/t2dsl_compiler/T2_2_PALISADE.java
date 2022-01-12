@@ -50,7 +50,7 @@ public class T2_2_PALISADE extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include \"palisade.h\"\n");
-    append_idx("#include \"../helper.hpp\"\n\n");
+    append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace lbcrypto;\n");
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
@@ -519,38 +519,37 @@ public class T2_2_PALISADE extends T2_Compiler {
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx("vector<int64_t> " + tmp_vec + "(slots, " + lhs.getName() + ");\n");
       append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec + ");\n");
-      append_idx(res_);
-      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalAdd(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "*":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalMult(").append(rhs.getName()).append(", tmp);\n");
           break;
         case "-":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(");\n");
           break;
         case "==":
-          // TODO:
-          throw new RuntimeException("equality not yet supported");
-//          this.asm_.append(" = eq_plain(evaluator, ").append(rhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = eq(cc, tmp_, ").append(rhs.getName());
+          this.asm_.append(", plaintext_modulus);\n");
+          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-//          append_idx(res_);
-//          this.asm_.append(" = lt(evaluator, tmp_, ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = lt(cc, tmp_, ").append(rhs.getName());
+          this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
+          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-//          append_idx(res_);
-//          this.asm_.append(" = leq(evaluator, tmp_, ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = leq(cc, tmp_, ").append(rhs.getName());
+          this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -561,78 +560,74 @@ public class T2_2_PALISADE extends T2_Compiler {
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
       append_idx("tmp = cc->MakePackedPlaintext(" + tmp_vec+ ");\n");
-      append_idx(res_);
-      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalAdd(").append(lhs.getName()).append(", tmp);\n");
           break;
         case "*":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalMult(").append(lhs.getName()).append(", tmp);\n");
           break;
         case "-":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalSub(").append(lhs.getName()).append(", tmp);\n");
           break;
         case "==":
-          throw new RuntimeException("equality not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = eq(cc, ").append(lhs.getName());
+          this.asm_.append(", tmp_, plaintext_modulus);\n");
+          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = lt_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = lt(cc, ").append(lhs.getName());
+          this.asm_.append(", tmp_, keyPair.publicKey, plaintext_modulus);\n");
+          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = leq_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
+          append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+          append_idx(res_);
+          this.asm_.append(" = leq(cc, ").append(lhs.getName());
+          this.asm_.append(", tmp_, keyPair.publicKey, plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       return new Var_t("EncInt", res_);
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
-      append_idx(res_);
-      this.asm_.append(" = cc->");
       switch (op) {
         case "+":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalAdd(").append(lhs.getName()).append(", ");
           this.asm_.append(rhs.getName()).append(");\n");
           break;
         case "*":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalMultAndRelinearize(").append(lhs.getName());
           this.asm_.append(", ").append(rhs.getName()).append(");\n");
           break;
         case "-":
+          append_idx(res_ + " = cc->");
           this.asm_.append("EvalSub(").append(lhs.getName()).append(", ");
           this.asm_.append(rhs.getName()).append(");\n");
           break;
         case "==":
-          throw new RuntimeException("equality not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = eq(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
+          append_idx(res_);
+          this.asm_.append(" = eq(cc, ").append(lhs.getName()).append(", ");
+          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = lt(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
+          append_idx(res_);
+          this.asm_.append(" = lt(cc, ").append(lhs.getName()).append(", ");
+          this.asm_.append(rhs.getName()).append(", keyPair.publicKey, plaintext_modulus);\n");
+          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = leq(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
+          append_idx(res_);
+          this.asm_.append(" = leq(cc, ").append(lhs.getName()).append(", ");
+          this.asm_.append(rhs.getName()).append(", keyPair.publicKey, plaintext_modulus);\n");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
