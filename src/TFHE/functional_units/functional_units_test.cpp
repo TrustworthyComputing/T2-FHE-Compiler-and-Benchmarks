@@ -84,13 +84,34 @@ int main() {
   assert(d_client(1, bool_, key)[0] == 0);
   assert(d_client(1, bool_, key)[1] == 0);
 
-  // Less-than
+  // // Less-than
+  ptxt = {10,20,25};
+  ctxt_ = e_client(ptxt, 16, key);
+  ptxt = {5, 20, 30};
+  ctxt2_ = e_client(ptxt, 16, key);
+  vector<uint32_t> tmp_vec = {0,0,0};
+  bool_ = e_cloud(tmp_vec, 1, &key->cloud);
   lt(bool_, ctxt2_, ctxt_, 16, &key->cloud);
   assert(d_client(1, bool_, key)[0] == 1);
-  assert(d_client(1, bool_, key)[1] == 1);
+  assert(d_client(1, bool_, key)[1] == 0);
+  assert(d_client(1, bool_, key)[2] == 0);
+
   lt(bool_, ctxt_, ctxt2_, 16, &key->cloud);
   assert(d_client(1, bool_, key)[0] == 0);
+  assert(d_client(1, bool_, key)[1] == 0);
+  assert(d_client(1, bool_, key)[2] == 1);
+
+  // Less-than-or-equal
+  leq(bool_, ctxt2_, ctxt_, 16, &key->cloud);
+  assert(d_client(1, bool_, key)[0] == 1);
+  assert(d_client(1, bool_, key)[1] == 1);
+  assert(d_client(1, bool_, key)[2] == 0);
+  leq(bool_, ctxt_, ctxt2_, 16, &key->cloud);
   assert(d_client(1, bool_, key)[0] == 0);
+  assert(d_client(1, bool_, key)[1] == 1);
+  assert(d_client(1, bool_, key)[2] == 1);
+  cout << "Correct!" << endl;
+  return 0;
 
   // NOT
   ctxt_ = e_client(ans_big, 16, key);

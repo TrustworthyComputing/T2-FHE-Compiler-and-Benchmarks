@@ -96,6 +96,10 @@ void lt(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
         const std::vector<LweSample*>& b, const size_t word_sz,
         const TFheGateBootstrappingCloudKeySet* bk);
 
+void leq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
+        const std::vector<LweSample*>& b, const size_t word_sz,
+        const TFheGateBootstrappingCloudKeySet* bk);
+
 /// BITWISE
 
 void e_not(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,

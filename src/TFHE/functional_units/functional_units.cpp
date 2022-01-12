@@ -559,6 +559,32 @@ void lt(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
   delete_gate_bootstrapping_ciphertext(n1_AND_n2_);
 }
 
+/// LTE check. result = a <= b
+void leq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
+        const std::vector<LweSample*>& b, const size_t word_sz,
+        const TFheGateBootstrappingCloudKeySet* bk) {
+  if (word_sz <= 0) return ;
+  size_t num_ops = std::min(a.size(), b.size());
+  result_.resize(std::max(a.size(), b.size()));
+  lt(result_, b, a, word_sz, bk);
+  for (int i = 0; i < result_.size(); i++) {
+    bootsNOT(&result_[i][0], &result_[i][0], bk);
+  }
+  // Copy results if necessary
+  if (a.size() != b.size()) {
+    if (a.size() < b.size()) {
+      for (int i = num_ops; i < b.size(); i++) {
+        bootsCONSTANT(&result_[i][0], 0, bk);
+      }
+    } else {
+      for (int i = num_ops; i < a.size(); i++) {
+        bootsCONSTANT(&result_[i][0], 0, bk);
+      }
+    }
+  }
+}
+
+
 void e_not(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
   size_t num_ops = a.size();
