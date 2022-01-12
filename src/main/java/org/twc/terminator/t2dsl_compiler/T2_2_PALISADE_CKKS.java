@@ -10,7 +10,7 @@ import java.util.List;
 public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
 
   public T2_2_PALISADE_CKKS(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+    super(st, config_file_path, false);
     this.st_.backend_types.put("EncDouble", "Ciphertext<DCRTPoly>");
     this.st_.backend_types.put("EncDouble[]", "vector<Ciphertext<DCRTPoly>>");
   }

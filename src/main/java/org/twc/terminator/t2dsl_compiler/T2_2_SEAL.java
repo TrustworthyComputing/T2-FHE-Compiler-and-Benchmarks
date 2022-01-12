@@ -9,8 +9,8 @@ import java.util.List;
 
 public class T2_2_SEAL extends T2_Compiler {
 
-  public T2_2_SEAL(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+  public T2_2_SEAL(SymbolTable st, String config_file_path, boolean is_binary) {
+    super(st, config_file_path, is_binary);
     this.st_.backend_types.put("EncInt", "Ciphertext");
     this.st_.backend_types.put("EncInt[]", "vector<Ciphertext>");
   }
@@ -70,6 +70,35 @@ public class T2_2_SEAL extends T2_Compiler {
     return null;
   }
 
+  protected void encrypt(String dst, String src, boolean batch) {
+    boolean is_numeric = isNumeric(src);
+    if (batch) {
+      tmp_cnt_++;
+      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      append_idx("vector<uint64_t> " + tmp_vec + " = { ");
+      if (is_numeric) {
+        int[] bin_array = int_to_bin_array(Integer.parseInt(src));
+        for (int i = 0; i < bin_array.length - 1; i++) {
+          this.asm_.append(bin_array[i]).append(", ");
+        }
+        this.asm_.append(bin_array[bin_array.length - 1]).append(" };\n");
+      } else {
+        for (int i = 31; i > 0; --i) {
+          this.asm_.append("(uint64_t)(").append(src).append(" >> ").append(i);
+          this.asm_.append(") & 1").append(", ");
+        }
+        this.asm_.append("(uint64_t)").append(src).append(" & 1 };\n");
+      }
+      append_idx("batch_encoder.encode(");
+      this.asm_.append(tmp_vec).append(", tmp);\n");
+    } else {
+      append_idx("tmp = uint64_to_hex_string(");
+      this.asm_.append(src).append(");\n");
+    }
+    append_idx("encryptor.encrypt(tmp, ");
+    this.asm_.append(dst).append(")");
+  }
+
   /**
    * f0 -> Identifier()
    * f1 -> "="
@@ -83,11 +112,7 @@ public class T2_2_SEAL extends T2_Compiler {
     String rhs_name = rhs.getName();
     if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
-      append_idx("tmp = uint64_to_hex_string(");
-      this.asm_.append(rhs_name);
-      this.asm_.append(");\n");
-      append_idx("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append(")");
+      encrypt(lhs.getName(), rhs_name, is_binary_);
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
@@ -100,10 +125,7 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      append_idx("tmp = uint64_to_hex_string(");
-      this.asm_.append(rhs_name).append("[").append(tmp_i).append("]);\n");
-      append_idx("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
+      encrypt(lhs.getName(), rhs_name + "[" + tmp_i + "]", is_binary_);
       this.indent_ -= 2;
       append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
@@ -351,9 +373,7 @@ public class T2_2_SEAL extends T2_Compiler {
         String exp_var;
         if (exp_type.equals("int")) {
           exp_var = new_ctxt_tmp();
-          append_idx("tmp = uint64_to_hex_string(" + exp.getName() + ");\n");
-          append_idx("encryptor.encrypt(tmp, ");
-          this.asm_.append(exp_var).append(");\n");
+          encrypt(exp_var, exp.getName(), false);
         } else { // exp type is EncInt
           exp_var = exp.getName();
         }
@@ -363,9 +383,7 @@ public class T2_2_SEAL extends T2_Compiler {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int")) {
               String tmp_ = new_ctxt_tmp();
-              append_idx("tmp = uint64_to_hex_string(" + init + ");\n");
-              append_idx("encryptor.encrypt(tmp, ");
-              this.asm_.append(tmp_).append(");\n");
+              encrypt(tmp_, init, false);
               inits.add(tmp_);
             } else { // exp type is EncInt
               inits.add(init);

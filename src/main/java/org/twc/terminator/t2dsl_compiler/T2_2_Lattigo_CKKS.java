@@ -10,7 +10,7 @@ import java.util.List;
 public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
 
   public T2_2_Lattigo_CKKS(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+    super(st, config_file_path, false);
     this.st_.backend_types.put("scheme", "ckks");
     this.st_.backend_types.put("double", "float64");
     this.st_.backend_types.put("double[]", "[]float64");

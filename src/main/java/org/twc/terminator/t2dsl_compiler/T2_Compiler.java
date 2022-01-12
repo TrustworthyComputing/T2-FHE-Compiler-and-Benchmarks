@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
@@ -21,8 +22,9 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected boolean semicolon_;
   protected String config_file_path_;
   protected String tmp_i;
+  protected boolean is_binary_;
 
-  public T2_Compiler(SymbolTable st, String config_file_path) {
+  public T2_Compiler(SymbolTable st, String config_file_path, boolean is_binary) {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;
@@ -34,6 +36,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_ = new StringBuilder();
     this.config_file_path_ = config_file_path;
     this.tmp_i = "tmp_i";
+    this.is_binary_ = is_binary;
   }
 
   public String get_asm() {
@@ -53,6 +56,24 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     append_idx(this.st_.backend_types.get("EncInt"));
     this.asm_.append(" ").append(ctxt_tmp_).append(";\n");
     return ctxt_tmp_;
+  }
+
+  protected int[] int_to_bin_array(int n) {
+    int bits = 32;
+    int[] b = new int[bits];
+    for (int i = 0; i < bits; ++i) {
+      b[bits - i - 1] = (n >> i) & 1;
+    }
+    return b;
+  }
+
+  public static boolean isNumeric(String str) {
+    if (str == null || str.equals("")) return false;
+    try {
+      Integer.parseInt(str);
+      return true;
+    } catch (NumberFormatException ignored) { }
+    return false;
   }
 
   protected abstract void append_keygen();

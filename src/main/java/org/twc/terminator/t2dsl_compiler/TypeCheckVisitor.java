@@ -14,13 +14,13 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     this.st_ = st;
   }
 
-  public Main.HE_SCHEME getScheme() {
+  public Main.ENC_TYPE getScheme() {
     if (this.st_.enc_var_type.get("EncInt")) {
-      return Main.HE_SCHEME.BFV_BGV;
+      return Main.ENC_TYPE.ENC_INT;
     } else if (this.st_.enc_var_type.get("EncDouble")) {
-      return Main.HE_SCHEME.CKKS;
+      return Main.ENC_TYPE.ENC_DOUBLE;
     }
-    return Main.HE_SCHEME.NONE;
+    return Main.ENC_TYPE.NONE;
   }
 
   /**

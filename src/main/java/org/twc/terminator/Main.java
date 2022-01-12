@@ -14,8 +14,8 @@ public class Main {
     NONE, SEAL, TFHE, PALISADE, HELIB, LATTIGO
   }
 
-  public enum HE_SCHEME {
-    NONE, BFV_BGV, CKKS;
+  public enum ENC_TYPE {
+    NONE, ENC_INT, ENC_DOUBLE
   }
 
   public static void main(String[] args) {
@@ -25,14 +25,17 @@ public class Main {
     }
     ArrayList<String> input_files = new ArrayList<>();
     HE_BACKEND backend_ = HE_BACKEND.NONE;
-    boolean debug_ = false;
+    boolean debug_ = false, is_binary_ = false;
 
-    String config_file_path = "path to config";
+    String config = "path to config";
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
       if (arg.equalsIgnoreCase("-DEBUG") ||
           arg.equalsIgnoreCase("--DEBUG")) {
         debug_ = true;
+      } else if (arg.equalsIgnoreCase("-BIN") ||
+                 arg.equalsIgnoreCase("--BIN")) {
+        is_binary_ = true;
       } else if (arg.equalsIgnoreCase("-SEAL") ||
                  arg.equalsIgnoreCase("--SEAL")) {
         backend_ = HE_BACKEND.SEAL;
@@ -55,7 +58,7 @@ public class Main {
                              "must be passed after the -config parameter.");
           System.exit(-1);
         }
-        config_file_path = args[i];
+        config = args[i];
       } else {
         input_files.add(arg);
       }
@@ -68,7 +71,6 @@ public class Main {
       String path = fp.getPath();
       path = path.substring(0, path.lastIndexOf('.'));
       try {
-        System.out.println("===================================================================================");
         System.out.println("Compiling file \"" + arg + "\"");
         input_stream = new FileInputStream(arg);
         // Type checking.
@@ -85,7 +87,11 @@ public class Main {
                            " phase completed");
         TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
         t2dsl_goal.accept(type_checker);
-        HE_SCHEME scheme_ = type_checker.getScheme();
+        ENC_TYPE scheme_ = type_checker.getScheme();
+        if (scheme_ == ENC_TYPE.ENC_DOUBLE && is_binary_) {
+          throw new RuntimeException("Cannot use binary with encrypted " +
+                                     "double type.");
+        }
         System.out.println("[ 2/2 ] Type checking phase completed");
         System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed, " +
                 "using " + backend_.name() + " with " + scheme_.name());
@@ -99,45 +105,48 @@ public class Main {
                                        "-TFHE, -PALISADE, -HELIB, -LATTIGO)");
           case SEAL:
             switch (scheme_) {
-              case BFV_BGV:
-                dsl_compiler = new T2_2_SEAL(symbol_table, config_file_path);
+              case ENC_INT:
+                dsl_compiler = new T2_2_SEAL(symbol_table, config, is_binary_);
                 break;
-              case CKKS:
-                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config_file_path);
+              case ENC_DOUBLE:
+                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config);
                 break;
             }
             break;
           case TFHE:
-            dsl_compiler = new T2_2_TFHE(symbol_table, config_file_path);
+            dsl_compiler = new T2_2_TFHE(symbol_table, config, is_binary_);
             break;
           case PALISADE:
             switch (scheme_) {
-              case BFV_BGV:
-                dsl_compiler = new T2_2_PALISADE(symbol_table, config_file_path);
+              case ENC_INT:
+                dsl_compiler =
+                    new T2_2_PALISADE(symbol_table, config, is_binary_);
                 break;
-              case CKKS:
-                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config_file_path);
+              case ENC_DOUBLE:
+                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config);
                 break;
             }
             break;
           case HELIB:
             switch (scheme_) {
-              case BFV_BGV:
-                dsl_compiler = new T2_2_HElib(symbol_table, config_file_path);
+              case ENC_INT:
+                dsl_compiler =
+                    new T2_2_HElib(symbol_table, config, is_binary_);
                 break;
-              case CKKS:
-                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config_file_path);
+              case ENC_DOUBLE:
+                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config);
                 break;
             }
             break;
           case LATTIGO:
             suffix = ".go";
             switch (scheme_) {
-              case BFV_BGV:
-                dsl_compiler = new T2_2_Lattigo(symbol_table, config_file_path);
+              case ENC_INT:
+                dsl_compiler =
+                    new T2_2_Lattigo(symbol_table, config, is_binary_);
                 break;
-              case CKKS:
-                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config_file_path);
+              case ENC_DOUBLE:
+                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config);
                 break;
             }
             break;

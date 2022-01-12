@@ -9,8 +9,9 @@ import java.util.List;
 
 public class T2_2_Lattigo extends T2_Compiler {
 
-  public T2_2_Lattigo(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+  public T2_2_Lattigo(SymbolTable st, String config_file_path,
+                      boolean is_binary) {
+    super(st, config_file_path, is_binary);
     this.st_.backend_types.put("scheme", "bfv");
     this.st_.backend_types.put("int", "uint64");
     this.st_.backend_types.put("int[]", "[]uint64");

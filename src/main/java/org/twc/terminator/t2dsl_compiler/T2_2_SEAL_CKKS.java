@@ -10,7 +10,7 @@ import java.util.List;
 public class T2_2_SEAL_CKKS extends T2_2_SEAL {
 
   public T2_2_SEAL_CKKS(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+    super(st, config_file_path, false);
     this.st_.backend_types.put("EncDouble", "Ciphertext");
     this.st_.backend_types.put("EncDouble[]", "vector<Ciphertext>");
   }

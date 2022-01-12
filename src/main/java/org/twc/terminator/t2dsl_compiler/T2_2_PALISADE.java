@@ -9,8 +9,9 @@ import java.util.List;
 
 public class T2_2_PALISADE extends T2_Compiler {
 
-  public T2_2_PALISADE(SymbolTable st, String config_file_path) {
-    super(st, config_file_path);
+  public T2_2_PALISADE(SymbolTable st, String config_file_path,
+                       boolean is_binary) {
+    super(st, config_file_path, is_binary);
     this.st_.backend_types.put("EncInt", "Ciphertext<DCRTPoly>");
     this.st_.backend_types.put("EncInt[]", "vector<Ciphertext<DCRTPoly>>");
   }
