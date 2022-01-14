@@ -9,9 +9,9 @@ import java.util.List;
 
 public class T2_2_SEAL extends T2_Compiler {
 
-  public T2_2_SEAL(SymbolTable st, String config_file_path, boolean is_binary) {
-    super(st, config_file_path, is_binary);
-    if (is_binary) {
+  public T2_2_SEAL(SymbolTable st, String config_file_path, int word_sz) {
+    super(st, config_file_path, word_sz);
+    if (this.is_binary_) {
       this.st_.backend_types.put("EncInt", "vector<Ciphertext>");
       this.st_.backend_types.put("EncInt[]", "vector<vector<Ciphertext>>");
     } else {
@@ -126,24 +126,22 @@ public class T2_2_SEAL extends T2_Compiler {
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       if (this.is_binary_) {
-        append_idx("for (size_t " + tmp_i + " = 0; " + tmp_i + " < ");
-        this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+        append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+        this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
         this.asm_.append(") {\n");
         this.indent_ += 2;
-        append_idx(lhs.getName() + "[" + tmp_i + "].resize(" + this.word_sz_ + ");\n");
+        append_idx(lhs.getName() + "[" + this.tmp_i + "].resize(" + this.word_sz_ + ");\n");
         this.indent_ -= 2;
         append_idx("}\n");
       }
-      append_idx("for (size_t " + tmp_i + " = 0; " + tmp_i + " < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      encrypt(lhs.getName() + "[" + tmp_i + "]", rhs_name + "[" + tmp_i + "]", this.is_binary_);
+      encrypt(lhs.getName() + "[" + this.tmp_i + "]", rhs_name + "[" + this.tmp_i + "]", this.is_binary_);
       this.asm_.append(";\n");
       this.indent_ -= 2;
       append_idx("}\n");
@@ -545,7 +543,6 @@ public class T2_2_SEAL extends T2_Compiler {
         break;
       case "EncInt":
         if (this.is_binary_) {
-
           String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
           append_idx("vector<vector<uint64_t>> " + tmp_vec + "("+ this.word_sz_ + ");\n");
           for (int i = 0; i < this.word_sz_; i++) {

@@ -24,7 +24,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected String tmp_i;
   protected boolean is_binary_;
 
-  public T2_Compiler(SymbolTable st, String config_file_path, boolean is_binary) {
+  public T2_Compiler(SymbolTable st, String config_file_path, int word_sz) {
     this.indent_ = 0;
     this.tmp_cnt_ = 0;
     this.st_ = st;
@@ -36,8 +36,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_ = new StringBuilder();
     this.config_file_path_ = config_file_path;
     this.tmp_i = "tmp_i";
-    this.is_binary_ = is_binary;
-    this.word_sz_ = 8;
+    this.word_sz_ = word_sz;
+    this.is_binary_ = (word_sz > 0);
   }
 
   public String get_asm() {

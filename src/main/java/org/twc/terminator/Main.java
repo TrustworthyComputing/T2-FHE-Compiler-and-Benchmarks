@@ -25,17 +25,14 @@ public class Main {
     }
     ArrayList<String> input_files = new ArrayList<>();
     HE_BACKEND backend_ = HE_BACKEND.NONE;
-    boolean debug_ = false, is_binary_ = false;
-
+    boolean debug_ = false;
+    int word_sz_ = 0;
     String config = "path to config";
     for (int i = 0; i < args.length; i++) {
       String arg = args[i];
       if (arg.equalsIgnoreCase("-DEBUG") ||
           arg.equalsIgnoreCase("--DEBUG")) {
         debug_ = true;
-      } else if (arg.equalsIgnoreCase("-BIN") ||
-                 arg.equalsIgnoreCase("--BIN")) {
-        is_binary_ = true;
       } else if (arg.equalsIgnoreCase("-SEAL") ||
                  arg.equalsIgnoreCase("--SEAL")) {
         backend_ = HE_BACKEND.SEAL;
@@ -59,9 +56,22 @@ public class Main {
           System.exit(-1);
         }
         config = args[i];
+      } else if (arg.equalsIgnoreCase("-W") ||
+                 arg.equalsIgnoreCase("--W")) {
+        if (++i >= args.length) {
+          System.out.println("[ \033[0;31m X \033[0m ] Word size " +
+                             "must be passed after the -w parameter.");
+          System.exit(-1);
+        }
+        word_sz_ = Integer.parseInt(args[i]);
       } else {
         input_files.add(arg);
       }
+    }
+    if (word_sz_ > 0) {
+      System.out.println("[ \033[1;33m ! \033[0m ] Using Binary domain");
+    } else {
+      System.out.println("[ \033[1;33m ! \033[0m ] Using Integer domain");
     }
 
     for (String arg : input_files) {
@@ -88,7 +98,7 @@ public class Main {
         TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
         t2dsl_goal.accept(type_checker);
         ENC_TYPE scheme_ = type_checker.getScheme();
-        if (scheme_ == ENC_TYPE.ENC_DOUBLE && is_binary_) {
+        if (scheme_ == ENC_TYPE.ENC_DOUBLE && word_sz_ > 0) {
           throw new RuntimeException("Cannot use binary with encrypted " +
                                      "double type.");
         }
@@ -106,7 +116,7 @@ public class Main {
           case SEAL:
             switch (scheme_) {
               case ENC_INT:
-                dsl_compiler = new T2_2_SEAL(symbol_table, config, is_binary_);
+                dsl_compiler = new T2_2_SEAL(symbol_table, config, word_sz_);
                 break;
               case ENC_DOUBLE:
                 dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config);
@@ -114,13 +124,13 @@ public class Main {
             }
             break;
           case TFHE:
-            dsl_compiler = new T2_2_TFHE(symbol_table, config, is_binary_);
+            dsl_compiler = new T2_2_TFHE(symbol_table, config, word_sz_);
             break;
           case PALISADE:
             switch (scheme_) {
               case ENC_INT:
                 dsl_compiler =
-                    new T2_2_PALISADE(symbol_table, config, is_binary_);
+                    new T2_2_PALISADE(symbol_table, config, word_sz_);
                 break;
               case ENC_DOUBLE:
                 dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config);
@@ -131,7 +141,7 @@ public class Main {
             switch (scheme_) {
               case ENC_INT:
                 dsl_compiler =
-                    new T2_2_HElib(symbol_table, config, is_binary_);
+                    new T2_2_HElib(symbol_table, config, word_sz_);
                 break;
               case ENC_DOUBLE:
                 dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config);
@@ -143,7 +153,7 @@ public class Main {
             switch (scheme_) {
               case ENC_INT:
                 dsl_compiler =
-                    new T2_2_Lattigo(symbol_table, config, is_binary_);
+                    new T2_2_Lattigo(symbol_table, config, word_sz_);
                 break;
               case ENC_DOUBLE:
                 dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config);

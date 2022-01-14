@@ -10,8 +10,8 @@ import java.util.List;
 public class T2_2_HElib extends T2_Compiler {
 
   public T2_2_HElib(SymbolTable st, String config_file_path,
-                    boolean is_binary) {
-    super(st, config_file_path, is_binary);
+                    int word_sz) {
+    super(st, config_file_path, word_sz);
     this.st_.backend_types.put("EncInt", "Ctxt");
     this.st_.backend_types.put("EncInt[]", "vector<Ctxt>");
   }
@@ -577,7 +577,7 @@ public class T2_2_HElib extends T2_Compiler {
           append_idx(res_);
           this.asm_.append(" = lt_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
           break;
-        case "<=": 
+        case "<=":
           assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
           append_idx(res_);
           this.asm_.append(" = leq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");

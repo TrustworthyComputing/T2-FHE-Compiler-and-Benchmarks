@@ -9,8 +9,8 @@ import java.util.List;
 
 public class T2_2_TFHE extends T2_Compiler {
 
-  public T2_2_TFHE(SymbolTable st, String config_file_path, boolean is_binary) {
-    super(st, config_file_path, is_binary);
+  public T2_2_TFHE(SymbolTable st, String config_file_path, int word_sz) {
+    super(st, config_file_path, word_sz);
     this.st_.backend_types.put("EncInt", "vector<LweSample*>");
     this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }
