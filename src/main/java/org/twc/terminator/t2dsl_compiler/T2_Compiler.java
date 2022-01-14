@@ -18,7 +18,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected SymbolTable st_;
 
   protected StringBuilder asm_;
-  protected int indent_, tmp_cnt_;
+  protected int indent_, tmp_cnt_, word_sz_;
   protected boolean semicolon_;
   protected String config_file_path_;
   protected String tmp_i;
@@ -37,6 +37,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.config_file_path_ = config_file_path;
     this.tmp_i = "tmp_i";
     this.is_binary_ = is_binary;
+    this.word_sz_ = 8;
   }
 
   public String get_asm() {
@@ -54,15 +55,18 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     tmp_cnt_++;
     String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
     append_idx(this.st_.backend_types.get("EncInt"));
-    this.asm_.append(" ").append(ctxt_tmp_).append(";\n");
+    this.asm_.append(" ").append(ctxt_tmp_);
+    if (this.is_binary_) {
+      this.asm_.append("(" + this.word_sz_ + ")");
+    }
+    this.asm_.append(";\n");
     return ctxt_tmp_;
   }
 
   protected int[] int_to_bin_array(int n) {
-    int bits = 32;
-    int[] b = new int[bits];
-    for (int i = 0; i < bits; ++i) {
-      b[bits - i - 1] = (n >> i) & 1;
+    int[] b = new int[this.word_sz_];
+    for (int i = 0; i < this.word_sz_; ++i) {
+      b[this.word_sz_ - i - 1] = (n >> i) & 1;
     }
     return b;
   }
@@ -134,9 +138,15 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.asm_.append(" ");
     Var_t id = n.f1.accept(this);
     this.asm_.append(id.getName());
+    if (this.is_binary_ && type.equals("EncInt")) {
+      this.asm_.append("(").append(this.word_sz_).append(")");
+    }
     if (n.f2.present()) {
       for (int i = 0; i < n.f2.size(); i++) {
         n.f2.nodes.get(i).accept(this);
+        if (this.is_binary_ && type.equals("EncInt")) {
+          this.asm_.append("(").append(this.word_sz_).append(")");
+        }
       }
     }
     this.asm_.append(";\n");
