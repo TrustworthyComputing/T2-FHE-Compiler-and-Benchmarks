@@ -55,6 +55,13 @@ target_sources(functional_units_test.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
 )
 
+add_executable(functional_units_test_binary.out)
+target_sources(functional_units_test_binary.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units_test_binary.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
+)
+
 add_executable(test.out)
 target_sources(test.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/compiled/test.cpp

@@ -166,6 +166,34 @@ seal::Ciphertext eq_bin_batched(
   return res_;
 }
 
+// Vertical batching (assume all slots are independent) (XNOR)
+std::vector<seal::Ciphertext> eq_bin(
+    seal::Evaluator& evaluator, seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
+    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    size_t word_sz, size_t slots) {
+  std::vector<seal::Ciphertext> res_(word_sz);
+  seal::Ciphertext tmp_, tmp_res_;
+  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
+  for (int i = word_sz-1; i > -1; i--) {
+    encryptor.encrypt(one, tmp_res_);
+    evaluator.sub(ct1_[i], ct2_[i], tmp_);
+    evaluator.square_inplace(tmp_);
+    evaluator.relinearize_inplace(tmp_, relin_keys);
+    evaluator.sub(tmp_res_, tmp_, tmp_res_);
+    if (i == (word_sz-1)) {
+      res_[word_sz-1] = tmp_res_;
+    }
+    else {
+      evaluator.multiply(res_[word_sz-1], tmp_res_, res_[word_sz-1]); // combine results
+      evaluator.relinearize_inplace(res_[word_sz-1], relin_keys);
+      encryptor.encrypt(zero, res_[i]); // Pad result with 0's
+    }
+  }
+  return res_;
+}
+
 // True batching, assume all slots are independent
 seal::Ciphertext lt_bin_batched(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
