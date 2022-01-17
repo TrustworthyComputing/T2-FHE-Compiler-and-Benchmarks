@@ -707,9 +707,9 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<":
             append_idx(res_);
-            this.asm_.append(" = lt_bin(evaluator, ");
+            this.asm_.append(" = lt_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-            this.asm_.append(", plaintext_modulus);\n");
+            this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
             break;
           case "<=":
             append_idx(res_);
@@ -794,9 +794,9 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<":
             append_idx(res_);
-            this.asm_.append(" = lt_bin(evaluator, ");
+            this.asm_.append(" = lt_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, ").append(lhs.getName());
-            this.asm_.append(", tmp_, plaintext_modulus);\n");
+            this.asm_.append(", tmp_, ").append(this.word_sz_).append(", slots);\n");
             break;
           case "<=":
             append_idx(res_);
@@ -885,9 +885,9 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<":
             append_idx(res_);
-            this.asm_.append(" = lt_bin(evaluator, relin_keys, ");
+            this.asm_.append(" = lt_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-            this.asm_.append(", plaintext_modulus);\n");
+            this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
             break;
           case "<=":
             append_idx(res_);
