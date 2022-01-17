@@ -24,6 +24,10 @@ int main(void) {
   print(ctxt_arr[0]);
   print(ctxt_arr[1]);
 
+  i = 8;
+  ctxt1 = { 7, i };
+  print_batched(ctxt1, 2);
+
 // TODO: for when we have add_bin functional unit
 //  ctxt2 = 6;
 //  ctxt2++;
