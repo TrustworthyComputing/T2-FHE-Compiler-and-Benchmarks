@@ -441,8 +441,6 @@ public class T2_2_SEAL extends T2_Compiler {
         break;
       case "EncInt":
         if (this.is_binary_) {
-          System.out.println("[ \033[1;33m ! \033[0m ] Warning : Binary " +
-                    "packing is enabled, batching may not behave as expected.");
           String[] elems = new String[1 + n.f4.size()];
           elems[0] = exp.getName();
           if (n.f4.present()) {
@@ -522,22 +520,30 @@ public class T2_2_SEAL extends T2_Compiler {
     String id_type = st_.findType(id);
     assert(id_type.equals("EncInt[]"));
     if (this.is_binary_) {
-      System.out.println("[ \033[1;33m ! \033[0m ] Warning : Binary packing" +
-                         " is enabled, batching may not behave as expected.");
-    }
-    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-    append_idx("vector<uint64_t> ");
-    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
-    if (n.f7.present()) {
-      for (int i = 0; i < n.f7.size(); i++) {
-        this.asm_.append(", ").append((n.f7.nodes.get(i).accept(this)).getName());
+      String[] elems = new String[1 + n.f7.size()];
+      elems[0] = exp.getName();
+      if (n.f7.present()) {
+        for (int i = 0; i < n.f7.size(); i++) {
+          elems[i + 1] = (n.f7.nodes.get(i).accept(this)).getName();
+        }
       }
+      encrypt(id.getName() + "[" + index.getName() + "]", elems);
+      this.asm_.append(";\n");
+    } else {
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+      append_idx("vector<uint64_t> ");
+      this.asm_.append(tmp_vec).append(" = { (uint64_t)").append(exp.getName());
+      if (n.f7.present()) {
+        for (int i = 0; i < n.f7.size(); i++) {
+          this.asm_.append(", (uint64_t)").append((n.f7.nodes.get(i).accept(this)).getName());
+        }
+      }
+      this.asm_.append(" };\n");
+      append_idx("batch_encoder.encode(");
+      this.asm_.append(tmp_vec).append(", tmp);\n");
+      append_idx("encryptor.encrypt(tmp, ");
+      this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
     }
-    this.asm_.append(" };\n");
-    append_idx("batch_encoder.encode(");
-    this.asm_.append(tmp_vec).append(", tmp);\n");
-    append_idx("encryptor.encrypt(tmp, ");
-    this.asm_.append(id.getName()).append("[").append(index.getName()).append("]);\n");
     return null;
   }
 
