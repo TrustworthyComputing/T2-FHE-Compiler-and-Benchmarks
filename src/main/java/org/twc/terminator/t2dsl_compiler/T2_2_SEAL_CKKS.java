@@ -62,19 +62,17 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     } else if (lhs_type.equals("EncDouble[]") &&
                 (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
       // if EncDouble[] <- int[] | double[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       append_idx("for (size_t ");
-      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
       append_idx("encoder.encode(");
-      this.asm_.append(rhs_name).append("[").append(tmp_i).append("], scale, tmp);\n");
+      this.asm_.append(rhs_name).append("[").append(this.tmp_i).append("], scale, tmp);\n");
       append_idx("encryptor.encrypt(tmp, ");
-      this.asm_.append(lhs.getName()).append("[").append(tmp_i).append("]);\n");
+      this.asm_.append(lhs.getName()).append("[").append(this.tmp_i).append("]);\n");
       this.indent_ -= 2;
       append_idx("}\n");
     } else if (lhs_type.equals(rhs_type)) {
@@ -306,8 +304,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         this.asm_.append(" };\n");
         break;
       case "EncDouble":
-        tmp_cnt_++;
-        String tmp_vec = "tmp_vec_" + tmp_cnt_;
+        String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
         append_idx("vector<double> ");
         this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
         if (n.f4.present()) {
@@ -377,8 +374,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String id_type = st_.findType(id);
     assert(id_type.equals("EncDouble[]"));
     String index_type = st_.findType(index);
-    tmp_cnt_++;
-    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<double> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {

@@ -49,8 +49,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     if (lhs_type.equals("EncDouble") &&
           (rhs_type.equals("double") || rhs_type.equals("int"))) {
       // if EncDouble <- int | double
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, " + rhs_name + ");\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
       this.asm_.append(tmp_vec).append(");\n");
@@ -60,21 +59,19 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     } else if (lhs_type.equals("EncDouble[]") &&
                 (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
       // if EncDouble[] <- int[] | double[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       append_idx("for (size_t ");
-      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs_name + "[" + tmp_i + "]);\n");
+      append_idx("vector<double> " + tmp_vec + "(slots, " + rhs_name + "[" + this.tmp_i + "]);\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
       this.asm_.append(tmp_vec).append(");\n");
       append_idx(lhs.getName());
-      this.asm_.append("[").append(tmp_i).append("] = cc->Encrypt(keyPair");
+      this.asm_.append("[").append(this.tmp_i).append("] = cc->Encrypt(keyPair");
       this.asm_.append(".publicKey, tmp);\n");
       this.indent_ -= 2;
       append_idx("}\n");
@@ -103,8 +100,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, 1);\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
       append_idx(id.getName());
@@ -125,8 +121,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, 1);\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
       append_idx(id.getName());
@@ -167,8 +162,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
       this.asm_.append(tmp_vec).append(");\n");
@@ -266,8 +260,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          tmp_cnt_++;
-          String tmp_vec = "tmp_vec_" + tmp_cnt_;
+          String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
           append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
           append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
           this.asm_.append(tmp_vec).append(");\n");
@@ -384,8 +377,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     String id_type = st_.findType(id);
     assert(id_type.equals("EncDouble[]"));
     String index_type = st_.findType(index);
-    tmp_cnt_++;
-    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<double> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
@@ -509,8 +501,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
                   rhs_type.equals("EncDouble")) {
       String res_ = new_ctxt_tmp();
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, " + lhs.getName() + ");\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec + ");\n");
       append_idx(res_);
@@ -552,8 +543,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       String res_ = new_ctxt_tmp();
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(" + tmp_vec+ ");\n");
       append_idx(res_);

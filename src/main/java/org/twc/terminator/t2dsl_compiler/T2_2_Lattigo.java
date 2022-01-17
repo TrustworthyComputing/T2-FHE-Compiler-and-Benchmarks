@@ -1,5 +1,6 @@
 package org.twc.terminator.t2dsl_compiler;
 
+import org.twc.terminator.Main;
 import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
@@ -19,22 +20,21 @@ public class T2_2_Lattigo extends T2_Compiler {
     this.st_.backend_types.put("EncInt[]", "[]*bfv.Ciphertext");
   }
 
-  protected void assign_to_all_slots(String lhs, String rhs,
-                                     String rhs_idx, String type) {
+  protected void assign_to_all_slots(String lhs, String rhs, String rhs_idx) {
     append_idx("for ");
     this.asm_.append(this.tmp_i).append(" := 0; ").append(this.tmp_i);
     this.asm_.append(" < slots; ").append(this.tmp_i).append("++ {\n");
     this.indent_ += 2;
     append_idx(lhs);
     this.asm_.append("[").append(this.tmp_i);
-    if (type.equals("uint64")) {
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
       this.asm_.append("] = uint64(");
       if (rhs_idx != null) {
         this.asm_.append(rhs).append("[").append(rhs_idx).append("])\n");
       } else {
         this.asm_.append(rhs).append(")\n");
       }
-    } else if (type.equals("float64")) {
+    } else if (this.st_.getScheme() == Main.ENC_TYPE.ENC_DOUBLE) {
       if (rhs_idx != null) {
         this.asm_.append("] = complex(float64(");
         this.asm_.append(rhs).append("[").append(rhs_idx).append("]), 0)\n");
@@ -141,7 +141,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     String rhs_name = rhs.getName();
     if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
-      assign_to_all_slots("tmp", rhs_name, null,"uint64");
+      assign_to_all_slots("tmp", rhs_name, null);
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx(lhs.getName());
       this.asm_.append(" = encryptorSk.EncryptNew(ptxt)");
@@ -158,7 +158,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       this.asm_.append(rhs_name).append("); ").append(tmp_i);
       this.asm_.append("++ {\n");
       this.indent_ += 2;
-      assign_to_all_slots("tmp", rhs_name, tmp_i, "uint64");
+      assign_to_all_slots("tmp", rhs_name, tmp_i);
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx(lhs.getName());
       this.asm_.append("[").append(tmp_i).append("] = encryptorSk.EncryptNew(ptxt)\n");
@@ -194,7 +194,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       tmp_cnt_++;
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx(tmp_vec + " := make([]uint64, slots)\n");
-      assign_to_all_slots(tmp_vec, "1", null, "uint64");
+      assign_to_all_slots(tmp_vec, "1", null);
       append_idx("encoder.EncodeUint(" + tmp_vec + ", ptxt)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.AddNew(");
@@ -217,7 +217,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       tmp_cnt_++;
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx(tmp_vec + " := make([]uint64, slots)\n");
-      assign_to_all_slots(tmp_vec, "1", null, "uint64");
+      assign_to_all_slots(tmp_vec, "1", null);
       append_idx("encoder.EncodeUint(" + tmp_vec + ", ptxt)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.SubNew(");
@@ -265,7 +265,7 @@ public class T2_2_Lattigo extends T2_Compiler {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+      assign_to_all_slots("tmp", rhs.getName(), null);
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -374,7 +374,7 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append(rhs.getName());
           break;
         } else if (rhs_type.equals("int")) {
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx("encoder.EncodeUint(tmp, ptxt)\n");
           append_idx(id.getName() + "[" + idx.getName()+ "] = ");
           this.asm_.append("encryptorSk.EncryptNew(ptxt)");
@@ -427,7 +427,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         tmp_cnt_++;
         String exp_var = "tmp_" + tmp_cnt_ + "_";
         if (exp_type.equals("int")) {
-          assign_to_all_slots("tmp", exp.getName(), null, "uint64");
+          assign_to_all_slots("tmp", exp.getName(), null);
           append_idx("encoder.EncodeUint(tmp, ptxt)\n");
           append_idx(exp_var + " := encryptorSk.EncryptNew(ptxt)\n");
         } else { // exp type is EncInt
@@ -438,7 +438,7 @@ public class T2_2_Lattigo extends T2_Compiler {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int")) {
-              assign_to_all_slots("tmp", init, null, "uint64");
+              assign_to_all_slots("tmp", init, null);
               append_idx("encoder.EncodeUint(tmp, ptxt)\n");
               tmp_cnt_++;
               String tmp_ = "tmp_" + tmp_cnt_ + "_";
@@ -652,7 +652,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
-      assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+      assign_to_all_slots("tmp", lhs.getName(), null);
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -688,7 +688,7 @@ public class T2_2_Lattigo extends T2_Compiler {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+      assign_to_all_slots("tmp", rhs.getName(), null);
       append_idx("encoder.EncodeUint(tmp, ptxt)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {

@@ -43,6 +43,15 @@ public class SymbolTable {
     return false;
   }
 
+  public Main.ENC_TYPE getScheme() {
+    if (this.enc_var_type.get("EncInt")) {
+      return Main.ENC_TYPE.ENC_INT;
+    } else if (this.enc_var_type.get("EncDouble")) {
+      return Main.ENC_TYPE.ENC_DOUBLE;
+    }
+    return Main.ENC_TYPE.NONE;
+  }
+
   public void printMethod() {
     System.out.println("Symbol Table:");
     for (Var_t v : vars) {

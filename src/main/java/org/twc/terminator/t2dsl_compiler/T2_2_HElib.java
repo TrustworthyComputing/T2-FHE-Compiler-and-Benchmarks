@@ -1,5 +1,6 @@
 package org.twc.terminator.t2dsl_compiler;
 
+import org.twc.terminator.Main;
 import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
@@ -9,37 +10,34 @@ import java.util.List;
 
 public class T2_2_HElib extends T2_Compiler {
 
-  public T2_2_HElib(SymbolTable st, String config_file_path,
-                    int word_sz) {
+  public T2_2_HElib(SymbolTable st, String config_file_path, int word_sz) {
     super(st, config_file_path, word_sz);
     this.st_.backend_types.put("EncInt", "Ctxt");
     this.st_.backend_types.put("EncInt[]", "vector<Ctxt>");
   }
 
   protected String new_ctxt_tmp() {
-    tmp_cnt_++;
-    String ctxt_tmp_ = "tmp_" + tmp_cnt_ + "_";
+    String ctxt_tmp_ = "tmp_" + (tmp_cnt_++) + "_";
     append_idx(this.st_.backend_types.get("EncInt"));
     this.asm_.append(" ").append(ctxt_tmp_).append("(public_key);\n");
     return ctxt_tmp_;
   }
 
-  protected void assign_to_all_slots(String lhs, String rhs,
-                                     String rhs_idx, String type) {
+  protected void assign_to_all_slots(String lhs, String rhs, String rhs_idx) {
     append_idx("for (int ");
     this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i);
     this.asm_.append(" < slots; ").append(this.tmp_i).append("++) {\n");
     this.indent_ += 2;
     append_idx(lhs);
     this.asm_.append("[").append(this.tmp_i);
-    if (type.equals("uint64")) {
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
       this.asm_.append("] = ");
       if (rhs_idx != null) {
         this.asm_.append(rhs).append("[").append(rhs_idx).append("];\n");
       } else {
         this.asm_.append(rhs).append(";\n");
       }
-    } else if (type.equals("float64")) {
+    } else if (this.st_.getScheme() == Main.ENC_TYPE.ENC_DOUBLE) {
       if (rhs_idx != null) {
         this.asm_.append("] = std::complex<double>(");
         this.asm_.append(rhs).append("[").append(rhs_idx).append("], 0);\n");
@@ -141,24 +139,22 @@ public class T2_2_HElib extends T2_Compiler {
     String rhs_name = rhs.getName();
     if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       // if EncInt <- int
-      assign_to_all_slots("tmp", rhs_name, null,"uint64");
+      assign_to_all_slots("tmp", rhs_name, null);
       append_idx("public_key.Encrypt(");
       this.asm_.append(lhs.getName()).append(", tmp)");
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size(), tmp_);\n");
       append_idx("for (size_t ");
-      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      assign_to_all_slots("tmp", rhs_name, tmp_i, "uint64");
+      assign_to_all_slots("tmp", rhs_name, this.tmp_i);
       append_idx("public_key.Encrypt(");
-      this.asm_.append(lhs.getName()).append("[").append(tmp_i);
+      this.asm_.append(lhs.getName()).append("[").append(this.tmp_i);
       this.asm_.append("], tmp);\n");
       this.indent_ -= 2;
       append_idx("}\n");
@@ -339,7 +335,7 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int")) {
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx("public_key.Encrypt(");
           this.asm_.append(id.getName()).append("[").append(idx.getName()).append("], tmp)");
           break;
@@ -391,7 +387,7 @@ public class T2_2_HElib extends T2_Compiler {
         String exp_var;
         if (exp_type.equals("int")) {
           exp_var = new_ctxt_tmp();
-          assign_to_all_slots("tmp", exp.getName(), null, "uint64");
+          assign_to_all_slots("tmp", exp.getName(), null);
           append_idx("public_key.Encrypt(");
           this.asm_.append(exp_var).append(", tmp);\n");
         } else { // exp type is EncInt
@@ -403,7 +399,7 @@ public class T2_2_HElib extends T2_Compiler {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int")) {
               String tmp_ = new_ctxt_tmp();
-              assign_to_all_slots("tmp", init, null, "uint64");
+              assign_to_all_slots("tmp", init, null);
               append_idx("public_key.Encrypt(");
               this.asm_.append(tmp_).append(", tmp);\n");
               inits.add(tmp_);
@@ -561,24 +557,24 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(".multByConstant(NTL::ZZX(").append(lhs.getName()).append("));\n");
           break;
         case "-":
-          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", lhs.getName(), null);
           append_idx("public_key.Encrypt(");
           this.asm_.append(res_).append(", tmp);\n");
           append_idx(res_);
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
         case "==":
-          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", lhs.getName(), null);
           append_idx(res_);
-          this.asm_.append(" = eq_plain(public_key, ").append(rhs.getName()).append(", tmp, p, slots);\n");
+          this.asm_.append(" = eq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
           break;
         case "<":
-          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", lhs.getName(), null);
           append_idx(res_);
           this.asm_.append(" = lt_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
           break;
         case "<=":
-          assign_to_all_slots("tmp", lhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", lhs.getName(), null);
           append_idx(res_);
           this.asm_.append(" = leq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
           break;
@@ -604,17 +600,17 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("));\n");
           break;
         case "==":
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx(res_);
           this.asm_.append(" = eq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
           break;
         case "<":
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx(res_);
           this.asm_.append(" = lt_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
           break;
         case "<=":
-          assign_to_all_slots("tmp", rhs.getName(), null, "uint64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx(res_);
           this.asm_.append(" = leq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
           break;

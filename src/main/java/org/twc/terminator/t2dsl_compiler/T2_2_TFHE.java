@@ -80,18 +80,16 @@ public class T2_2_TFHE extends T2_Compiler {
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncInt[]") && rhs_type.equals("int[]")) {
       // if EncInt[] <- int[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size());\n");
       append_idx("for (size_t ");
-      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
       append_idx(lhs.getName());
-      this.asm_.append("[").append(tmp_i).append("] = e_cloud(");
-      this.asm_.append(rhs_name).append("[").append(tmp_i).append("], ");
+      this.asm_.append("[").append(this.tmp_i).append("] = e_cloud(");
+      this.asm_.append(rhs_name).append("[").append(this.tmp_i).append("], ");
       this.asm_.append("word_sz, &key->cloud);\n");
       this.indent_ -= 2;
       append_idx("}\n");
@@ -325,8 +323,7 @@ public class T2_2_TFHE extends T2_Compiler {
           inits.add(init);
         }
       }
-      tmp_cnt_++;
-      String tmp_vec = "tmp_vec_" + tmp_cnt_;
+      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx("vector<uint32_t> ");
       this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
       for (String init : inits) {
@@ -339,17 +336,16 @@ public class T2_2_TFHE extends T2_Compiler {
         this.asm_.append("e_client(");
         this.asm_.append(tmp_vec).append(", word_sz, key);\n");
       } else if ("EncInt[]".equals(id_type)) {
-        String tmp_i = "i_" + tmp_cnt_;
         this.asm_.append(".resize(").append(tmp_vec).append(".size());\n");
         append_idx("for (size_t ");
-        this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-        this.asm_.append(tmp_vec).append(".size(); ++").append(tmp_i);
+        this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+        this.asm_.append(tmp_vec).append(".size(); ++").append(this.tmp_i);
         this.asm_.append(") {\n");
         this.indent_ += 2;
         append_idx(id.getName());
-        this.asm_.append("[").append(tmp_i).append("] = ");
+        this.asm_.append("[").append(this.tmp_i).append("] = ");
         this.asm_.append("e_client(");
-        this.asm_.append(tmp_vec).append("[").append(tmp_i);
+        this.asm_.append(tmp_vec).append("[").append(this.tmp_i);
         this.asm_.append("], word_sz, key)");
         this.asm_.append(";\n");
         this.indent_ -= 2;
@@ -379,8 +375,7 @@ public class T2_2_TFHE extends T2_Compiler {
     String id_type = st_.findType(id);
     assert(id_type.equals("EncInt[]"));
     String index_type = st_.findType(index);
-    tmp_cnt_++;
-    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<uint32_t> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {

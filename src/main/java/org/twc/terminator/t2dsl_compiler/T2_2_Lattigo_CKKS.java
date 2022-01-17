@@ -54,7 +54,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     if (lhs_type.equals("EncDouble") &&
           (rhs_type.equals("double") || rhs_type.equals("int"))) {
       // if EncDouble <- int | double
-      assign_to_all_slots("tmp", rhs_name, null, "float64");
+      assign_to_all_slots("tmp", rhs_name, null);
       append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
       append_idx(lhs.getName());
       this.asm_.append(" = encryptorSk.EncryptNew(ptxt)");
@@ -72,7 +72,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       this.asm_.append(rhs_name).append("); ").append(tmp_i);
       this.asm_.append("++ {\n");
       this.indent_ += 2;
-      assign_to_all_slots("tmp", rhs_name, tmp_i, "float64");
+      assign_to_all_slots("tmp", rhs_name, tmp_i);
       append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
       append_idx(lhs.getName());
       this.asm_.append("[").append(tmp_i).append("] = encryptorSk.EncryptNew(ptxt)\n");
@@ -109,7 +109,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       tmp_cnt_++;
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
-      assign_to_all_slots(tmp_vec, "1", null, "float64");
+      assign_to_all_slots(tmp_vec, "1", null);
       append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.AddNew(");
@@ -132,7 +132,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       tmp_cnt_++;
       String tmp_vec = "tmp_vec_" + tmp_cnt_;
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
-      assign_to_all_slots(tmp_vec, "1", null, "float64");
+      assign_to_all_slots(tmp_vec, "1", null);
       append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.SubNew(");
@@ -182,7 +182,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      assign_to_all_slots("tmp", rhs.getName(), null, "float64");
+      assign_to_all_slots("tmp", rhs.getName(), null);
       append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -293,7 +293,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(rhs.getName());
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          assign_to_all_slots("tmp", rhs.getName(), null, "float64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
           append_idx(id.getName() + "[" + idx.getName()+ "] = ");
           this.asm_.append("encryptorSk.EncryptNew(ptxt)");
@@ -347,7 +347,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
         tmp_cnt_++;
         String exp_var = "tmp_" + tmp_cnt_ + "_";
         if (exp_type.equals("int") || exp_type.equals("double")) {
-          assign_to_all_slots("tmp", exp.getName(), null, "float64");
+          assign_to_all_slots("tmp", exp.getName(), null);
           append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
           append_idx(exp_var + " := encryptorSk.EncryptNew(ptxt)\n");
         } else { // exp type is EncDouble
@@ -358,7 +358,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int") || exp_type.equals("double")) {
-              assign_to_all_slots("tmp", init, null, "float64");
+              assign_to_all_slots("tmp", init, null);
               append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
               tmp_cnt_++;
               String tmp_ = "tmp_" + tmp_cnt_ + "_";
@@ -503,7 +503,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
                 rhs_type.equals("EncDouble")) {
-      assign_to_all_slots("tmp", lhs.getName(), null, "float64");
+      assign_to_all_slots("tmp", lhs.getName(), null);
       append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -540,7 +540,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      assign_to_all_slots("tmp", rhs.getName(), null, "float64");
+      assign_to_all_slots("tmp", rhs.getName(), null);
       append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {

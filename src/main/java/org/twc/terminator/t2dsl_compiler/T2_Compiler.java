@@ -1,5 +1,6 @@
 package org.twc.terminator.t2dsl_compiler;
 
+import org.twc.terminator.Main;
 import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
@@ -10,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
@@ -40,6 +40,10 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.is_binary_ = (word_sz > 0);
   }
 
+  public Main.ENC_TYPE getScheme() {
+    return this.st_.getScheme();
+  }
+
   public String get_asm() {
     return asm_.toString();
   }
@@ -57,7 +61,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     append_idx(this.st_.backend_types.get("EncInt"));
     this.asm_.append(" ").append(ctxt_tmp_);
     if (this.is_binary_) {
-      this.asm_.append("(" + this.word_sz_ + ")");
+      this.asm_.append("(").append(this.word_sz_).append(")");
     }
     this.asm_.append(";\n");
     return ctxt_tmp_;

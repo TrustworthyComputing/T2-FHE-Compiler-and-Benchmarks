@@ -42,7 +42,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     if (lhs_type.equals("EncDouble") &&
           (rhs_type.equals("double") || rhs_type.equals("int"))) {
       // if EncDouble <- int
-      assign_to_all_slots("tmp", rhs_name, null, "float64");
+      assign_to_all_slots("tmp", rhs_name, null);
       append_idx("ptxt = tmp; // encode\n");
       append_idx("ptxt.encrypt(");
       this.asm_.append(lhs.getName()).append(")");
@@ -50,19 +50,17 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     } else if (lhs_type.equals("EncDouble[]") &&
                 (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
       // if EncDouble[] <- int[]
-      tmp_cnt_++;
-      String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
       this.asm_.append(".resize(").append(rhs_name).append(".size(), tmp_);\n");
       append_idx("for (size_t ");
-      this.asm_.append(tmp_i).append(" = 0; ").append(tmp_i).append(" < ");
-      this.asm_.append(rhs_name).append(".size(); ++").append(tmp_i);
+      this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+      this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
       this.asm_.append(") {\n");
       this.indent_ += 2;
-      assign_to_all_slots("tmp", rhs_name, tmp_i, "float64");
+      assign_to_all_slots("tmp", rhs_name, this.tmp_i);
       append_idx("ptxt = tmp; // encode\n");
       append_idx("ptxt.encrypt(");
-      this.asm_.append(lhs.getName()).append("[").append(tmp_i);
+      this.asm_.append(lhs.getName()).append("[").append(this.tmp_i);
       this.asm_.append("]);\n");
       this.indent_ -= 2;
       append_idx("}\n");
@@ -79,45 +77,6 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     } else {
       throw new Exception("Error assignment statement between different " +
               "types: " + lhs_type + ", " + rhs_type);
-    }
-    return null;
-  }
-
-  /**
-   * f0 -> Identifier()
-   * f1 -> "++"
-   */
-  public Var_t visit(IncrementAssignmentStatement n) throws Exception {
-//    TODO
-    Var_t id = n.f0.accept(this);
-    String id_type = st_.findType(id);
-    if (id_type.equals("EncDouble")) {
-      append_idx(id.getName());
-      this.asm_.append(".addConstant(NTL::ZZX(1));\n");
-    } else {
-      append_idx(id.getName());
-      this.asm_.append("++");
-      this.semicolon_ = true;
-    }
-    return null;
-  }
-
-  /**
-   * f0 -> Identifier()
-   * f1 -> "--"
-   */
-  public Var_t visit(DecrementAssignmentStatement n) throws Exception {
-    //    TODO
-
-    Var_t id = n.f0.accept(this);
-    String id_type = st_.findType(id);
-    if (id_type.equals("EncDouble")) {
-      append_idx(id.getName());
-      this.asm_.append(".subConstant(NTL::ZZX(1));\n");
-    } else {
-      append_idx(id.getName());
-      this.asm_.append("--");
-      this.semicolon_ = true;
     }
     return null;
   }
@@ -221,7 +180,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
           this.asm_.append(rhs.getName()).append(";\n");
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          assign_to_all_slots("tmp", rhs.getName(), null, "float64");
+          assign_to_all_slots("tmp", rhs.getName(), null);
           append_idx("ptxt = tmp; // encode\n");
           append_idx("ptxt.encrypt(");
           this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]);\n");
@@ -276,7 +235,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         String exp_var;
         if (exp_type.equals("int") || exp_type.equals("double")) {
           exp_var = new_ctxt_tmp();
-          assign_to_all_slots("tmp", exp.getName(), null, "float64");
+          assign_to_all_slots("tmp", exp.getName(), null);
           append_idx("ptxt = tmp; // encode\n");
           append_idx("ptxt.encrypt(");
           this.asm_.append(exp_var).append(");\n");
@@ -289,7 +248,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             if (exp_type.equals("int") || exp_type.equals("double")) {
               String tmp_ = new_ctxt_tmp();
-              assign_to_all_slots("tmp", init, null, "float64");
+              assign_to_all_slots("tmp", init, null);
               append_idx("ptxt = tmp; // encode\n");
               append_idx("ptxt.encrypt(");
               this.asm_.append(tmp_).append(");\n");
@@ -461,7 +420,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
           this.asm_.append(" ").append(op).append("= (double)").append(lhs.getName()).append(";\n");
           break;
         case "-":
-          assign_to_all_slots("tmp", lhs.getName(), null, "float64");
+          assign_to_all_slots("tmp", lhs.getName(), null);
           append_idx("ptxt = tmp; // encode\n");
           append_idx("ptxt.encrypt(");
           this.asm_.append(res_).append(");\n");

@@ -453,8 +453,7 @@ public class T2_2_SEAL extends T2_Compiler {
           encrypt(id.getName(), elems);
           this.asm_.append(";\n");
         } else {
-          tmp_cnt_++;
-          String tmp_vec = "tmp_vec_" + tmp_cnt_;
+          String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
           append_idx("vector<uint64_t> ");
           this.asm_.append(tmp_vec).append(" = { (uint64_t)").append(exp.getName());
           if (n.f4.present()) {
@@ -526,8 +525,7 @@ public class T2_2_SEAL extends T2_Compiler {
       System.out.println("[ \033[1;33m ! \033[0m ] Warning : Binary packing" +
                          " is enabled, batching may not behave as expected.");
     }
-    tmp_cnt_++;
-    String tmp_vec = "tmp_vec_" + tmp_cnt_;
+    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<uint64_t> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
     if (n.f7.present()) {
@@ -567,10 +565,10 @@ public class T2_2_SEAL extends T2_Compiler {
             append_idx("  decryptor, batch_encoder, ");
             this.asm_.append(expr.getName()).append("[").append(i).append("], slots);\n");
           }
-          append_idx("for (int " + tmp_i + " = 0; ");
-          this.asm_.append(tmp_i).append(" < ").append(this.word_sz_);
-          this.asm_.append("; ++").append(tmp_i).append(") {\n");
-          append_idx("  cout << " + tmp_vec + "[" + tmp_i + "][0];\n");
+          append_idx("for (int " + this.tmp_i + " = 0; ");
+          this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
+          this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
+          append_idx("  cout << " + tmp_vec + "[" + this.tmp_i + "][0];\n");
           append_idx("}\n");
           append_idx("cout << endl");
         } else {
@@ -615,11 +613,11 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(tmp_s).append(" < ").append(size.getName());
       this.asm_.append("; ++").append(tmp_s).append(") {\n");
       this.indent_ += 2;
-      append_idx("for (int " + tmp_i + " = 0; ");
-      this.asm_.append(tmp_i).append(" < ").append(this.word_sz_);
-      this.asm_.append("; ++").append(tmp_i).append(") {\n");
+      append_idx("for (int " + this.tmp_i + " = 0; ");
+      this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
+      this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
-      append_idx("cout << " + tmp_vec + "[" + tmp_i + "][" + tmp_s + "];\n");
+      append_idx("cout << " + tmp_vec + "[" + this.tmp_i + "][" + tmp_s + "];\n");
       this.indent_ -= 2;
       append_idx("}\n");
       append_idx("cout << \"\\t\";\n");
@@ -631,10 +629,10 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(tmp_vec).append(" = decrypt_array_batch_to_nums(\n");
       append_idx("  decryptor, batch_encoder, ");
       this.asm_.append(expr.getName()).append(", slots);\n");
-      append_idx("for (int " + tmp_i + " = 0; ");
-      this.asm_.append(tmp_i).append(" < ").append(size.getName());
-      this.asm_.append("; ++").append(tmp_i).append(") {\n");
-      append_idx("  cout << " + tmp_vec + "[" + tmp_i + "] << \"\\t\";\n");
+      append_idx("for (int " + this.tmp_i + " = 0; ");
+      this.asm_.append(this.tmp_i).append(" < ").append(size.getName());
+      this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("  cout << " + tmp_vec + "[" + this.tmp_i + "] << \"\\t\";\n");
       append_idx("}\n");
       append_idx("cout << endl");
     }
