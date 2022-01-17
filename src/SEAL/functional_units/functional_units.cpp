@@ -194,6 +194,62 @@ std::vector<seal::Ciphertext> eq_bin(
   return res_;
 }
 
+std::vector<seal::Ciphertext> slice(
+    std::vector<seal::Ciphertext>& in_, size_t start, size_t end) {
+  std::vector<seal::Ciphertext> res_(end-start);
+  for (size_t i = start; i < end; i++) {
+    res_[i-start] = in_[i];
+  }
+  return res_;
+}
+
+
+// Vertical batching (assume all slots are independent)
+std::vector<seal::Ciphertext> lt_bin(
+    seal::Evaluator& evaluator, seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
+    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    size_t word_sz, size_t slots) {
+  std::cout << ct1_.size() << std::endl;
+  std::vector<seal::Ciphertext> res_(word_sz);
+  if (ct1_.size() == 1) {
+    seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+    seal::Ciphertext ct1_neg;
+    evaluator.negate(ct1_[0], ct1_neg);
+    evaluator.add_plain(ct1_neg, one, ct1_neg);
+    evaluator.multiply(ct1_neg, ct2_[0], res_[word_sz-1]);
+    evaluator.relinearize_inplace(res_[word_sz-1], relin_keys);
+    return res_;
+  }
+
+  int len = ct1_.size() >> 1;
+
+  std::vector<seal::Ciphertext> lhs_h = slice(ct1_, 0, len);
+  std::vector<seal::Ciphertext> lhs_l = slice(ct1_, len, ct1_.size());
+  std::vector<seal::Ciphertext> rhs_h = slice(ct2_, 0, len);
+  std::vector<seal::Ciphertext> rhs_l = slice(ct2_, len, ct2_.size());
+
+  std::vector<seal::Ciphertext> term1 = lt_bin(evaluator, encryptor, batch_encoder,
+    relin_keys, lhs_h, rhs_h, word_sz, slots);
+  std::vector<seal::Ciphertext> h_equal = eq_bin(evaluator, encryptor, batch_encoder,
+    relin_keys, lhs_h, rhs_h, lhs_h.size(), slots);
+  std::vector<seal::Ciphertext> l_equal = lt_bin(evaluator, encryptor, batch_encoder,
+    relin_keys, lhs_l, rhs_l, word_sz, slots);
+
+  seal::Ciphertext term2;
+
+  evaluator.multiply(h_equal[lhs_h.size()-1], l_equal[word_sz-1], term2);
+  evaluator.relinearize_inplace(term2, relin_keys);
+
+  res_[word_sz-1] = xor_batch(term1[word_sz-1], term2, evaluator, relin_keys);
+  seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
+  for (size_t i = 0; i < (word_sz-1); i++) {
+    encryptor.encrypt(zero, res_[i]); // Pad result with 0's
+  }
+  return res_;
+}
+
+
 // True batching, assume all slots are independent
 seal::Ciphertext lt_bin_batched(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
