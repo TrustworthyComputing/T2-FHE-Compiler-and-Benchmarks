@@ -248,6 +248,23 @@ std::vector<seal::Ciphertext> lt_bin(
   return res_;
 }
 
+// Vertical batching (assume all slots are independent)
+std::vector<seal::Ciphertext> leq_bin(
+    seal::Evaluator& evaluator, seal::Encryptor& encryptor,
+    seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
+    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    size_t word_sz, size_t slots) {
+  seal::Ciphertext tmp_;
+  std::vector<seal::Ciphertext> eq_ = eq_bin(evaluator, encryptor, batch_encoder,
+    relin_keys, ct1_, ct2_, word_sz, slots);
+  std::vector<seal::Ciphertext> res_ = lt_bin(evaluator, encryptor, batch_encoder,
+    relin_keys, ct1_, ct2_, word_sz, slots);
+  evaluator.multiply(eq_[word_sz-1], res_[word_sz-1], tmp_);
+  evaluator.relinearize_inplace(tmp_, relin_keys);
+  evaluator.add(eq_[word_sz-1], res_[word_sz-1], res_[word_sz-1]);
+  evaluator.sub(res_[word_sz-1], tmp_, res_[word_sz-1]);
+  return res_;
+}
 
 // True batching, assume all slots are independent
 seal::Ciphertext lt_bin_batched(

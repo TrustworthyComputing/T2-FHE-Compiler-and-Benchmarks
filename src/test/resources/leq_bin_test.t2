@@ -1,0 +1,16 @@
+int main(void) {
+  EncInt ctxt1, ctxt2, ctxt3;
+  int i;
+  i = 1;
+  ctxt1 = i;
+  print(ctxt1);
+  ctxt2 = 2;
+  print(ctxt2);
+  ctxt1 = (ctxt1 <= ctxt2);
+  print(ctxt1);
+  ctxt2 = (ctxt2 <= ctxt1);
+  print(ctxt2);
+  ctxt3 = (ctxt1 <= ctxt1);
+  print(ctxt3);
+  return 0;
+}
