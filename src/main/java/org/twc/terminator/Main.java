@@ -101,6 +101,8 @@ public class Main {
         if (scheme_ == ENC_TYPE.ENC_DOUBLE && word_sz_ > 0) {
           throw new RuntimeException("Cannot use binary with encrypted " +
                                      "double type.");
+        } else if (scheme_ == ENC_TYPE.NONE) {
+          scheme_ = ENC_TYPE.ENC_INT;
         }
         System.out.println("[ 2/2 ] Type checking phase completed");
         System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed, " +

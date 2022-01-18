@@ -35,11 +35,12 @@ public class T2_2_HElib extends T2_Compiler {
 
   protected void assign_to_all_slots(String lhs, String rhs, String rhs_idx) {
     append_idx("for (int ");
-    this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i);
-    this.asm_.append(" < slots; ").append(this.tmp_i).append("++) {\n");
+    String tmp_j = this.tmp_i + "j";
+    this.asm_.append(tmp_j).append(" = 0; ").append(tmp_j);
+    this.asm_.append(" < slots; ").append(tmp_j).append("++) {\n");
     this.indent_ += 2;
     append_idx(lhs);
-    this.asm_.append("[").append(this.tmp_i);
+    this.asm_.append("[").append(tmp_j);
     if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
       this.asm_.append("] = ");
       if (rhs_idx != null) {
