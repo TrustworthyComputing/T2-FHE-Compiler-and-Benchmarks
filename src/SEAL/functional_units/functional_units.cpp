@@ -240,6 +240,7 @@ std::vector<seal::Ciphertext> lt_bin(
   return res_;
 }
 
+
 // Vertical batching (assume all slots are independent)
 std::vector<seal::Ciphertext> leq_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,
@@ -258,7 +259,27 @@ std::vector<seal::Ciphertext> leq_bin(
   return res_;
 }
 
-/// Vertical batching (assume inputs are the same size) (ripple carry)
+/// Vertical batching (ripple carry)
+std::vector<seal::Ciphertext> inc_bin(seal::Evaluator& evaluator, 
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    size_t slots) {
+  seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 1, slots);
+  seal::Ciphertext carry_;
+  encryptor.encrypt(carry_ptxt, carry_);
+  std::vector<seal::Ciphertext> res_(ct1_.size());
+  for (int i = ct1_.size()-1; i > 0; --i) {
+    res_[i] = xor_batch(ct1_[i], carry_, evaluator, relin_keys);
+    evaluator.multiply(ct1_[i], carry_, carry_);
+    evaluator.relinearize_inplace(carry_, relin_keys);
+  }
+  res_[0] = xor_batch(ct1_[0], carry_, evaluator, relin_keys);
+  return res_;
+}
+
+
+
+/// Vertical batching (ripple carry)
 std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
     seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
@@ -288,6 +309,43 @@ std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator,
 }
 
 /// Vertical batching (assume inputs are the same size) (ripple carry)
+std::vector<seal::Ciphertext> sub_bin(seal::Evaluator& evaluator, 
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    std::vector<seal::Ciphertext>& ct2_, size_t slots) {
+  assert(ct1_.size() == ct2_.size());
+  seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 0, slots);
+  seal::Ciphertext carry_;
+  encryptor.encrypt(carry_ptxt, carry_);
+  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  std::vector<seal::Ciphertext> res_(ct1_.size());
+
+  // Generate two's complement of ct2_
+  std::vector<seal::Ciphertext> neg_ct2_(ct2_.size());
+  for (int i = ct2_.size()-1; i > -1; --i) {
+    evaluator.negate(ct2_[i], neg_ct2_[i]);
+    evaluator.add_plain(neg_ct2_[i], one, neg_ct2_[i]);
+  }
+  neg_ct2_ = inc_bin(evaluator, encryptor, batch_encoder, relin_keys, neg_ct2_, slots);
+
+  for (int i = ct1_.size()-1; i >= 0; --i) {
+    // sum = (ct1_ ^ ct2_) ^ in_carry
+    seal::Ciphertext xor_ = xor_batch(ct1_[i], neg_ct2_[i], evaluator, relin_keys);
+    res_[i] = xor_batch(xor_, carry_, evaluator, relin_keys);
+    if (i == 0) break; // don't need output carry
+
+    // next carry computation
+    seal::Ciphertext prod_;
+    evaluator.multiply(ct1_[i], neg_ct2_[i], prod_);
+    evaluator.relinearize_inplace(prod_, relin_keys);
+    evaluator.multiply(carry_, xor_, xor_);
+    evaluator.relinearize_inplace(xor_, relin_keys);
+    carry_ = xor_batch(prod_, xor_, evaluator, relin_keys);
+  }
+  return res_;
+}
+
+/// Vertical batching (assume inputs are the same size)
 std::vector<seal::Ciphertext> mult_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
     seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
@@ -300,6 +358,7 @@ std::vector<seal::Ciphertext> mult_bin(seal::Evaluator& evaluator,
     encryptor.encrypt(zero, prod_[i]);
   }
   for (int i = ct1_.size()-1; i >= 0; i--) {
+
     for (int j = ct2_.size()-1; j >= (int)ct2_.size()-1-i; --j) {
       std::cout << j << std::endl;
       evaluator.multiply(ct1_[i], ct2_[j], tmp_[j]);

@@ -146,6 +146,16 @@ std::vector<seal::Ciphertext> leq_bin(
     std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
     size_t word_sz, size_t slots);
 
+std::vector<seal::Ciphertext> sub_bin(seal::Evaluator& evaluator, 
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    std::vector<seal::Ciphertext>& ct2_, size_t slots);
+
+std::vector<seal::Ciphertext> inc_bin(seal::Evaluator& evaluator, 
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    size_t slots);
+  
 std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
     seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 

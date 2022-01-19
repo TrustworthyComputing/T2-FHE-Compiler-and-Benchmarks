@@ -32,15 +32,12 @@ int main(void) {
   ctxt_arr[0] = { i, 10 };
   print_batched(ctxt_arr[0], 2);
 
-// TODO: for when we have add_bin functional unit
-//  ctxt2 = 6;
-//  ctxt2++;
-//  print(ctxt2);
-//  ctxt2++;
-//  ctxt2++;
-//  ctxt2--;
-//  print(ctxt2);
-
-
+  ctxt2 = 11;
+  ctxt2++;
+  print(ctxt2);
+  ctxt2++;
+  ctxt2 += 1;
+  ctxt2 -= 1;
+  print(ctxt2);
   return 0;
 }
