@@ -1,0 +1,12 @@
+int main(void) {
+  EncInt ctxt1, ctxt2, ctxt3;
+  int i;
+  i = 5;
+  ctxt1 = i;
+  print(ctxt1);
+  ctxt2 = 4;
+  print(ctxt2);
+  ctxt1 = (ctxt1 * ctxt2);
+  print(ctxt1);
+  return 0;
+}

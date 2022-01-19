@@ -688,14 +688,18 @@ public class T2_2_SEAL extends T2_Compiler {
       if (this.is_binary_) {
         encrypt("tmp_", new String[]{lhs.getName()});
         this.asm_.append(";\n");
+        append_idx(res_);
+        this.asm_.append(" = ");
         switch (op) {
           case "+":
-            append_idx("add_bin(evaluator, tmp_, ");
-            this.asm_.append(rhs.getName()).append(res_).append(");\n");
+            this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, tmp_, ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "*":
-            append_idx("multiply_bin(evaluator, tmp_, ");
-            this.asm_.append(rhs.getName()).append(res_).append(");\n");
+            this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "-":
             append_idx("sub_bin(evaluator, tmp_, ");
@@ -775,14 +779,18 @@ public class T2_2_SEAL extends T2_Compiler {
       if (this.is_binary_) {
         encrypt("tmp_", new String[]{rhs.getName()});
         this.asm_.append(";\n");
+        append_idx(res_);
+        this.asm_.append(" = ");
         switch (op) {
           case "+":
-            append_idx("add_bin(evaluator, ");
-            this.asm_.append(lhs.getName()).append(", tmp_, ").append(res_).append(");\n");
+            this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, tmp_, ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "*":
-            append_idx("multiply_bin(evaluator, ");
-            this.asm_.append(lhs.getName()).append(", tmp_, ").append(res_).append(");\n");
+            this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "-":
             append_idx("sub_bin(evaluator, ");
@@ -860,18 +868,18 @@ public class T2_2_SEAL extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
+        append_idx(res_);
+        this.asm_.append(" = ");
         switch (op) {
           case "+":
-            append_idx("add_bin(evaluator, ");
-            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-            this.asm_.append(", ").append(res_).append(");\n");
+            this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "*":
-            append_idx("multiply_bin(evaluator, ");
-            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-            this.asm_.append(", ").append(res_).append(");\n");
-            append_idx("relinearize_inplace_bin(evaluator, ");
-            this.asm_.append(res_).append(", relin_keys);\n");
+            this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "-":
             append_idx("sub_bin(evaluator, ");
