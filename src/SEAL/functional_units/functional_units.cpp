@@ -277,7 +277,25 @@ std::vector<seal::Ciphertext> inc_bin(seal::Evaluator& evaluator,
   return res_;
 }
 
-
+/// Vertical batching (ripple carry)
+std::vector<seal::Ciphertext> dec_bin(seal::Evaluator& evaluator, 
+    seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    size_t slots) {
+  seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 1, slots);
+  seal::Ciphertext carry_, neg_ct1_;
+  encryptor.encrypt(carry_ptxt, carry_);
+  std::vector<seal::Ciphertext> res_(ct1_.size());
+  for (int i = ct1_.size()-1; i > 0; --i) {
+    res_[i] = xor_batch(ct1_[i], carry_, evaluator, relin_keys);
+    evaluator.negate(ct1_[i], neg_ct1_);
+    evaluator.add_plain(neg_ct1_, carry_ptxt, neg_ct1_);
+    evaluator.multiply(neg_ct1_, carry_, carry_);
+    evaluator.relinearize_inplace(carry_, relin_keys);
+  }
+  res_[0] = xor_batch(ct1_[0], carry_, evaluator, relin_keys);
+  return res_;
+}
 
 /// Vertical batching (ripple carry)
 std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator, 

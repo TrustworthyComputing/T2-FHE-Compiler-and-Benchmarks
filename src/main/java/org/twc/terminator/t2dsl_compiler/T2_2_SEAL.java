@@ -217,10 +217,10 @@ public class T2_2_SEAL extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-        encrypt("tmp_", new String[]{"1"});
-        this.asm_.append(";\n");
-        append_idx("sub_bin_inplace(evaluator, ");
-        this.asm_.append(id.getName()).append(", tmp_);\n");
+        append_idx(id.getName());
+        this.asm_.append(" = ").append("dec_bin(evaluator, encryptor, ");
+        this.asm_.append("batch_encoder, relin_keys, ").append(id.getName());
+        this.asm_.append(", slots);\n");
       } else {
         append_idx("tmp = uint64_to_hex_string(1);\n");
         append_idx("evaluator.sub_plain_inplace(");
