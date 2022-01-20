@@ -378,7 +378,6 @@ std::vector<seal::Ciphertext> mult_bin(seal::Evaluator& evaluator,
   for (int i = ct1_.size()-1; i >= 0; i--) {
 
     for (int j = ct2_.size()-1; j >= (int)ct2_.size()-1-i; --j) {
-      std::cout << j << std::endl;
       evaluator.multiply(ct1_[i], ct2_[j], tmp_[j]);
       evaluator.relinearize_inplace(tmp_[j], relin_keys);
     }

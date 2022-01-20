@@ -313,16 +313,17 @@ public class T2_2_Lattigo extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
+        append_idx(id.getName() + " = funits.BinInc(" + id.getName() + ")");
       } else {
         encrypt("tmp_", new String[]{"1"});
+        this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.AddNew(");
-        this.asm_.append(id.getName()).append(", tmp_)\n");
+        this.asm_.append(id.getName()).append(", tmp_)");
       }
     } else {
       append_idx(id.getName() + "++");
-      this.semicolon_ = true;
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -335,16 +336,17 @@ public class T2_2_Lattigo extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
+        append_idx(id.getName() + " = funits.BinDec(" + id.getName() + ")");
       } else {
         encrypt("tmp_", new String[]{"1"});
+        this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.SubNew(");
-        this.asm_.append(id.getName()).append(", tmp_)\n");
+        this.asm_.append(id.getName()).append(", tmp_)");
       }
     } else {
       append_idx(id.getName() + "--");
-      this.semicolon_ = true;
     }
+    this.semicolon_ = true;
     return null;
   }
 
@@ -364,7 +366,22 @@ public class T2_2_Lattigo extends T2_Compiler {
       this.asm_.append(" ").append(op).append(" ").append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
+        switch (op) {
+          case "+=":
+            append_idx(lhs.getName() + " = funits.BinAdd(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")");
+            break;
+          case "*=":
+            append_idx(lhs.getName() + " = funits.BinMult(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")");
+            break;
+          case "-=":
+            append_idx(lhs.getName() + " = funits.BinSub(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }      
       } else {
         switch (op) {
           case "+=":
@@ -388,12 +405,23 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      encrypt("tmp_", new String[]{rhs.getName()});
+      this.asm_.append("\n");
       if (this.is_binary_) {
-// TODO
+        switch (op) {
+          case "+=":
+            append_idx(lhs.getName() + " = funits.BinAdd(" + lhs.getName() + ", tmp_)");
+            break;
+          case "*=":
+            append_idx(lhs.getName() + " = funits.BinMult(" + lhs.getName() + ", tmp_)");
+            break;
+          case "-=":
+            append_idx(lhs.getName() + " = funits.BinSub(" + lhs.getName() + ", tmp_)");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
-        assign_to_all_slots("tmp", rhs.getName(), null);
-        append_idx("encoder.EncodeUint(tmp, ptxt)\n");
-        append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
         switch (op) {
           case "+=":
             append_idx(lhs.getName() + " = evaluator.");
@@ -441,7 +469,23 @@ public class T2_2_Lattigo extends T2_Compiler {
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
           if (this.is_binary_) {
-// TODO
+            append_idx(id.getName() + "[" + idx.getName() + "] = ");
+            switch (op) {
+              case "+=":
+                append_idx("funits.BinAdd(" + id.getName() + "[" + idx.getName() + "], ");
+                this.asm_.append(rhs.getName()).append(")");
+                break;
+              case "*=":
+                append_idx("funits.BinMult(" + id.getName() + "[" + idx.getName() + "], ");
+                this.asm_.append(rhs.getName()).append(")");
+                break;
+              case "-=":
+                append_idx("funits.BinSub(" + id.getName() + "[" + idx.getName() + "], ");
+                this.asm_.append(rhs.getName()).append(")");
+                break;
+              default:
+                throw new Exception("Error in compound array assignment");
+            }
           } else {
             switch (op) {
               case "+=":
@@ -628,7 +672,6 @@ public class T2_2_Lattigo extends T2_Compiler {
     String id_type = st_.findType(id);
     assert(id_type.equals("EncInt[]"));
     if (this.is_binary_) {
-//      TODO
       String[] elems = new String[1 + n.f7.size()];
       elems[0] = exp.getName();
       if (n.f7.present()) {
@@ -638,7 +681,6 @@ public class T2_2_Lattigo extends T2_Compiler {
       }
       encrypt(id.getName() + "[" + index.getName() + "]", elems);
       this.asm_.append("\n");
-
     } else {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx(tmp_vec + " := []uint64{ " + exp.getName());
@@ -834,10 +876,42 @@ public class T2_2_Lattigo extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+      encrypt("tmp_", new String[]{lhs.getName()});
+      this.asm_.append("\n");
       if (this.is_binary_) {
-// TODO
+        switch (op) {
+          case "+":
+            append_idx(res_ + " := funits.BinAdd(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "*":
+            append_idx(res_ + " := funits.BinMult(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "-":
+            append_idx(res_ + " := funits.BinSub(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "^":
+            append_idx(res_ + " := funits.XorNew(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "==":
+            append_idx(res_ + " := funits.BinEq(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "<":
+            append_idx(res_ + " := funits.BinLt(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "<=":
+            append_idx(res_ + " := funits.BinLeq(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
-        encrypt("tmp_", new String[]{lhs.getName()});
         switch (op) {
           case "+":
             append_idx(res_ + " := evaluator.AddNew(tmp_, ");
@@ -872,10 +946,42 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      encrypt("tmp_", new String[]{rhs.getName()});
+      this.asm_.append("\n");
       if (this.is_binary_) {
-// TODO
+        switch (op) {
+          case "+":
+            append_idx(res_ + " := funits.BinAdd(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "*":
+            append_idx(res_ + " := funits.BinMult(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "-":
+            append_idx(res_ + " := funits.BinSub(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "^":
+            append_idx(res_ + " := funits.XorNew(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "==":
+            append_idx(res_ + " := funits.BinEq(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "<":
+            append_idx(res_ + " := funits.BinLt(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "<=":
+            append_idx(res_ + " := funits.BinLeq(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
-        encrypt("tmp_", new String[]{rhs.getName()});
         switch (op) {
           case "+":
             append_idx(res_ + " := evaluator.AddNew(");
@@ -911,7 +1017,38 @@ public class T2_2_Lattigo extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
+        switch (op) {
+          case "+":
+            append_idx(res_ + " := funits.BinAdd(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "*":
+            append_idx(res_ + " := funits.BinMult(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "-":
+            append_idx(res_ + " := funits.BinSub(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "^":
+            append_idx(res_ + " := funits.XorNew(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "==":
+            append_idx(res_ + " := funits.BinEq(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "<":
+            append_idx(res_ + " := funits.BinLt(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "<=":
+            append_idx(res_ + " := funits.BinLeq(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
         switch (op) {
           case "+":

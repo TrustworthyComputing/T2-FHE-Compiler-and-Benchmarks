@@ -3,6 +3,7 @@ package functional_units
 import (
 	"github.com/ldsec/lattigo/v2/bfv"
 	"math"
+	"fmt"
 )
 
 var encryptorPk_ *bfv.Encryptor
@@ -134,4 +135,212 @@ func Leq(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	(*evaluator_).Add(result_, equal_, result_)
 	(*evaluator_).Sub(result_, tmp_, result_)
 	return result_
+}
+
+func BinEq(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, word_sz)
+	tmp_ := bfv.NewCiphertext(*params_, c1[0].Degree())
+	receiver := bfv.NewCiphertext(*params_, tmp_.Degree()*2)
+	one := bfv.NewPlaintext(*params_)
+	arr := make([]uint64, slots_)
+	for i := 0; i < slots_; i++ {
+		arr[i] = 1
+	}
+	(*encoder_).EncodeUint(arr, one)
+	zero := bfv.NewPlaintext(*params_)
+	for i := 0; i < slots_; i++ {
+		arr[i] = 0
+	}
+	(*encoder_).EncodeUint(arr, zero)
+	for i := word_sz-1; i >= 0; i-- {
+		tmp_res_ := (*encryptorPk_).EncryptNew(one)
+		(*evaluator_).Sub(c1[i], c2[i], tmp_)
+		(*evaluator_).Mul(tmp_, tmp_, receiver)
+		tmp_ = (*evaluator_).RelinearizeNew(receiver)
+		(*evaluator_).Sub(tmp_res_, tmp_, tmp_res_)
+		if i == (word_sz-1) {
+			res[word_sz-1] = tmp_res_.CopyNew()
+		} else {
+			(*evaluator_).Mul(res[word_sz-1], tmp_res_, receiver)
+			res[word_sz-1] = (*evaluator_).RelinearizeNew(receiver)
+			res[i] = (*encryptorPk_).EncryptNew(zero)
+		}
+	}
+	return res
+}
+
+func EncodeAllSlots(val uint64) *bfv.Plaintext {
+	ptxt := bfv.NewPlaintext(*params_)
+	arr := make([]uint64, slots_)
+	for i := 0; i < slots_; i++ {
+		arr[i] = val
+	}
+	(*encoder_).EncodeUint(arr, ptxt)
+	return ptxt
+}
+
+func slice(in_ []*bfv.Ciphertext, start, end int) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, end-start)
+	for i := start; i < end; i++ {
+		res[i-start] = in_[i].CopyNew()
+	}
+	return res
+}
+
+func BinXor(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
+	res := (*evaluator_).SubNew(c1, c2)
+	receiver := (*evaluator_).MulNew(res, res)
+	(*evaluator_).Relinearize(receiver, res)
+	return res
+}
+
+func BinLt(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, word_sz)
+	if len(c1) == 1 {
+		one := EncodeAllSlots(1)
+		c1_neg := (*evaluator_).NegNew(c1[0])
+		(*evaluator_).Add(c1_neg, one, c1_neg)
+		receiver := (*evaluator_).MulNew(c1_neg, c2[0])
+		res[word_sz-1] = (*evaluator_).RelinearizeNew(receiver)
+		return res
+	}
+
+	length := len(c1) >> 1
+	lhs_h := slice(c1, 0, length)
+	lhs_l := slice(c1, length, len(c1))
+	rhs_h := slice(c2, 0, length)
+	rhs_l := slice(c2, length, len(c2))
+
+	term1 := BinLt(lhs_h, rhs_h, word_sz)
+	h_equal := BinEq(lhs_h, rhs_h, len(lhs_h))
+	l_equal := BinLt(lhs_l, rhs_l, word_sz)
+
+	receiver := (*evaluator_).MulNew(h_equal[len(lhs_h)-1], l_equal[word_sz-1])
+	term2 := (*evaluator_).RelinearizeNew(receiver)
+
+	res[word_sz-1] = BinXor(term1[word_sz-1], term2)
+	zero := EncodeAllSlots(0)
+	for i := 0; i < (word_sz-1); i++ {
+		res[i] = (*encryptorPk_).EncryptNew(zero)
+	}
+	return res
+}
+
+func BinLeq(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
+	res := BinLt(c2, c1, word_sz)
+	one := EncodeAllSlots(1)
+	(*evaluator_).Sub(one, res[word_sz-1], res[word_sz-1])
+	return res
+}
+
+func BinInc(c1 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	carry_ptxt := EncodeAllSlots(1)
+	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
+	for i := (len(c1)-1); i > 0; i-- {
+		res[i] = BinXor(c1[i], carry)
+		receiver := (*evaluator_).MulNew(c1[i], carry)
+		carry = (*evaluator_).RelinearizeNew(receiver)
+	}
+	res[0] = BinXor(c1[0], carry)
+	return res
+}
+
+func BinDec(c1 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	carry_ptxt := EncodeAllSlots(1)
+	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
+	for i := (len(c1)-1); i > 0; i-- {
+		res[i] = BinXor(c1[i], carry)
+		neg_ct1 := (*evaluator_).NegNew(c1[i])
+		(*evaluator_).Add(neg_ct1, carry_ptxt, neg_ct1)
+		receiver := (*evaluator_).MulNew(neg_ct1, carry)
+		carry = (*evaluator_).RelinearizeNew(receiver)
+	}
+	res[0] = BinXor(c1[0], carry)
+	return res
+}
+
+func BinAdd(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	carry_ptxt := EncodeAllSlots(0)
+	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
+	smaller := c2
+	bigger := c1
+	if len(c1) < len(c2) {
+		smaller = c1
+		bigger = c2
+	}
+	offset := len(bigger) - len(smaller)
+	res := make([]*bfv.Ciphertext, len(smaller))
+
+	for i := len(smaller) - 1; i >= 0; i-- {
+		xor_ := BinXor(smaller[i], bigger[i + offset])
+		res[i] = BinXor(xor_, carry)
+		if i == 0 {
+			break
+		}
+		receiver := (*evaluator_).MulNew(smaller[i], bigger[i+offset])
+		prod_ := (*evaluator_).RelinearizeNew(receiver)
+		(*evaluator_).Mul(carry, xor_, receiver)
+		xor_ = (*evaluator_).RelinearizeNew(receiver)
+		carry = BinXor(prod_, xor_)
+	}
+	return res
+}
+
+func BinSub(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	if len(c1) != len(c2) {
+		fmt.Errorf("BinSub: bitsize is not equal")
+	}
+	carry_ptxt := EncodeAllSlots(0)
+	one := EncodeAllSlots(1)
+	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
+	res := make([]*bfv.Ciphertext, len(c1))
+	neg_c2 := make([]*bfv.Ciphertext, len(c2))
+
+	for i := len(c2) - 1; i >= 0; i-- {
+		neg_c2[i] = (*evaluator_).NegNew(c2[i])
+		(*evaluator_).Add(neg_c2[i], one, neg_c2[i])
+	}
+	neg_c2 = BinInc(neg_c2)
+
+	for i := len(c1) - 1; i >= 0; i-- {
+		xor_ := BinXor(c1[i], neg_c2[i])
+		res[i] = BinXor(xor_, carry)
+		if i == 0 {
+			break
+		}
+		receiver := (*evaluator_).MulNew(c1[i], neg_c2[i])
+		prod_ := (*evaluator_).RelinearizeNew(receiver)
+		(*evaluator_).Mul(carry, xor_, receiver)
+		xor_ = (*evaluator_).RelinearizeNew(receiver)
+		carry = BinXor(prod_, xor_)
+	}
+	return res
+}
+
+func BinMult(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	if len(c1) != len(c2) {
+		fmt.Errorf("BinMult: bitsize is not equal")
+	}
+	ctlen := len(c1)
+	tmp := make([]*bfv.Ciphertext, ctlen)
+	prod := make([]*bfv.Ciphertext, ctlen)
+	zero := EncodeAllSlots(0)
+	for i := 0; i < ctlen; i++ {
+		prod[i] = (*encryptorPk_).EncryptNew(zero)
+	}
+
+	for i := ctlen - 1; i >= 0; i-- {
+		for j := ctlen - 1; j >= ctlen - i - 1; j-- {
+			receiver := (*evaluator_).MulNew(c1[i], c2[j])
+			tmp[j] = (*evaluator_).RelinearizeNew(receiver)
+		}
+		tmp_slice := slice(prod, 0, i+1)
+		tmp_slice = BinAdd(tmp_slice, tmp)
+		for j := i; j >= 0; j-- {
+			prod[j] = tmp_slice[j]
+		}
+	}
+	return prod
 }
