@@ -25,7 +25,7 @@ public class T2_2_HElib extends T2_Compiler {
     String ctxt_tmp_ = "tmp_" + (tmp_cnt_++) + "_";
     append_idx(this.st_.backend_types.get("EncInt"));
     this.asm_.append(" ").append(ctxt_tmp_).append("(");
-    if (is_binary_) {
+    if (this.is_binary_) {
       this.asm_.append(this.word_sz_).append(", scratch);\n");
     } else {
       this.asm_.append("public_key);\n");
@@ -62,7 +62,11 @@ public class T2_2_HElib extends T2_Compiler {
   }
 
   protected void append_keygen() {
-    append_idx("unsigned long p = 509, m = 14481, r = 1, bits = 120;\n");
+    if (this.is_binary_) {
+      append_idx("unsigned long p = 2, m = 16383, r = 1, bits = 250;\n");
+    } else {
+      append_idx("unsigned long p = 509, m = 14481, r = 1, bits = 120;\n");
+    }
     append_idx("unsigned long c = 2;\n");
     append_idx("Context context = helib::ContextBuilder<helib::BGV>()\n");
     append_idx("  .m(m).p(p).r(r).bits(bits).c(c).build();\n");
@@ -71,11 +75,13 @@ public class T2_2_HElib extends T2_Compiler {
     append_idx("addSome1DMatrices(secret_key);\n");
     append_idx("PubKey& public_key = secret_key;\n");
     append_idx("const EncryptedArray& ea = context.getEA();\n");
+    append_idx("std::vector<helib::zzX> unpackSlotEncoding;\n");
+    append_idx("buildUnpackSlotEncoding(unpackSlotEncoding, ea);\n");
     append_idx("long slots = ea.size();\n\n");
     append_idx("Ptxt<helib::BGV> tmp(context);\n");
     append_idx("Ctxt scratch(public_key);\n\n");
     append_idx(this.st_.backend_types.get("EncInt") + " tmp_");
-    if (is_binary_) {
+    if (this.is_binary_) {
       this.asm_.append("(").append(this.word_sz_).append(", scratch);\n\n");
     } else {
       this.asm_.append("(public_key);\n\n");
@@ -93,12 +99,13 @@ public class T2_2_HElib extends T2_Compiler {
         if (is_numeric) {
           int[] bin_array = int_to_bin_array(Integer.parseInt(src));
           for (int i = 0; i < this.word_sz_; i++) {
-            append_idx(tmp_vec + "[" + i + "][" + slot + "] = " + bin_array[i] + ";\n");
+            append_idx(tmp_vec + "[" + (this.word_sz_ - i - 1) + "][" + slot);
+            this.asm_.append("] = ").append(bin_array[i]).append(";\n");
           }
         } else {
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx(tmp_vec + "[" + i + "][" + slot + "] = (");
-            this.asm_.append(src).append(" >> ").append(this.word_sz_ - i - 1);
+            this.asm_.append(src).append(" >> ").append(i);
             this.asm_.append(") & 1;\n");
           }
         }
@@ -111,8 +118,7 @@ public class T2_2_HElib extends T2_Compiler {
     } else {
       assert(src_lst.length == 1);
       assign_to_all_slots("tmp", src_lst[0], null);
-      append_idx("public_key.Encrypt(");
-      this.asm_.append(dst).append(", tmp)");
+      append_idx("public_key.Encrypt(" + dst + ", tmp)");
     }
   }
 
@@ -133,6 +139,7 @@ public class T2_2_HElib extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n\n");
     append_idx("#include <helib/helib.h>\n");
+    append_idx("#include <helib/intraSlot.h>\n");
     append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace helib;\n");
     append_idx("using namespace std;\n\n");
@@ -163,7 +170,7 @@ public class T2_2_HElib extends T2_Compiler {
     Var_t id = n.f1.accept(this);
     this.asm_.append(id.getName());
     if (type.equals("EncInt") || type.equals("EncDouble")) {
-      if (is_binary_) {
+      if (this.is_binary_) {
         this.asm_.append("(").append(this.word_sz_).append(", scratch)");
       } else {
         this.asm_.append("(public_key)");
@@ -173,7 +180,7 @@ public class T2_2_HElib extends T2_Compiler {
       for (int i = 0; i < n.f2.size(); i++) {
         n.f2.nodes.get(i).accept(this);
         if (type.equals("EncInt") || type.equals("EncDouble")) {
-          if (is_binary_) {
+          if (this.is_binary_) {
             this.asm_.append("(").append(this.word_sz_).append(", scratch)");
           } else {
             this.asm_.append("(public_key)");
@@ -245,11 +252,10 @@ public class T2_2_HElib extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
-//        encrypt("tmp_", new String[]{"1"});
-//        this.asm_.append(";\n");
-//        append_idx("add_bin_inplace(");
-//        this.asm_.append(id.getName()).append(", tmp_);\n");
+       encrypt("tmp_", new String[]{"1"});
+       this.asm_.append(";\n");
+       append_idx(id.getName() + " = add_bin(public_key, " + id.getName());
+       this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
       } else {
         append_idx(id.getName());
         this.asm_.append(".addConstant(NTL::ZZX(1));\n");
@@ -271,11 +277,10 @@ public class T2_2_HElib extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
-//        encrypt("tmp_", new String[]{"1"});
-//        this.asm_.append(";\n");
-//        append_idx("sub_bin_inplace(");
-//        this.asm_.append(id.getName()).append(", tmp_);\n");
+       encrypt("tmp_", new String[]{"1"});
+       this.asm_.append(";\n");
+       append_idx(id.getName() + " = sub_bin(public_key, " + id.getName());
+       this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
       } else {
         append_idx(id.getName());
         this.asm_.append(".addConstant(NTL::ZZX(-1));\n");
@@ -305,7 +310,23 @@ public class T2_2_HElib extends T2_Compiler {
       this.asm_.append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       if (this.is_binary_) {
-// TODO
+        append_idx(lhs.getName() + " = ");
+        switch (op) {
+          case "+=":
+            this.asm_.append("add_bin(public_key, ");
+            break;
+          case "*=":
+            this.asm_.append("mult_bin(public_key, ");
+            break;
+          case "-=":
+            this.asm_.append("sub_bin(public_key, ");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
+        this.asm_.append(lhs.getName()).append(", ");
+        this.asm_.append(rhs.getName()).append(", ");
+        this.asm_.append("unpackSlotEncoding, slots)");
       } else {
         append_idx(lhs.getName());
         switch (op) {
@@ -325,22 +346,39 @@ public class T2_2_HElib extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       if (this.is_binary_) {
-// TODO
-      } else {
-        append_idx(lhs.getName());
+        encrypt("tmp_", new String[]{rhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(lhs.getName() + " = ");
         switch (op) {
           case "+=":
-            this.asm_.append(".addConstant(NTL::ZZX(").append(rhs.getName()).append("))");
+            this.asm_.append("add_bin(public_key, ");
             break;
           case "*=":
-            this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("))");
+            this.asm_.append("mult_bin(public_key, ");
             break;
           case "-=":
-            this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("))");
+            this.asm_.append("sub_bin(public_key, ");
             break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
+        this.asm_.append(lhs.getName()).append(", tmp_, unpackSlotEncoding, slots)");
+      } else {
+        append_idx(lhs.getName());
+        switch (op) {
+          case "+=":
+            this.asm_.append(".addConstant(NTL::ZZX(");
+            break;
+          case "*=":
+            this.asm_.append(".multByConstant(NTL::ZZX(");
+            break;
+          case "-=":
+            this.asm_.append(".addConstant(NTL::ZZX(-");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
+        this.asm_.append(rhs.getName()).append("))");
       }
     }
     this.semicolon_ = true;
@@ -359,7 +397,6 @@ public class T2_2_HElib extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
@@ -372,10 +409,25 @@ public class T2_2_HElib extends T2_Compiler {
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
           if (this.is_binary_) {
-// TODO
+            append_idx(id.getName() + "[" + idx.getName() + "] = ");
+            switch (op) {
+              case "+=":
+                this.asm_.append("add_bin(public_key, ");
+                break;
+              case "*=":
+                this.asm_.append("mult_bin(public_key, ");
+                break;
+              case "-=":
+                this.asm_.append("sub_bin(public_key, ");
+                break;
+              default:
+                throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
+            }
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots)");
           } else {
-            append_idx(id.getName());
-            this.asm_.append("[").append(idx.getName()).append("] ");
+            append_idx(id.getName() + "[" + idx.getName() + "] ");
             if (op.equals("+=") || op.equals("-=")) {
               this.asm_.append(op).append(" ").append(rhs.getName());
             } else if (op.equals("*=")) {
@@ -408,7 +460,6 @@ public class T2_2_HElib extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
@@ -548,8 +599,7 @@ public class T2_2_HElib extends T2_Compiler {
       encrypt(id.getName() + "[" + index.getName() + "]", elems);
       this.asm_.append(";\n");
     } else {
-      append_idx("tmp[0] = ");
-      this.asm_.append(exp.getName()).append(";\n");
+      append_idx("tmp[0] = " + exp.getName() + ";\n");
       if (n.f7.present()) {
         for (int i = 0; i < n.f7.size(); i++) {
           append_idx("tmp[");
@@ -557,8 +607,8 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append((n.f7.nodes.get(i).accept(this)).getName()).append(";\n");
         }
       }
-      append_idx("public_key.Encrypt(");
-      this.asm_.append(id.getName()).append("[").append(index.getName()).append("], tmp);\n");
+      append_idx("public_key.Encrypt(" + id.getName());
+      this.asm_.append("[").append(index.getName()).append("], tmp);\n");
     }
     return null;
   }
@@ -583,8 +633,8 @@ public class T2_2_HElib extends T2_Compiler {
           append_idx("cout << \"dec(");
           this.asm_.append(expr.getName()).append(") = \";\n");
           for (int i = 0; i < this.word_sz_; i++) {
-            append_idx("secret_key.Decrypt(tmp, ");
-            this.asm_.append(expr.getName()).append("[").append(i).append("]);\n");
+            append_idx("secret_key.Decrypt(tmp, " + expr.getName() + "[");
+            this.asm_.append(this.word_sz_ - i - 1).append("]);\n");
             append_idx("cout << tmp[0];\n");
           }
           append_idx("cout << endl");
@@ -625,14 +675,13 @@ public class T2_2_HElib extends T2_Compiler {
       this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
       for (int i = 0; i < this.word_sz_; i++) {
-        append_idx("secret_key.Decrypt(tmp, ");
-        this.asm_.append(expr.getName()).append("[").append(i).append("]);\n");
+        append_idx("secret_key.Decrypt(tmp, " + expr.getName());
+        this.asm_.append("[").append(this.word_sz_ - i - 1).append("]);\n");
         append_idx("cout << tmp[" + this.tmp_i + "];\n");
       }
       append_idx("cout << \"\\t\";\n");
     } else {
-      append_idx("secret_key.Decrypt(tmp, ");
-      this.asm_.append(expr.getName()).append(");\n");
+      append_idx("secret_key.Decrypt(tmp, " + expr.getName() + ");\n");
       append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
@@ -681,7 +730,32 @@ public class T2_2_HElib extends T2_Compiler {
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-// TODO
+        encrypt("tmp_", new String[]{lhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_ + " = ");
+        switch (op) {
+          case "+":
+            this.asm_.append("add_bin(public_key, tmp_, ");
+            break;
+          case "*":
+            this.asm_.append("mult_bin(public_key, tmp_, ");
+            break;
+          case "-":
+            this.asm_.append("sub_bin(public_key, tmp_, ");
+            break;
+          case "==":
+            this.asm_.append("eq_bin(public_key, tmp_, ");
+            break;
+          case "<":
+            this.asm_.append("lt_bin(public_key, tmp_, ");
+            break;
+          case "<=":
+            this.asm_.append("leq_bin(public_key, tmp_, ");
+            break;
+          default:
+            throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
+        }
+        this.asm_.append(rhs.getName()).append(", unpackSlotEncoding, slots)");
       } else {
         switch (op) {
           case "+":
@@ -726,37 +800,62 @@ public class T2_2_HElib extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-// TODO
+        encrypt("tmp_", new String[]{rhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_ + " = ");
+        switch (op) {
+          case "+":
+            this.asm_.append("add_bin(public_key, ");
+            break;
+          case "*":
+            this.asm_.append("mult_bin(public_key, ");
+            break;
+          case "-":
+            this.asm_.append("sub_bin(public_key, ");
+            break;
+          case "==":
+            this.asm_.append("eq_bin(public_key, ");
+            break;
+          case "<":
+            this.asm_.append("lt_bin(public_key, ");
+            break;
+          case "<=":
+            this.asm_.append("leq_bin(public_key, ");
+            break;
+          default:
+            throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
+        }
+        this.asm_.append(lhs.getName()).append(", tmp_, unpackSlotEncoding, slots)");
       } else {
         append_idx(res_);
         this.asm_.append(" = ").append(lhs.getName()).append(";\n");
         switch (op) {
           case "+":
-            append_idx(res_);
-            this.asm_.append(".addConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
+            append_idx(res_ + ".addConstant(NTL::ZZX(");
+            this.asm_.append(rhs.getName()).append("));\n");
             break;
           case "*":
-            append_idx(res_);
-            this.asm_.append(".multByConstant(NTL::ZZX(").append(rhs.getName()).append("));\n");
+            append_idx(res_ + ".multByConstant(NTL::ZZX(");
+            this.asm_.append(rhs.getName()).append("));\n");
             break;
           case "-":
-            append_idx(res_);
-            this.asm_.append(".addConstant(NTL::ZZX(-").append(rhs.getName()).append("));\n");
+            append_idx(res_ + ".addConstant(NTL::ZZX(-");
+            this.asm_.append(rhs.getName()).append("));\n");
             break;
           case "==":
             assign_to_all_slots("tmp", rhs.getName(), null);
-            append_idx(res_);
-            this.asm_.append(" = eq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+            append_idx(res_ + " = eq_plain(public_key, ");
+            this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
             break;
           case "<":
             assign_to_all_slots("tmp", rhs.getName(), null);
-            append_idx(res_);
-            this.asm_.append(" = lt_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+            append_idx(res_ + " = lt_plain(public_key, ");
+            this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
             break;
           case "<=":
             assign_to_all_slots("tmp", rhs.getName(), null);
-            append_idx(res_);
-            this.asm_.append(" = leq_plain(public_key, ").append(lhs.getName()).append(", tmp, p, slots);\n");
+            append_idx(res_ + " = leq_plain(public_key, ");
+            this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
             break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -766,7 +865,31 @@ public class T2_2_HElib extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-// TODO
+        append_idx(res_ + " = ");
+        switch (op) {
+          case "+":
+            this.asm_.append("add_bin(public_key, ");
+            break;
+          case "*":
+            this.asm_.append("mult_bin(public_key, ");
+            break;
+          case "-":
+            this.asm_.append("sub_bin(public_key, ");
+            break;
+          case "==":
+            this.asm_.append("eq_bin(public_key, ");
+            break;
+          case "<":
+            this.asm_.append("lt_bin(public_key, ");
+            break;
+          case "<=":
+            this.asm_.append("leq_bin(public_key, ");
+            break;
+          default:
+            throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
+        }
+        this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+        this.asm_.append(", unpackSlotEncoding, slots)");
       } else {
         switch (op) {
           case "*":

@@ -1,5 +1,16 @@
 #include "functional_units.hpp"
 
+std::vector<helib::Ctxt> ctptr_to_vec(helib::PubKey& public_key, 
+                                      helib::CtPtrs_vectorCt& ct_) {
+  helib::Ctxt scratch(public_key);
+  size_t ct_size = helib::lsize(ct_);
+  std::vector<helib::Ctxt> res_(ct_size, scratch);
+  for (size_t i = 0; i < ct_size; ++i) {
+    res_[i] = *ct_[i];
+  }
+  return res_;
+}
+
 std::vector<helib::Ctxt> encrypt_num_to_binary_array(
     helib::PubKey& public_key, helib::Context& context, uint64_t number, 
     size_t word_sz) {
@@ -49,7 +60,7 @@ helib::Ctxt encrypt_num_to_binary_array_batch(
 
 uint64_t decrypt_binary_array_batch(
     helib::SecKey& secret_key, helib::Context& context, 
-    helib::Ctxt encrypted_vec, size_t word_sz, size_t padding /* = 1 */) {
+    helib::Ctxt& encrypted_vec, size_t word_sz, size_t padding /* = 1 */) {
   helib::Ptxt<helib::BGV> ptxt_vec_encoded(context);
   secret_key.Decrypt(ptxt_vec_encoded, encrypted_vec);
   uint64_t result = 0;
@@ -62,7 +73,7 @@ uint64_t decrypt_binary_array_batch(
 }
 
 helib::Ctxt encrypt_nums_to_array_batch(helib::PubKey& public_key, 
-    helib::Context& context, std::vector<uint64_t> nums,  size_t num_elems, 
+    helib::Context& context, std::vector<uint64_t>& nums, size_t num_elems, 
     size_t slots, size_t padding /* = 1 */) {
   helib::Ptxt<helib::BGV> ptxt_vec(context);
   for (int i = 0; i < num_elems; ++i) {
@@ -74,7 +85,7 @@ helib::Ctxt encrypt_nums_to_array_batch(helib::PubKey& public_key,
 }
 
 std::vector<uint64_t> decrypt_array_batch_to_nums(helib::SecKey& secret_key, 
-    helib::Context& context, helib::Ctxt encrypted_vec, size_t slots, 
+    helib::Context& context, helib::Ctxt& encrypted_vec, size_t slots, 
     size_t padding /* = 1 */) {
   helib::Ptxt<helib::BGV> ptxt_vec_encoded(context);
   secret_key.Decrypt(ptxt_vec_encoded, encrypted_vec);
@@ -95,7 +106,7 @@ helib::Ctxt xor_batch(helib::PubKey& public_key, helib::Ctxt& ctxt_1,
 }
 
 helib::Ctxt eq_bin_batched(helib::PubKey& public_key, helib::Context& context, 
-    helib::Ctxt ct1_, helib::Ctxt ct2_, size_t slots, const helib::EncryptedArray& ea,
+    helib::Ctxt& ct1_, helib::Ctxt& ct2_, size_t slots, const helib::EncryptedArray& ea,
     size_t padding) {
   helib::Ctxt res_(public_key);
   helib::Ctxt tmp_(public_key);
@@ -111,8 +122,8 @@ helib::Ctxt eq_bin_batched(helib::PubKey& public_key, helib::Context& context,
   return res_;
 }
 
-helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ctxt ct2_, size_t slots) {
+helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ctxt& ct2_, size_t slots) {
   helib::Ctxt res_(public_key);
   helib::Ctxt tmp_(public_key);
   tmp_ = ct1_;
@@ -123,8 +134,8 @@ helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_,
   return res_;
 }
 
-helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ptxt<helib::BGV> pt1_, size_t slots) {
+helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ptxt<helib::BGV>& pt1_, size_t slots) {
   helib::Ctxt res_(public_key);
   res_ = ct1_;
   res_.addConstant(NTL::ZZX(-1));
@@ -133,8 +144,8 @@ helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_,
   return res_;
 }
 
-helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ptxt<helib::BGV> pt1_, size_t slots) {
+helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ptxt<helib::BGV>& pt1_, size_t slots) {
   helib::Ctxt res_(public_key);
   helib::Ctxt tmp_(public_key);
   helib::Ctxt less_(public_key);
@@ -160,8 +171,8 @@ helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_,
   return res_;
 }
 
-helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ctxt ct2_, size_t slots) {
+helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ctxt& ct2_, size_t slots) {
   helib::Ctxt res_(public_key);
   helib::Ctxt tmp_(public_key);
   helib::Ctxt less_(public_key);
@@ -187,7 +198,7 @@ helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_,
 }
 
 helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key, 
-    helib::Context& context, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::Context& context, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     helib::EncryptedArray& ea, size_t slots, size_t padding) {
   helib::Ctxt res_(public_key);
   helib::Ctxt tmp_(public_key);
@@ -205,8 +216,115 @@ helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key,
   return res_;
 }
 
+std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  std::vector<helib::Ctxt> res_;
+  helib::CtPtrs_vectorCt output_wrapper(res_);
+  helib::addTwoNumbers(
+      output_wrapper,
+      helib::CtPtrs_vectorCt(ct1_),
+      helib::CtPtrs_vectorCt(ct2_),
+      ct1_.size(), &unpackSlotEncoding);
+  
+  return ctptr_to_vec(public_key, output_wrapper);
+}
+
+std::vector<helib::Ctxt> sub_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ct1_.size(), scratch);
+  helib::CtPtrs_vectorCt diff(res_);
+  helib::subtractBinary(
+      diff,
+      helib::CtPtrs_vectorCt(ct1_),
+      helib::CtPtrs_vectorCt(ct2_),
+      &unpackSlotEncoding);
+  
+  return ctptr_to_vec(public_key, diff);
+}
+
+std::vector<helib::Ctxt> mult_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  std::vector<helib::Ctxt> res_;
+  helib::CtPtrs_vectorCt prod(res_);
+  helib::multTwoNumbers(
+      prod,
+      helib::CtPtrs_vectorCt(ct1_),
+      helib::CtPtrs_vectorCt(ct2_),
+      false, ct1_.size(), &unpackSlotEncoding);
+  
+  return ctptr_to_vec(public_key, prod);
+}
+
+std::vector<helib::Ctxt> eq_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  helib::Ctxt mu_(public_key), ni_(public_key);
+  helib::compareTwoNumbers(mu_, ni_, helib::CtPtrs_vectorCt(ct1_), 
+                           helib::CtPtrs_vectorCt(ct2_), false, 
+                           &unpackSlotEncoding);
+  mu_.negate();
+  mu_.addConstant(NTL::ZZX(1));
+  ni_.negate();
+  ni_.addConstant(NTL::ZZX(1));
+  mu_.multiplyBy(ni_);
+
+  std::vector<helib::Ctxt> res_(ct1_.size(), mu_);
+  for (size_t i = 1; i < res_.size(); ++i) {
+    res_[i].clear();
+  }
+  return res_;
+}
+
+std::vector<helib::Ctxt> lt_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  helib::Ctxt mu_(public_key), ni_(public_key);
+  helib::compareTwoNumbers(mu_, ni_, helib::CtPtrs_vectorCt(ct1_), 
+                           helib::CtPtrs_vectorCt(ct2_), false, 
+                           &unpackSlotEncoding);
+
+  std::vector<helib::Ctxt> res_(ct1_.size(), ni_);
+  for (size_t i = 1; i < res_.size(); ++i) {
+    res_[i].clear();
+  }
+  return res_;
+}
+
+std::vector<helib::Ctxt> leq_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots) {
+  helib::Ctxt mu_(public_key), ni_(public_key);
+  helib::compareTwoNumbers(mu_, ni_, helib::CtPtrs_vectorCt(ct1_), 
+                           helib::CtPtrs_vectorCt(ct2_), false, 
+                           &unpackSlotEncoding);
+
+  mu_.negate();
+  mu_.addConstant(NTL::ZZX(1));
+  std::vector<helib::Ctxt> res_(ct1_.size(), mu_);
+  for (size_t i = 1; i < res_.size(); ++i) {
+    res_[i].clear();
+  }
+  return res_;
+}
+
 helib::Ctxt eq(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt result_(public_key), tmp_(public_key), tmp2_(public_key);
   int num_squares = (int)log2(ptxt_mod-1);
@@ -226,7 +344,7 @@ helib::Ctxt eq(
 }
 
 helib::Ctxt lt(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt tmp_(public_key), tmp2_(public_key), result_(public_key);
   result_.clear();
@@ -253,8 +371,8 @@ helib::Ctxt lt(
 }
 
 helib::Ctxt leq(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, size_t ptxt_mod, 
-    size_t slots) {
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_,
+    size_t ptxt_mod, size_t slots) {
   helib::Ctxt less_ = lt(public_key, ct1_, ct2_, ptxt_mod, slots);
   helib::Ctxt equal_ = eq(public_key, ct1_, ct2_, ptxt_mod, slots);
   helib::Ctxt tmp_(public_key), res_(public_key);
@@ -269,7 +387,7 @@ helib::Ctxt leq(
 }
 
 helib::Ctxt lt_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt tmp_(public_key), tmp2_(public_key), result_(public_key), ct2_(public_key);
   result_.clear();
@@ -296,7 +414,7 @@ helib::Ctxt lt_plain(
 }
 
 helib::Ctxt lt_plain(
-    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_,
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV>& pt1_, helib::Ctxt& ct1_,
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt tmp_(public_key), tmp2_(public_key), result_(public_key), ct2_(public_key);
   result_.clear();
@@ -324,7 +442,7 @@ helib::Ctxt lt_plain(
 }
 
 helib::Ctxt eq_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt result_(public_key), tmp_(public_key), tmp2_(public_key), ct2_(public_key);
   public_key.Encrypt(ct2_, pt1_);
@@ -345,7 +463,7 @@ helib::Ctxt eq_plain(
 }
 
 helib::Ctxt leq_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt less_ = lt_plain(public_key, ct1_, pt1_, ptxt_mod, slots);
   helib::Ctxt equal_ = eq_plain(public_key, ct1_, pt1_, ptxt_mod, slots);
@@ -361,7 +479,7 @@ helib::Ctxt leq_plain(
 }
 
 helib::Ctxt leq_plain(
-    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_, 
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV>& pt1_, helib::Ctxt& ct1_, 
     size_t ptxt_mod, size_t slots) {
   helib::Ctxt less_ = lt_plain(public_key, pt1_, ct1_, ptxt_mod, slots);
   helib::Ctxt equal_ = eq_plain(public_key, ct1_, pt1_, ptxt_mod, slots);
@@ -375,4 +493,3 @@ helib::Ctxt leq_plain(
 
   return res_;
 }
-

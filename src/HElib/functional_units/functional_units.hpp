@@ -2,6 +2,9 @@
 #define FUNCTIONAL_UNITS_HPP_
 
 #include "helib/helib.h"
+#include <helib/binaryArith.h>
+#include <helib/PtrVector.h>
+#include <helib/binaryCompare.h>
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -56,11 +59,11 @@ uint64_t decrypt_binary_array_batch(
 
 /// Encrypt/Decrypt a vector of integers to a batched ciphertext
 helib::Ctxt encrypt_nums_to_array_batch(helib::PubKey& public_key, 
-    helib::Context& context, std::vector<uint64_t> nums,  size_t num_elems, 
+    helib::Context& context, std::vector<uint64_t>& nums,  size_t num_elems, 
     size_t slots, size_t padding = 1);
 
 std::vector<uint64_t> decrypt_array_batch_to_nums( helib::SecKey& secret_key, 
-    helib::Context& context, helib::Ctxt encrypted_vec, size_t slots, 
+    helib::Context& context, helib::Ctxt& encrypted_vec, size_t slots, 
     size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
@@ -68,55 +71,91 @@ helib::Ctxt xor_batch(helib::PubKey& public_key, helib::Ctxt& ctxt_1,
     helib::Ctxt& ctxt_2);
 
 helib::Ctxt eq_bin_batched(helib::PubKey& public_key, helib::Context& context, 
-    helib::Ctxt ct1_, helib::Ctxt ct2_, size_t slots, const helib::EncryptedArray& ea,
+    helib::Ctxt& ct1_, helib::Ctxt& ct2_, size_t slots, const helib::EncryptedArray& ea,
     size_t padding);
 
-helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ctxt ct2_, size_t slots);
+helib::Ctxt lt_bin_batched(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ctxt& ct2_, size_t slots);
     
-helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ptxt<helib::BGV> pt1_, size_t slots);
+helib::Ctxt lt_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ptxt<helib::BGV>& pt1_, size_t slots);
 
-helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ptxt<helib::BGV> pt1_, size_t slots);
+helib::Ctxt lte_bin_batched_plain(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ptxt<helib::BGV>& pt1_, size_t slots);
     
-helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt ct1_, 
-    helib::Ctxt ct2_, size_t slots);
+helib::Ctxt lte_bin_batched(helib::PubKey& public_key, helib::Ctxt& ct1_, 
+    helib::Ctxt& ct2_, size_t slots);
 
 helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key, 
-    helib::Context& context, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::Context& context, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     helib::EncryptedArray& ea, size_t slots, size_t padding);
 
+std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+
+std::vector<helib::Ctxt> sub_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+
+std::vector<helib::Ctxt> mult_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+
+std::vector<helib::Ctxt> eq_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+
+std::vector<helib::Ctxt> lt_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+
+std::vector<helib::Ctxt> leq_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 std::vector<helib::zzX>& unpackSlotEncoding, 
+                                 size_t slots);
+                                 
 helib::Ctxt eq(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_, 
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt lt(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_, 
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt leq(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ctxt ct2_, size_t ptxt_mod, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ctxt& ct2_, size_t ptxt_mod, 
     size_t slots);
     
 helib::Ctxt lt_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt lt_plain(
-    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_,
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV>& pt1_, helib::Ctxt& ct1_,
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt eq_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt leq_plain(
-    helib::PubKey& public_key, helib::Ctxt ct1_, helib::Ptxt<helib::BGV> pt1_, 
+    helib::PubKey& public_key, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     size_t ptxt_mod, size_t slots);
 
 helib::Ctxt leq_plain(
-    helib::PubKey& public_key, helib::Ptxt<helib::BGV> pt1_, helib::Ctxt ct1_, 
+    helib::PubKey& public_key, helib::Ptxt<helib::BGV>& pt1_, helib::Ctxt& ct1_, 
     size_t ptxt_mod, size_t slots);
 
 /// Helper function: Prints the name of the example in a fancy banner.
