@@ -25,13 +25,13 @@ public class T2_2_PALISADE extends T2_Compiler {
   }
 
   protected void append_keygen() {
-    append_idx("uint32_t depth = 5;\n");
+    append_idx("uint32_t depth = 20;\n");
     append_idx("double sigma = 3.2;\n");
     append_idx("SecurityLevel securityLevel = HEStd_128_classic;\n");
-    append_idx("size_t plaintext_modulus = 786433;\n");
+    append_idx("size_t plaintext_modulus = 65537;\n");
     append_idx("CryptoContext<DCRTPoly> cc = CryptoContextFactory<\n");
     append_idx("  DCRTPoly>::genCryptoContextBFVrns(plaintext_modulus,\n"); // BFV
-    append_idx("    securityLevel, sigma, 0, depth, 0, OPTIMIZED);\n");
+    append_idx("    securityLevel, sigma, 0, depth, 0, OPTIMIZED, depth);\n");
     append_idx("cc->Enable(ENCRYPTION);\n");
     append_idx("cc->Enable(SHE);\n");
 //    append_idx("cc->Enable(LEVELEDSHE);\n"); // for BGV
@@ -193,11 +193,9 @@ public class T2_2_PALISADE extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-//        TODO
-//        append_idx(id.getName());
-//        this.asm_.append(" = ").append("inc_bin(evaluator, encryptor, ");
-//        this.asm_.append("batch_encoder, relin_keys, ").append(id.getName());
-//        this.asm_.append(", slots);\n");
+       append_idx(id.getName());
+       this.asm_.append(" = ").append("inc_bin(cc, ").append(id.getName());
+       this.asm_.append(", keyPair.publicKey);\n");
       } else {
         append_idx("fill(" + this.vec + ".begin(), " + this.vec);
         this.asm_.append(".end(), 1);\n");
@@ -222,7 +220,9 @@ public class T2_2_PALISADE extends T2_Compiler {
     String id_type = st_.findType(id);
     if (id_type.equals("EncInt")) {
       if (this.is_binary_) {
-//        TODO
+       append_idx(id.getName());
+       this.asm_.append(" = ").append("dec_bin(cc, ").append(id.getName());
+       this.asm_.append(", keyPair.publicKey);\n");
       } else {
         append_idx("fill(" + this.vec + ".begin(), " + this.vec);
         this.asm_.append(".end(), 1);\n");
@@ -255,23 +255,22 @@ public class T2_2_PALISADE extends T2_Compiler {
       this.asm_.append(rhs.getName());
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       if (this.is_binary_) {
-//        TODO:
-//        append_idx(lhs.getName() + " = ");
-//        switch (op) {
-//          case "+=":
-//            this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          case "*=":
-//            this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          case "-=":
-//            this.asm_.append("sub_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          default:
-//            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-//        }
-//        this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-//        this.asm_.append(", slots)");
+       append_idx(lhs.getName());
+       switch (op) {
+         case "+=":
+           this.asm_.append(" = add_bin(cc, ");
+           break;
+         case "*=":
+           this.asm_.append(" = mult_bin(cc, ");
+           break;
+         case "-=":
+           this.asm_.append(" = sub_bin(cc, ");
+           break;
+         default:
+           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+       }
+       this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+       this.asm_.append(", keyPair.publicKey)");
       } else {
         append_idx(lhs.getName());
         switch (op) {
@@ -285,24 +284,23 @@ public class T2_2_PALISADE extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       if (this.is_binary_) {
-        //        TODO
-//        encrypt("tmp_", new String[]{rhs.getName()});
-//        this.asm_.append(";\n");
-//        append_idx(lhs.getName() + " = ");
-//        switch (op) {
-//          case "+=":
-//            this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          case "*=":
-//            this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          case "-=":
-//            this.asm_.append("sub_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//            break;
-//          default:
-//            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-//        }
-//        this.asm_.append(lhs.getName()).append(", tmp_, slots)");
+       encrypt("tmp_", new String[]{rhs.getName()});
+       this.asm_.append(";\n");
+       append_idx(lhs.getName());
+       switch (op) {
+         case "+=":
+           this.asm_.append(" = add_bin(cc, ");
+           break;
+         case "*=":
+           this.asm_.append(" = mult_bin(cc, ");
+           break;
+         case "-=":
+           this.asm_.append(" = sub_bin(cc, ");
+           break;
+         default:
+           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+       }
+       this.asm_.append(lhs.getName()).append(", tmp_, keyPair.publicKey)");
       } else {
         append_idx("fill(" + this.vec + ".begin(), " + this.vec);
         this.asm_.append(".end(), ").append(rhs.getName()).append(");\n");
@@ -348,23 +346,22 @@ public class T2_2_PALISADE extends T2_Compiler {
       case "EncInt[]":
         if (rhs_type.equals("EncInt")) {
           if (this.is_binary_) {
-//            TODO
-//            append_idx(id.getName() + "[" + idx.getName() + "] = ");
-//            switch (op) {
-//              case "+=":
-//                this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//                break;
-//              case "*=":
-//                this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//                break;
-//              case "-=":
-//                this.asm_.append("sub_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
-//                break;
-//              default:
-//                throw new Exception("Error in compound array assignment");
-//            }
-//            this.asm_.append(id.getName()).append("[").append(idx.getName());
-//            this.asm_.append("], ").append(rhs.getName()).append(", slots)");
+           append_idx(id.getName() + "[" + idx.getName() + "] = ");
+           switch (op) {
+             case "+=":
+               this.asm_.append("add_bin(cc, ");
+               break;
+             case "*=":
+               this.asm_.append("mult_bin(cc, ");
+               break;
+             case "-=":
+               this.asm_.append("sub_bin(cc, ");
+               break;
+             default:
+               throw new Exception("Error in compound array assignment");
+           }
+           this.asm_.append(id.getName()).append("[").append(idx.getName());
+           this.asm_.append("], ").append(rhs.getName()).append(", keyPair.publicKey)");
           } else {
             append_idx(id.getName());
             this.asm_.append("[").append(idx.getName()).append("]");
@@ -702,7 +699,38 @@ public class T2_2_PALISADE extends T2_Compiler {
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-//        TODO
+        encrypt("tmp_", new String[]{lhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_);
+        switch (op) {
+          case "+":
+            this.asm_.append(" = add_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
+          case "*":
+            this.asm_.append(" = mult_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
+          case "-":
+            this.asm_.append(" = sub_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
+          case "==":
+            this.asm_.append(" = eq_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
+          case "<":
+            this.asm_.append(" = lt_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", ").append(this.word_sz_);
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "<=":
+            this.asm_.append(" = leq_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
         String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
         append_idx("vector<int64_t> " + tmp_vec + "(slots, " + lhs.getName() + ");\n");
@@ -746,7 +774,38 @@ public class T2_2_PALISADE extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-//        TODO
+        encrypt("tmp_", new String[]{rhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_);
+        switch (op) {
+          case "+":
+            this.asm_.append(" = add_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
+          case "*":
+            this.asm_.append(" = mult_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
+          case "-":
+            this.asm_.append(" = sub_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
+          case "==":
+            this.asm_.append(" = eq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
+          case "<":
+            this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, ").append(this.word_sz_);
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "<=":
+            this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
         String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
         append_idx("vector<int64_t> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
@@ -790,7 +849,42 @@ public class T2_2_PALISADE extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       String res_ = new_ctxt_tmp();
       if (this.is_binary_) {
-//        TODO
+        append_idx(res_);
+        switch (op) {
+          case "+":
+            this.asm_.append(" = add_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "*":
+            this.asm_.append(" = mult_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "-":
+            this.asm_.append(" = sub_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "==":
+            this.asm_.append(" = eq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case "<":
+            this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", ").append(this.word_sz_);
+            this.asm_.append(",keyPair.publicKey);\n");
+            break;
+          case "<=":
+            this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
         switch (op) {
           case "+":
@@ -816,12 +910,14 @@ public class T2_2_PALISADE extends T2_Compiler {
           case "<":
             append_idx(res_);
             this.asm_.append(" = lt(cc, ").append(lhs.getName()).append(", ");
-            this.asm_.append(rhs.getName()).append(", keyPair.publicKey, plaintext_modulus);\n");
+            this.asm_.append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
             break;
           case "<=":
             append_idx(res_);
             this.asm_.append(" = leq(cc, ").append(lhs.getName()).append(", ");
-            this.asm_.append(rhs.getName()).append(", keyPair.publicKey, plaintext_modulus);\n");
+            this.asm_.append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
             break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

@@ -29,8 +29,8 @@ int main(void) {
   print_batched(ctxt1, 2);
 
   i = 9;
-  ctxt_arr[0] = { i, 10 };
-  print_batched(ctxt_arr[0], 2);
+  ctxt_arr[0] = { i, 10, 11 };
+  print_batched(ctxt_arr[0], 3);
 
   ctxt2 = 11;
   ctxt2++;

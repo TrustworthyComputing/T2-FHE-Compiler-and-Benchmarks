@@ -36,13 +36,12 @@ seal::Plaintext encode_all_slots(
 }
 
 seal::Ciphertext mult_all_slots(
-    seal::Evaluator& evaluator, seal::Ciphertext& ct1_, size_t slots,
+    seal::Evaluator& evaluator, seal::Ciphertext& c1, size_t slots,
     size_t padding, seal::GaloisKeys& galois_keys) {
-  seal::Ciphertext res;
-  res = ct1_;
+  seal::Ciphertext res = c1;
   for (int i = 0; i < slots; i++) {
     evaluator.rotate_rows_inplace(res, padding, galois_keys);
-    evaluator.multiply(res, ct1_, res);
+    evaluator.multiply(res, c1, res);
   }
   return res;
 }
@@ -149,12 +148,12 @@ seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
 // True batching, assume all slots are independent (XNOR)
 seal::Ciphertext eq_bin_batched(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Ciphertext& ct2_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Ciphertext& c2,
     seal::GaloisKeys& galios_keys, size_t slots, size_t padding) {
   seal::Ciphertext res_, tmp_;
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
   encryptor.encrypt(one, res_);
-  evaluator.sub(ct1_, ct2_, tmp_);
+  evaluator.sub(c1, c2, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.sub(res_, tmp_, res_);
@@ -165,7 +164,7 @@ seal::Ciphertext eq_bin_batched(
 std::vector<seal::Ciphertext> eq_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,
     seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
-    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    std::vector<seal::Ciphertext>& c1, std::vector<seal::Ciphertext>& c2, 
     size_t word_sz, size_t slots) {
   std::vector<seal::Ciphertext> res_(word_sz);
   seal::Ciphertext tmp_, tmp_res_;
@@ -173,14 +172,13 @@ std::vector<seal::Ciphertext> eq_bin(
   seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
   for (int i = word_sz-1; i > -1; i--) {
     encryptor.encrypt(one, tmp_res_);
-    evaluator.sub(ct1_[i], ct2_[i], tmp_);
+    evaluator.sub(c1[i], c2[i], tmp_);
     evaluator.square_inplace(tmp_);
     evaluator.relinearize_inplace(tmp_, relin_keys);
     evaluator.sub(tmp_res_, tmp_, tmp_res_);
-    if (i == (word_sz-1)) {
+    if (i == word_sz - 1) {
       res_[word_sz-1] = tmp_res_;
-    }
-    else {
+    } else {
       evaluator.multiply(res_[word_sz-1], tmp_res_, res_[word_sz-1]); // combine results
       evaluator.relinearize_inplace(res_[word_sz-1], relin_keys);
       encryptor.encrypt(zero, res_[i]); // Pad result with 0's
@@ -202,115 +200,108 @@ std::vector<seal::Ciphertext> slice(
 std::vector<seal::Ciphertext> lt_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,
     seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
-    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    std::vector<seal::Ciphertext>& c1, std::vector<seal::Ciphertext>& c2, 
     size_t word_sz, size_t slots) {
   std::vector<seal::Ciphertext> res_(word_sz);
-  if (ct1_.size() == 1) {
+  if (c1.size() == 1) {
     seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-    seal::Ciphertext ct1_neg;
-    evaluator.negate(ct1_[0], ct1_neg);
-    evaluator.add_plain(ct1_neg, one, ct1_neg);
-    evaluator.multiply(ct1_neg, ct2_[0], res_[word_sz-1]);
+    seal::Ciphertext c1neg;
+    evaluator.negate(c1[0], c1neg);
+    evaluator.add_plain(c1neg, one, c1neg);
+    evaluator.multiply(c1neg, c2[0], res_[word_sz-1]);
     evaluator.relinearize_inplace(res_[word_sz-1], relin_keys);
     return res_;
   }
+  int len = c1.size() >> 1;
+  std::vector<seal::Ciphertext> lhs_h = slice(c1, 0, len);
+  std::vector<seal::Ciphertext> lhs_l = slice(c1, len, c1.size());
+  std::vector<seal::Ciphertext> rhs_h = slice(c2, 0, len);
+  std::vector<seal::Ciphertext> rhs_l = slice(c2, len, c2.size());
 
-  int len = ct1_.size() >> 1;
-  std::vector<seal::Ciphertext> lhs_h = slice(ct1_, 0, len);
-  std::vector<seal::Ciphertext> lhs_l = slice(ct1_, len, ct1_.size());
-  std::vector<seal::Ciphertext> rhs_h = slice(ct2_, 0, len);
-  std::vector<seal::Ciphertext> rhs_l = slice(ct2_, len, ct2_.size());
-
-  std::vector<seal::Ciphertext> term1 = lt_bin(evaluator, encryptor, batch_encoder,
-      relin_keys, lhs_h, rhs_h, word_sz, slots);
-  std::vector<seal::Ciphertext> h_equal = eq_bin(evaluator, encryptor, batch_encoder,
-      relin_keys, lhs_h, rhs_h, lhs_h.size(), slots);
-  std::vector<seal::Ciphertext> l_equal = lt_bin(evaluator, encryptor, batch_encoder,
-      relin_keys, lhs_l, rhs_l, word_sz, slots);
+  std::vector<seal::Ciphertext> term1 = lt_bin(evaluator, encryptor,
+      batch_encoder, relin_keys, lhs_h, rhs_h, word_sz, slots);
+  std::vector<seal::Ciphertext> h_equal = eq_bin(evaluator, encryptor,
+      batch_encoder, relin_keys, lhs_h, rhs_h, lhs_h.size(), slots);
+  std::vector<seal::Ciphertext> l_equal = lt_bin(evaluator, encryptor,
+      batch_encoder, relin_keys, lhs_l, rhs_l, word_sz, slots);
 
   seal::Ciphertext term2;
   evaluator.multiply(h_equal[lhs_h.size()-1], l_equal[word_sz-1], term2);
   evaluator.relinearize_inplace(term2, relin_keys);
-
-  res_[word_sz-1] = xor_batch(term1[word_sz-1], term2, evaluator, relin_keys);
+  res_[word_sz - 1] = xor_batch(term1[word_sz-1], term2, evaluator, relin_keys);
   seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
-  for (size_t i = 0; i < word_sz-1; i++) {
+  for (size_t i = 0; i < word_sz - 1; i++) {
     encryptor.encrypt(zero, res_[i]); // Pad result with 0's
   }
   return res_;
 }
 
-
 // Vertical batching (assume all slots are independent)
 std::vector<seal::Ciphertext> leq_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,
     seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 
-    std::vector<seal::Ciphertext>& ct1_, std::vector<seal::Ciphertext>& ct2_, 
+    std::vector<seal::Ciphertext>& c1, std::vector<seal::Ciphertext>& c2, 
     size_t word_sz, size_t slots) {
-  seal::Ciphertext tmp_;
-  std::vector<seal::Ciphertext> eq_ = eq_bin(evaluator, encryptor, batch_encoder,
-    relin_keys, ct1_, ct2_, word_sz, slots);
   std::vector<seal::Ciphertext> res_ = lt_bin(evaluator, encryptor, batch_encoder,
-    relin_keys, ct1_, ct2_, word_sz, slots);
-  evaluator.multiply(eq_[word_sz-1], res_[word_sz-1], tmp_);
-  evaluator.relinearize_inplace(tmp_, relin_keys);
-  evaluator.add(eq_[word_sz-1], res_[word_sz-1], res_[word_sz-1]);
-  evaluator.sub(res_[word_sz-1], tmp_, res_[word_sz-1]);
+    relin_keys, c2, c1, word_sz, slots);
+  evaluator.negate(res_[word_sz-1], res_[word_sz-1]);
+  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  evaluator.add_plain(res_[word_sz-1], one, res_[word_sz-1]);
   return res_;
 }
 
 /// Vertical batching (ripple carry)
 std::vector<seal::Ciphertext> inc_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
-    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& c1, 
     size_t slots) {
   seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 1, slots);
   seal::Ciphertext carry_;
   encryptor.encrypt(carry_ptxt, carry_);
-  std::vector<seal::Ciphertext> res_(ct1_.size());
-  for (int i = ct1_.size()-1; i > 0; --i) {
-    res_[i] = xor_batch(ct1_[i], carry_, evaluator, relin_keys);
-    evaluator.multiply(ct1_[i], carry_, carry_);
+  std::vector<seal::Ciphertext> res_(c1.size());
+  for (int i = c1.size()-1; i > 0; --i) {
+    res_[i] = xor_batch(c1[i], carry_, evaluator, relin_keys);
+    evaluator.multiply(c1[i], carry_, carry_);
     evaluator.relinearize_inplace(carry_, relin_keys);
   }
-  res_[0] = xor_batch(ct1_[0], carry_, evaluator, relin_keys);
+  res_[0] = xor_batch(c1[0], carry_, evaluator, relin_keys);
   return res_;
 }
 
 /// Vertical batching (ripple carry)
 std::vector<seal::Ciphertext> dec_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
-    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& c1, 
     size_t slots) {
   seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 1, slots);
-  seal::Ciphertext carry_, neg_ct1_;
+  seal::Ciphertext carry_, neg_c1;
   encryptor.encrypt(carry_ptxt, carry_);
-  std::vector<seal::Ciphertext> res_(ct1_.size());
-  for (int i = ct1_.size()-1; i > 0; --i) {
-    res_[i] = xor_batch(ct1_[i], carry_, evaluator, relin_keys);
-    evaluator.negate(ct1_[i], neg_ct1_);
-    evaluator.add_plain(neg_ct1_, carry_ptxt, neg_ct1_);
-    evaluator.multiply(neg_ct1_, carry_, carry_);
+  std::vector<seal::Ciphertext> res_(c1.size());
+  for (int i = c1.size()-1; i > 0; --i) {
+    res_[i] = xor_batch(c1[i], carry_, evaluator, relin_keys);
+    evaluator.negate(c1[i], neg_c1);
+    evaluator.add_plain(neg_c1, carry_ptxt, neg_c1);
+    evaluator.multiply(neg_c1, carry_, carry_);
     evaluator.relinearize_inplace(carry_, relin_keys);
   }
-  res_[0] = xor_batch(ct1_[0], carry_, evaluator, relin_keys);
+  res_[0] = xor_batch(c1[0], carry_, evaluator, relin_keys);
   return res_;
 }
 
 /// Vertical batching (ripple carry)
 std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
-    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
-    std::vector<seal::Ciphertext>& ct2_, size_t slots) {
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& c1, 
+    std::vector<seal::Ciphertext>& c2, size_t slots) {
   seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 0, slots);
   seal::Ciphertext carry_;
   encryptor.encrypt(carry_ptxt, carry_);
-  std::vector<seal::Ciphertext>& smaller = (ct1_.size() < ct2_.size()) ? ct1_ : ct2_;
-  std::vector<seal::Ciphertext>& bigger = (ct1_.size() < ct2_.size()) ? ct2_ : ct1_;
+  std::vector<seal::Ciphertext>& smaller = (c1.size() < c2.size()) ? c1 : c2;
+  std::vector<seal::Ciphertext>& bigger = (c1.size() < c2.size()) ? c2 : c1;
   size_t offset = bigger.size() - smaller.size();
   std::vector<seal::Ciphertext> res_(smaller.size());
   for (int i = smaller.size()-1; i >= 0; --i) {
-    // sum = (ct1_ ^ ct2_) ^ in_carry
+    // sum = (c1 ^ c2) ^ in_carry
     seal::Ciphertext xor_ = xor_batch(smaller[i], bigger[i + offset], evaluator, relin_keys);
     res_[i] = xor_batch(xor_, carry_, evaluator, relin_keys);
     if (i == 0) break; // don't need output carry
@@ -329,32 +320,31 @@ std::vector<seal::Ciphertext> add_bin(seal::Evaluator& evaluator,
 /// Vertical batching (assume inputs are the same size) (ripple carry)
 std::vector<seal::Ciphertext> sub_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
-    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
-    std::vector<seal::Ciphertext>& ct2_, size_t slots) {
-  assert(ct1_.size() == ct2_.size());
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& c1, 
+    std::vector<seal::Ciphertext>& c2, size_t slots) {
+  assert(c1.size() == c2.size());
   seal::Plaintext carry_ptxt = encode_all_slots(batch_encoder, 0, slots);
   seal::Ciphertext carry_;
   encryptor.encrypt(carry_ptxt, carry_);
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-  std::vector<seal::Ciphertext> res_(ct1_.size());
+  std::vector<seal::Ciphertext> res_(c1.size());
 
-  // Generate two's complement of ct2_
-  std::vector<seal::Ciphertext> neg_ct2_(ct2_.size());
-  for (int i = ct2_.size()-1; i > -1; --i) {
-    evaluator.negate(ct2_[i], neg_ct2_[i]);
-    evaluator.add_plain(neg_ct2_[i], one, neg_ct2_[i]);
+  // Generate two's complement of c2
+  std::vector<seal::Ciphertext> neg_c2(c2.size());
+  for (int i = c2.size() - 1; i > -1; --i) {
+    evaluator.negate(c2[i], neg_c2[i]);
+    evaluator.add_plain(neg_c2[i], one, neg_c2[i]);
   }
-  neg_ct2_ = inc_bin(evaluator, encryptor, batch_encoder, relin_keys, neg_ct2_, slots);
-
-  for (int i = ct1_.size()-1; i >= 0; --i) {
-    // sum = (ct1_ ^ ct2_) ^ in_carry
-    seal::Ciphertext xor_ = xor_batch(ct1_[i], neg_ct2_[i], evaluator, relin_keys);
+  neg_c2 = inc_bin(evaluator, encryptor, batch_encoder, relin_keys, neg_c2, slots);
+  for (int i = c1.size() - 1; i >= 0; --i) {
+    // sum = (c1 ^ c2) ^ in_carry
+    seal::Ciphertext xor_ = xor_batch(c1[i], neg_c2[i], evaluator, relin_keys);
     res_[i] = xor_batch(xor_, carry_, evaluator, relin_keys);
     if (i == 0) break; // don't need output carry
 
     // next carry computation
     seal::Ciphertext prod_;
-    evaluator.multiply(ct1_[i], neg_ct2_[i], prod_);
+    evaluator.multiply(c1[i], neg_c2[i], prod_);
     evaluator.relinearize_inplace(prod_, relin_keys);
     evaluator.multiply(carry_, xor_, xor_);
     evaluator.relinearize_inplace(xor_, relin_keys);
@@ -366,22 +356,21 @@ std::vector<seal::Ciphertext> sub_bin(seal::Evaluator& evaluator,
 /// Vertical batching (assume inputs are the same size)
 std::vector<seal::Ciphertext> mult_bin(seal::Evaluator& evaluator, 
     seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder, 
-    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& ct1_, 
-    std::vector<seal::Ciphertext>& ct2_, size_t slots) {
-  assert(ct1_.size() == ct2_.size());
-  std::vector<seal::Ciphertext> tmp_(ct1_.size());
-  std::vector<seal::Ciphertext> prod_(ct1_.size());
+    seal::RelinKeys& relin_keys, std::vector<seal::Ciphertext>& c1, 
+    std::vector<seal::Ciphertext>& c2, size_t slots) {
+  assert(c1.size() == c2.size());
+  std::vector<seal::Ciphertext> tmp_(c1.size());
+  std::vector<seal::Ciphertext> prod_(c1.size());
   seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
   for (int i = 0; i < prod_.size(); i++) {
     encryptor.encrypt(zero, prod_[i]);
   }
-  for (int i = ct1_.size()-1; i >= 0; i--) {
-
-    for (int j = ct2_.size()-1; j >= (int)ct2_.size()-1-i; --j) {
-      evaluator.multiply(ct1_[i], ct2_[j], tmp_[j]);
+  for (int i = c1.size() - 1; i >= 0; i--) {
+    for (int j = c2.size() - 1; j >= (int)c2.size() - 1 - i; --j) {
+      evaluator.multiply(c1[i], c2[j], tmp_[j]);
       evaluator.relinearize_inplace(tmp_[j], relin_keys);
     }
-    std::vector<seal::Ciphertext> tmp_slice_ = slice(prod_, 0, i+1);
+    std::vector<seal::Ciphertext> tmp_slice_ = slice(prod_, 0, i + 1);
     tmp_slice_ = add_bin(evaluator, encryptor, batch_encoder, relin_keys, 
                          tmp_slice_, tmp_, slots);
     for (int j = i; j >= 0; --j) {
@@ -394,27 +383,25 @@ std::vector<seal::Ciphertext> mult_bin(seal::Evaluator& evaluator,
 // True batching, assume all slots are independent
 seal::Ciphertext lt_bin_batched(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Ciphertext& ct2_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Ciphertext& c2,
     size_t slots) {
-  seal::Ciphertext res_;
-  seal::Ciphertext tmp_;
+  seal::Ciphertext res_, tmp_;
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-  evaluator.sub_plain(ct1_, one, tmp_);
+  evaluator.sub_plain(c1, one, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
-  evaluator.multiply(tmp_, ct2_, res_);
+  evaluator.multiply(tmp_, c2, res_);
   evaluator.relinearize_inplace(res_, relin_keys);
   return res_;
 }
 
 seal::Ciphertext lt_bin_batched_plain(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1_,
     size_t slots) {
-  seal::Ciphertext res_;
-  seal::Ciphertext tmp_;
+  seal::Ciphertext res_, tmp_;
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-  evaluator.sub_plain(ct1_, one, tmp_);
+  evaluator.sub_plain(c1, one, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.multiply_plain(tmp_, pt1_, res_);
@@ -423,20 +410,17 @@ seal::Ciphertext lt_bin_batched_plain(
 
 seal::Ciphertext lte_bin_batched_plain(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1_,
     size_t slots) {
   seal::Ciphertext res_, tmp_, less_, equal_;
-
-  // Less-
+  // Less-than
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-  evaluator.sub_plain(ct1_, one, tmp_);
+  evaluator.sub_plain(c1, one, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.multiply_plain(tmp_, pt1_, less_);
-
   // Equal
-  evaluator.multiply_plain(ct1_, pt1_, equal_);
-
+  evaluator.multiply_plain(c1, pt1_, equal_);
   // Less-than OR Equal
   evaluator.multiply(less_, equal_, tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
@@ -447,20 +431,17 @@ seal::Ciphertext lte_bin_batched_plain(
 
 seal::Ciphertext lte_bin_batched(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1_,
     size_t slots) {
   seal::Ciphertext res_, tmp_, less_, equal_;
-
   // Less-than
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
-  evaluator.sub_plain(ct1_, one, tmp_);
+  evaluator.sub_plain(c1, one, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.multiply_plain(tmp_, pt1_, less_);
-
   // Equal
-  evaluator.multiply_plain(ct1_, pt1_, equal_);
-
+  evaluator.multiply_plain(c1, pt1_, equal_);
   // Less-than OR Equal
   evaluator.multiply(less_, equal_, tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
@@ -471,43 +452,41 @@ seal::Ciphertext lte_bin_batched(
 
 seal::Ciphertext eq_bin_batched_plain(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1,
     seal::GaloisKeys& galios_keys, size_t slots, size_t padding) {
   seal::Ciphertext res_, tmp_;
   seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
   encryptor.encrypt(one, res_);
-  evaluator.sub_plain(ct1_, pt1, tmp_);
+  evaluator.sub_plain(c1, pt1, tmp_);
   evaluator.square_inplace(tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.sub(res_, tmp_, res_);
-  // res = mult_all_slots(evaluator, res, slots, padding, galois_keys);
   return res_;
 }
 
 seal::Ciphertext eq_bin_batched_plain(
     seal::Evaluator& evaluator, seal::BatchEncoder& batch_encoder,
-    seal::Ciphertext& ct1_, seal::Plaintext& pt1_, seal::GaloisKeys& galios_keys,
+    seal::Ciphertext& c1, seal::Plaintext& pt1_, seal::GaloisKeys& galios_keys,
     size_t slots, size_t padding) {
   seal::Ciphertext res;
-  evaluator.multiply_plain(ct1_, pt1_, res);
-  // res = mult_all_slots(evaluator, res, slots, padding, galois_keys);
+  evaluator.multiply_plain(c1, pt1_, res);
   return res;
 }
 
 // Compute res = 1 - (x-y)^(ptxt_mod-1)
 seal::Ciphertext eq(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Ciphertext& ct2_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Ciphertext& c2,
     size_t ptxt_mod) {
   seal::Ciphertext result_, tmp_, tmp2_;
-  int num_squares = (int)log2(ptxt_mod-1);
-  evaluator.sub(ct1_, ct2_, tmp_);
+  int num_squares = (int) log2(ptxt_mod - 1);
+  evaluator.sub(c1, c2, tmp_);
   tmp2_ = tmp_;
   for (int i = 0; i < num_squares; i++) { // Square
     evaluator.square_inplace(tmp2_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
-  for (int i = 0; i < ((ptxt_mod-1) - pow(2,num_squares)); i++) { // Mult
+  for (int i = 0; i < (ptxt_mod - 1 - pow(2, num_squares)); i++) { // Mult
     evaluator.multiply_inplace(tmp2_, tmp_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
@@ -519,27 +498,24 @@ seal::Ciphertext eq(
 
 seal::Ciphertext lt(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext& ct1_, seal::Ciphertext& ct2_, size_t ptxt_mod) {
+    seal::Ciphertext& c1, seal::Ciphertext& c2, size_t ptxt_mod) {
   seal::Plaintext one("1");
   seal::Ciphertext one_;
   encryptor.encrypt(one, one_);
   seal::Ciphertext tmp_, tmp2_, result_;
   seal::Plaintext plain_zero("0");
   encryptor.encrypt(plain_zero, result_);
-
-  int num_squares = (int)log2(ptxt_mod-1);
-
-  for (int i = -(ptxt_mod-1)/2; i < 0; i++) {
+  int num_squares = (int) log2(ptxt_mod - 1);
+  for (int i = -(ptxt_mod - 1)/2; i < 0; i++) {
     seal::Plaintext a = uint64_to_hex_string(i);
-
-    evaluator.sub(ct1_, ct2_, tmp_);
+    evaluator.sub(c1, c2, tmp_);
     evaluator.sub_plain(tmp_, a, tmp_);
     tmp2_ = tmp_;
     for (int j = 0; j < num_squares; j++) { // Square
       evaluator.multiply_inplace(tmp2_, tmp2_);
       evaluator.relinearize_inplace(tmp2_, relin_keys);
     }
-    for (int j = 0; j < ((ptxt_mod-1) - pow(2,num_squares)); j++) { // Mult
+    for (int j = 0; j < (ptxt_mod - 1 - pow(2, num_squares)); j++) { // Mult
       evaluator.multiply_inplace(tmp2_, tmp_);
       evaluator.relinearize_inplace(tmp2_, relin_keys);
     }
@@ -551,43 +527,38 @@ seal::Ciphertext lt(
 
 seal::Ciphertext leq(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext& ct1_, seal::Ciphertext& ct2_, size_t ptxt_mod) {
-  seal::Ciphertext less_ = lt(encryptor, evaluator, relin_keys, ct1_, ct2_, ptxt_mod);
-  seal::Ciphertext equal_ = eq(encryptor, evaluator, relin_keys, ct1_, ct2_, ptxt_mod);
+    seal::Ciphertext& c1, seal::Ciphertext& c2, size_t ptxt_mod) {
+  seal::Ciphertext less_ = lt(encryptor, evaluator, relin_keys, c1, c2, ptxt_mod);
+  seal::Ciphertext equal_ = eq(encryptor, evaluator, relin_keys, c1, c2, ptxt_mod);
   seal::Ciphertext tmp_, res_;
-
   evaluator.multiply(less_, equal_, tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.add(less_, equal_, res_);
   evaluator.sub(res_, tmp_, res_);
-
   return res_;
 }
 
 seal::Ciphertext lt_plain(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1_,
     size_t ptxt_mod) {
   seal::Plaintext one("1");
   seal::Ciphertext one_;
   encryptor.encrypt(one, one_);
-
   seal::Ciphertext tmp_, tmp2_, result_;
   seal::Plaintext plain_zero("0");
   encryptor.encrypt(plain_zero, result_);
-
-  int num_squares = (int)log2(ptxt_mod-1);
-
-  for (int i = -(ptxt_mod-1)/2; i < 0; i++) {
+  int num_squares = (int) log2(ptxt_mod - 1);
+  for (int i = -(ptxt_mod - 1)/2; i < 0; i++) {
     seal::Plaintext a = uint64_to_hex_string(i);
-    evaluator.sub_plain(ct1_, pt1_, tmp_);
+    evaluator.sub_plain(c1, pt1_, tmp_);
     evaluator.sub_plain(tmp_, a, tmp_);
     tmp2_ = tmp_;
     for (int j = 0; j < num_squares; j++) { // Square
       evaluator.multiply_inplace(tmp2_, tmp2_);
       evaluator.relinearize_inplace(tmp2_, relin_keys);
     }
-    for (int j = 0; j < ((ptxt_mod-1) - pow(2,num_squares)); j++) { // Mult
+    for (int j = 0; j < (ptxt_mod - 1 - pow(2, num_squares)); j++) { // Mult
       evaluator.multiply_inplace(tmp2_, tmp_);
       evaluator.relinearize_inplace(tmp2_, relin_keys);
     }
@@ -599,17 +570,17 @@ seal::Ciphertext lt_plain(
 
 seal::Ciphertext eq_plain(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
-    seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Plaintext& pt1_,
+    seal::RelinKeys& relin_keys, seal::Ciphertext& c1, seal::Plaintext& pt1_,
     size_t ptxt_mod) {
   seal::Ciphertext result_, tmp_, tmp2_;
-  int num_squares = (int)log2(ptxt_mod-1);
-  evaluator.sub_plain(ct1_, pt1_, tmp_);
+  int num_squares = (int) log2(ptxt_mod - 1);
+  evaluator.sub_plain(c1, pt1_, tmp_);
   tmp2_ = tmp_;
   for (int i = 0; i < num_squares; i++) { // Square
     evaluator.multiply_inplace(tmp2_, tmp2_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
-  for (int i = 0; i < ((ptxt_mod-1) - pow(2,num_squares)); i++) { // Mult
+  for (int i = 0; i < (ptxt_mod - 1 - pow(2, num_squares)); i++) { // Mult
     evaluator.multiply_inplace(tmp2_, tmp_);
     evaluator.relinearize_inplace(tmp2_, relin_keys);
   }
@@ -621,15 +592,13 @@ seal::Ciphertext eq_plain(
 
 seal::Ciphertext leq_plain(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator, seal::RelinKeys& relin_keys,
-    seal::Ciphertext& ct1_, seal::Plaintext& pt1_, size_t ptxt_mod) {
-  seal::Ciphertext less_ = lt_plain(encryptor, evaluator, relin_keys, ct1_, pt1_, ptxt_mod);
-  seal::Ciphertext equal_ = eq_plain(encryptor, evaluator, relin_keys, ct1_, pt1_, ptxt_mod);
+    seal::Ciphertext& c1, seal::Plaintext& pt1_, size_t ptxt_mod) {
+  seal::Ciphertext less_ = lt_plain(encryptor, evaluator, relin_keys, c1, pt1_, ptxt_mod);
+  seal::Ciphertext equal_ = eq_plain(encryptor, evaluator, relin_keys, c1, pt1_, ptxt_mod);
   seal::Ciphertext tmp_, res_;
-
   evaluator.multiply(less_, equal_, tmp_);
   evaluator.relinearize_inplace(tmp_, relin_keys);
   evaluator.add(less_, equal_, res_);
   evaluator.sub(res_, tmp_, res_);
-
   return res_;
 }
