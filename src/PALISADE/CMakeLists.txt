@@ -26,25 +26,29 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(fibonacci-bfv-bgv.out)
 target_sources(fibonacci-bfv-bgv.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/fibonacci-bfv-bgv/fibonacci-bfv-bgv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
 )
 
 add_executable(factorial-bfv-bgv.out)
 target_sources(factorial-bfv-bgv.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/factorial-bfv-bgv/factorial-bfv-bgv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
 )
 
 add_executable(lr-bfv-bgv-batched.out)
 target_sources(lr-bfv-bgv-batched.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/ML-Inference/lr/lr-bfv-bgv-batched.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
 )
 
 add_executable(test.out)
 target_sources(test.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/compiled/test.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/helper.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
+)
+
+add_executable(functional_units_test.out)
+target_sources(functional_units_test.out PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units_test.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
 )
