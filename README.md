@@ -1,4 +1,8 @@
-<h1 align="center">Terminator Suite 2: Homomorphic Days <a href="https://github.com/TrustworthyComputing/Zilch/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
+<h1 align="center">Terminator Suite 2: Homomorphic Day <a href="https://github.com/TrustworthyComputing/Zilch/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
+
+<p align="center">
+    <img src="./logos/t2-logo.png" height="20%" width="20%">
+</p>
 <h3 align="center">Data-Oblivious Benchmarks for Encrypted Data Computation</h3>
 
 
