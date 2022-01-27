@@ -106,11 +106,11 @@ int main(int argc, char** argv) {
     evaluator.multiply_inplace(temp_[0], temp_[1]);
     evaluator.relinearize_inplace(temp_[0], relin_keys);
     // (ROL-1 & ROL-8) ^ Ct[0]
-    temp_[0] = xor_batch(temp_[0], ctxt_[0], evaluator, relin_keys);
+    temp_[0] = exor(temp_[0], ctxt_[0], evaluator, relin_keys);
     // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2
-    temp_[0] = xor_batch(temp_[0], temp_[2], evaluator, relin_keys);
+    temp_[0] = exor(temp_[0], temp_[2], evaluator, relin_keys);
     // (ROL-1 & ROL-8) ^ Ct[0] ^ ROL-2 ^ RKEY
-    ctxt_[1] = xor_batch(temp_[0], rkeys_[i], evaluator, relin_keys);
+    ctxt_[1] = exor(temp_[0], rkeys_[i], evaluator, relin_keys);
 
     cout << "Noise budget in ctxt_1: "
          << decryptor.invariant_noise_budget(ctxt_[1]) << " bits" << endl;

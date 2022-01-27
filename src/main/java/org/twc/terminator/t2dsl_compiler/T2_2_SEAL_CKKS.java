@@ -517,11 +517,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
           break;
         case "^":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(tmp_, ").append(rhs.getName());
-          this.asm_.append(", evaluator, relin_keys);\n");
-          break;
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           append_idx(res_);
           this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
@@ -564,11 +560,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
           break;
         case "^":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(").append(lhs.getName());
-          this.asm_.append(", tmp_, evaluator, relin_keys);\n");
-          break;
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           append_idx(res_);
           this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
@@ -612,11 +604,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           this.asm_.append(", ").append(res_).append(");\n");
           break;
         case "^":
-          append_idx(res_);
-          this.asm_.append(" = xor_batch(").append(lhs.getName());
-          this.asm_.append(", ").append(lhs.getName());
-          this.asm_.append(", evaluator, relin_keys);\n");
-          break;
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           append_idx(res_);
           this.asm_.append(" = eq(encryptor, encoder, evaluator, ");

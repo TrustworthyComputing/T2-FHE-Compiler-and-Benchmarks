@@ -187,10 +187,26 @@ func slice(in_ []*bfv.Ciphertext, start, end int) []*bfv.Ciphertext {
 	return res
 }
 
-func BinXor(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
+func BinSingleXor(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	res := (*evaluator_).SubNew(c1, c2)
 	receiver := (*evaluator_).MulNew(res, res)
 	(*evaluator_).Relinearize(receiver, res)
+	return res
+}
+
+func BinXor(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	if ptxt_mod_ > 2 {
+		for i := 0; i < len(res); i++ {
+			res[i] = (*evaluator_).SubNew(c1[i], c2[i])
+			receiver := (*evaluator_).MulNew(res[i], res[i])
+			res[i] = (*evaluator_).RelinearizeNew(receiver)
+		}
+	} else {
+		for i := 0; i < len(res); i++ {
+			res[i] = (*evaluator_).AddNew(c1[i], c2[i])
+		}
+	}
 	return res
 }
 
@@ -218,7 +234,7 @@ func BinLt(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
 	receiver := (*evaluator_).MulNew(h_equal[len(lhs_h)-1], l_equal[word_sz-1])
 	term2 := (*evaluator_).RelinearizeNew(receiver)
 
-	res[word_sz-1] = BinXor(term1[word_sz-1], term2)
+	res[word_sz-1] = BinSingleXor(term1[word_sz-1], term2)
 	zero := EncodeAllSlots(0)
 	for i := 0; i < (word_sz-1); i++ {
 		res[i] = (*encryptorPk_).EncryptNew(zero)
@@ -238,11 +254,11 @@ func BinInc(c1 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	carry_ptxt := EncodeAllSlots(1)
 	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
 	for i := (len(c1)-1); i > 0; i-- {
-		res[i] = BinXor(c1[i], carry)
+		res[i] = BinSingleXor(c1[i], carry)
 		receiver := (*evaluator_).MulNew(c1[i], carry)
 		carry = (*evaluator_).RelinearizeNew(receiver)
 	}
-	res[0] = BinXor(c1[0], carry)
+	res[0] = BinSingleXor(c1[0], carry)
 	return res
 }
 
@@ -251,13 +267,13 @@ func BinDec(c1 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	carry_ptxt := EncodeAllSlots(1)
 	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
 	for i := (len(c1)-1); i > 0; i-- {
-		res[i] = BinXor(c1[i], carry)
+		res[i] = BinSingleXor(c1[i], carry)
 		neg_ct1 := (*evaluator_).NegNew(c1[i])
 		(*evaluator_).Add(neg_ct1, carry_ptxt, neg_ct1)
 		receiver := (*evaluator_).MulNew(neg_ct1, carry)
 		carry = (*evaluator_).RelinearizeNew(receiver)
 	}
-	res[0] = BinXor(c1[0], carry)
+	res[0] = BinSingleXor(c1[0], carry)
 	return res
 }
 
@@ -274,8 +290,8 @@ func BinAdd(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	res := make([]*bfv.Ciphertext, len(smaller))
 
 	for i := len(smaller) - 1; i >= 0; i-- {
-		xor_ := BinXor(smaller[i], bigger[i + offset])
-		res[i] = BinXor(xor_, carry)
+		xor_ := BinSingleXor(smaller[i], bigger[i + offset])
+		res[i] = BinSingleXor(xor_, carry)
 		if i == 0 {
 			break
 		}
@@ -283,7 +299,7 @@ func BinAdd(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 		prod_ := (*evaluator_).RelinearizeNew(receiver)
 		(*evaluator_).Mul(carry, xor_, receiver)
 		xor_ = (*evaluator_).RelinearizeNew(receiver)
-		carry = BinXor(prod_, xor_)
+		carry = BinSingleXor(prod_, xor_)
 	}
 	return res
 }
@@ -305,8 +321,8 @@ func BinSub(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	neg_c2 = BinInc(neg_c2)
 
 	for i := len(c1) - 1; i >= 0; i-- {
-		xor_ := BinXor(c1[i], neg_c2[i])
-		res[i] = BinXor(xor_, carry)
+		xor_ := BinSingleXor(c1[i], neg_c2[i])
+		res[i] = BinSingleXor(xor_, carry)
 		if i == 0 {
 			break
 		}
@@ -314,7 +330,7 @@ func BinSub(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 		prod_ := (*evaluator_).RelinearizeNew(receiver)
 		(*evaluator_).Mul(carry, xor_, receiver)
 		xor_ = (*evaluator_).RelinearizeNew(receiver)
-		carry = BinXor(prod_, xor_)
+		carry = BinSingleXor(prod_, xor_)
 	}
 	return res
 }

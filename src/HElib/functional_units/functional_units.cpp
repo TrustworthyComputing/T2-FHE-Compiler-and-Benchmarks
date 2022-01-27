@@ -96,7 +96,7 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(helib::SecKey& secret_key,
   return result_vec;
 }
 
-helib::Ctxt xor_batch(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+helib::Ctxt exor(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
     helib::Ctxt& ctxt_2) {
   helib::Ctxt result(public_key);
   result = ctxt_1;
@@ -231,6 +231,29 @@ std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key,
   
   return ctptr_to_vec(public_key, output_wrapper);
 }
+
+std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 size_t ptxt_mod) {
+  assert(ct1_.size() == ct2_.size());
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ct1_.size(), scratch);
+  if (ptxt_mod > 2) {
+    for (int i = 0; i < res_.size(); i++) {
+      res_[i] = ct1_[i];
+      res_[i] -= ct2_[i];
+      res_[i] *= res_[i];
+    }
+  } else {
+    for (int i = 0; i < res_.size(); i++) {
+      res_[i] = ct1_[i];
+      res_[i] += ct2_[i];
+    }
+  }
+  return res_;
+}
+
 
 std::vector<helib::Ctxt> sub_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& ct1_, 

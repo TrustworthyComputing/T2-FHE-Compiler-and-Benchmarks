@@ -67,7 +67,7 @@ std::vector<uint64_t> decrypt_array_batch_to_nums( helib::SecKey& secret_key,
     size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
-helib::Ctxt xor_batch(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+helib::Ctxt exor(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
     helib::Ctxt& ctxt_2);
 
 helib::Ctxt eq_bin_batched(helib::PubKey& public_key, helib::Context& context, 
@@ -90,6 +90,11 @@ helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key,
     helib::Context& context, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     helib::EncryptedArray& ea, size_t slots, size_t padding);
 
+std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct1_, 
+                                 std::vector<helib::Ctxt>& ct2_, 
+                                 size_t ptxt_mod);
+                                 
 std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& ct1_, 
                                  std::vector<helib::Ctxt>& ct2_, 

@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Test XOR (Batched)
-  helib::Ctxt xor_result = xor_batch(public_key, bin_batch, bin_batch);
+  helib::Ctxt xor_result = exor(public_key, bin_batch, bin_batch);
   assert(decrypt_binary_array_batch(secret_key, context, xor_result, 8, 1) == 0);
 
   // Test Equality (Batched)

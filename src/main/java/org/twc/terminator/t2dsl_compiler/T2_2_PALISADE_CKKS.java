@@ -516,6 +516,8 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         case "-":
           this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(");\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           // TODO:
           throw new RuntimeException("equality not yet supported");
@@ -559,6 +561,8 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         case "-":
           this.asm_.append("EvalSub(").append(lhs.getName()).append(", tmp);\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           throw new RuntimeException("equality not yet supported");
 //          append_idx(res_);
@@ -599,6 +603,8 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
           this.asm_.append("EvalSub(").append(lhs.getName()).append(", ");
           this.asm_.append(rhs.getName()).append(");\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
           throw new RuntimeException("equality not yet supported");
 //          append_idx(res_);

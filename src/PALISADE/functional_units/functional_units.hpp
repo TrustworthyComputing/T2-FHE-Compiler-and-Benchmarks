@@ -53,7 +53,7 @@ Ciphertext<T> encrypt_repeated_integer(CryptoContext<T>& cc, LPPublicKey<T>& pk,
 
 /// XOR between two batched binary ciphertexts
 template <typename T>
-Ciphertext<T> xor_batch(CryptoContext<T>& cc, Ciphertext<T>& c1, 
+Ciphertext<T> exor(CryptoContext<T>& cc, Ciphertext<T>& c1, 
                         Ciphertext<T>& c2) {
   Ciphertext<T> res_ = cc->EvalSub(c1, c2);
   return cc->EvalMultAndRelinearize(res_, res_);;
@@ -77,6 +77,28 @@ Ciphertext<T> eq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
   Plaintext pt = cc->MakePackedPlaintext(one);
   return cc->EvalSub(pt, result_);
 }
+
+template <typename T>
+std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc, 
+                                   std::vector<Ciphertext<T>>& c1, 
+                                   std::vector<Ciphertext<T>>& c2, 
+                                   size_t ptxt_mod) {
+  assert(c1.size() == c2.size());
+  std::vector<Ciphertext<T>> res_(c1.size());
+  if (ptxt_mod > 2) {
+    // https://stackoverflow.com/a/46674398
+    for (size_t i = 0; i < res_.size(); i++) {
+      res_[i] = cc->EvalSub(c1[i], c2[i]);
+      res_[i] = cc->EvalMultAndRelinearize(res_[i], res_[i]);
+    }
+  } else {
+    for (size_t i = 0; i < res_.size(); i++) {
+      res_[i] = cc->EvalAdd(c1[i], c2[i]);
+    }
+  }
+  return res_;             
+}
+
 
 template <typename T>
 Ciphertext<T> lt(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
@@ -181,7 +203,7 @@ std::vector<Ciphertext<T>> lt_bin(CryptoContext<T>& cc,
   
   Ciphertext<T> term2 = cc->EvalMultAndRelinearize(h_equal[lhs_h.size() - 1],
       l_equal[word_sz - 1]);
-  res_[word_sz - 1] = xor_batch(cc, term1[word_sz - 1], term2);
+  res_[word_sz - 1] = exor(cc, term1[word_sz - 1], term2);
   std::vector<int64_t> vzero(slots, 0);
   Plaintext pt_zero = cc->MakePackedPlaintext(vzero);
   for (size_t i = 0; i < word_sz - 1; i++) {
@@ -215,12 +237,12 @@ std::vector<Ciphertext<T>> dec_bin(CryptoContext<T>& cc,
   carry_ = cc->Encrypt(pub_key, carry_ptxt);
   std::vector<Ciphertext<T>> res_(word_sz);
   for (int i = word_sz - 1; i > 0; --i) {
-    res_[i] = xor_batch(cc, c1[i], carry_);
+    res_[i] = exor(cc, c1[i], carry_);
     neg_c1 = cc->EvalNegate(c1[i]);
     neg_c1 = cc->EvalAdd(neg_c1, carry_ptxt);
     carry_ = cc->EvalMultAndRelinearize(neg_c1, carry_);
   }
-  res_[0] = xor_batch(cc, c1[0], carry_);
+  res_[0] = exor(cc, c1[0], carry_);
   return res_;
 }
 
@@ -236,10 +258,10 @@ std::vector<Ciphertext<T>> inc_bin(CryptoContext<T>& cc,
   carry_ = cc->Encrypt(pub_key, carry_ptxt);
   std::vector<Ciphertext<T>> res_(word_sz);
   for (int i = word_sz - 1; i > 0; --i) {
-    res_[i] = xor_batch(cc, c1[i], carry_);
+    res_[i] = exor(cc, c1[i], carry_);
     carry_ = cc->EvalMultAndRelinearize(c1[i], carry_);
   }
-  res_[0] = xor_batch(cc, c1[0], carry_);
+  res_[0] = exor(cc, c1[0], carry_);
   return res_;
 }
 
@@ -259,14 +281,14 @@ std::vector<Ciphertext<T>> add_bin(CryptoContext<T>& cc,
   std::vector<Ciphertext<T>> res_(smaller.size());
   for (int i = smaller.size()-1; i >= 0; --i) {
     // sum = (ct1_ ^ ct2_) ^ in_carry
-    Ciphertext<T> xor_ = xor_batch(cc, smaller[i], bigger[i + offset]);
-    res_[i] = xor_batch(cc, xor_, carry_);
+    Ciphertext<T> xor_ = exor(cc, smaller[i], bigger[i + offset]);
+    res_[i] = exor(cc, xor_, carry_);
     if (i == 0) break; // don't need output carry
     // next carry computation
     Ciphertext<T> prod_;
     prod_ = cc->EvalMultAndRelinearize(smaller[i], bigger[i + offset]);
     xor_ = cc->EvalMultAndRelinearize(carry_, xor_);
-    carry_ = xor_batch(cc, prod_, xor_);
+    carry_ = exor(cc, prod_, xor_);
   }
   return res_;
 }
@@ -296,15 +318,15 @@ std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
 
   for (int i = c1.size()-1; i >= 0; --i) {
     // sum = (ct1_ ^ ct2_) ^ in_carry
-    Ciphertext<T> xor_ = xor_batch(cc, c1[i], neg_c2[i]);
-    res_[i] = xor_batch(cc, xor_, carry_);
+    Ciphertext<T> xor_ = exor(cc, c1[i], neg_c2[i]);
+    res_[i] = exor(cc, xor_, carry_);
     if (i == 0) break; // don't need output carry
 
     // next carry computation
     Ciphertext<T> prod_;
     prod_ = cc->EvalMultAndRelinearize(c1[i], neg_c2[i]);
     xor_ = cc->EvalMultAndRelinearize(carry_, xor_);
-    carry_ = xor_batch(cc, prod_, xor_);
+    carry_ = exor(cc, prod_, xor_);
   }
   return res_;
 }

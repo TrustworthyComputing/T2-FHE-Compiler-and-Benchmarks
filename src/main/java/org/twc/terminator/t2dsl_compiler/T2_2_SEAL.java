@@ -22,10 +22,12 @@ public class T2_2_SEAL extends T2_Compiler {
 
   protected void append_keygen() {
     append_idx("size_t poly_modulus_degree = 16384;\n");
+    append_idx("auto p_mod = PlainModulus::Batching(poly_modulus_degree, 20);\n");
+    append_idx("size_t plaintext_modulus = (size_t) p_mod.value();\n");
     append_idx("EncryptionParameters parms(scheme_type::bfv);\n");
     append_idx("parms.set_poly_modulus_degree(poly_modulus_degree);\n");
     append_idx("parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));\n");
-    append_idx("parms.set_plain_modulus(PlainModulus::Batching(poly_modulus_degree, 20));\n");
+    append_idx("parms.set_plain_modulus(p_mod);\n");
     append_idx("SEALContext context(parms);\n");
     append_idx("KeyGenerator keygen(context);\n");
     append_idx("SecretKey secret_key = keygen.secret_key();\n");
@@ -723,8 +725,8 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            append_idx("xor_bin(evaluator, tmp_, ");
-            this.asm_.append(rhs.getName()).append(res_).append(");\n");
+            this.asm_.append("xor_bin(evaluator, relin_keys, tmp_, ");
+            this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, ");
@@ -758,11 +760,7 @@ public class T2_2_SEAL extends T2_Compiler {
             append_idx("evaluator.sub(tmp_, " + rhs.getName() + ", " + res_ + ");\n");
             break;
           case "^":
-            append_idx("encryptor.encrypt(tmp, tmp_);\n");
-            append_idx(res_);
-            this.asm_.append(" = xor_batch(tmp_, ").append(rhs.getName());
-            this.asm_.append(", evaluator, relin_keys);\n");
-            break;
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
@@ -811,8 +809,8 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            append_idx("xor_bin(evaluator, ");
-            this.asm_.append(lhs.getName()).append(", tmp_, ").append(res_).append(");\n");
+            this.asm_.append("xor_bin(evaluator, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, plaintext_modulus);\n");
             break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, ");
@@ -848,11 +846,7 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", tmp, ").append(res_).append(");\n");
             break;
           case "^":
-            append_idx("encryptor.encrypt(tmp, tmp_);\n");
-            append_idx(res_);
-            this.asm_.append(" = xor_batch(").append(lhs.getName());
-            this.asm_.append(", tmp_, evaluator, relin_keys);\n");
-            break;
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
@@ -897,9 +891,9 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            append_idx("xor_bin(evaluator, ");
+            this.asm_.append("xor_bin(evaluator, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-            this.asm_.append(", evaluator, relin_keys);\n");
+            this.asm_.append(", plaintext_modulus);\n");
             break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
@@ -939,11 +933,7 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(", ").append(res_).append(");\n");
             break;
           case "^":
-            append_idx(res_);
-            this.asm_.append(" = xor_batch(").append(lhs.getName());
-            this.asm_.append(", ").append(rhs.getName());
-            this.asm_.append(", evaluator, relin_keys);\n");
-            break;
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(encryptor, evaluator, ");

@@ -52,7 +52,7 @@ int main() {
   }
   cout << endl;
 
-  // Ciphertext<DCRTPoly> res_ = xor_batch(cc, ct1_, ct1_);
+  // Ciphertext<DCRTPoly> res_ = exor(cc, ct1_, ct1_);
 
   // Ciphertext<DCRTPoly> res_ = eq(cc, ct1_, ct2_, plaintext_modulus);
 

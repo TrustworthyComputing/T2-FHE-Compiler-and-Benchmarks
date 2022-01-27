@@ -715,6 +715,10 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = sub_bin(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey);\n");;
             break;
+          case "^":
+            this.asm_.append(" = xor_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", plaintext_modulus);\n");;
+            break;
           case "==":
             this.asm_.append(" = eq_bin(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey);\n");;
@@ -748,6 +752,8 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx(res_ + " = cc->");
             this.asm_.append("EvalSub(tmp, ").append(rhs.getName()).append(");\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
             append_idx(res_);
@@ -790,6 +796,10 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = sub_bin(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, keyPair.publicKey);\n");
             break;
+          case "^":
+            this.asm_.append(" = xor_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, plaintext_modulus);\n");;
+            break;
           case "==":
             this.asm_.append(" = eq_bin(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, keyPair.publicKey);\n");
@@ -823,6 +833,8 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx(res_ + " = cc->");
             this.asm_.append("EvalSub(").append(lhs.getName()).append(", tmp);\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
             append_idx(res_);
@@ -866,6 +878,11 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(", ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey);\n");
             break;
+          case "^":
+            this.asm_.append(" = xor_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", plaintext_modulus);\n");
+            break;
           case "==":
             this.asm_.append(" = eq_bin(cc, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName());
@@ -875,7 +892,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName());
             this.asm_.append(", ").append(this.word_sz_);
-            this.asm_.append(",keyPair.publicKey);\n");
+            this.asm_.append(", keyPair.publicKey);\n");
             break;
           case "<=":
             this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
@@ -902,6 +919,8 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append("EvalSub(").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(");\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(cc, ").append(lhs.getName()).append(", ");

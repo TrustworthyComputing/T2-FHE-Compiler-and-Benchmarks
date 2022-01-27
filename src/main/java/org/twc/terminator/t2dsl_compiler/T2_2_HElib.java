@@ -735,27 +735,36 @@ public class T2_2_HElib extends T2_Compiler {
         append_idx(res_ + " = ");
         switch (op) {
           case "+":
-            this.asm_.append("add_bin(public_key, tmp_, ");
+            this.asm_.append("add_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "*":
-            this.asm_.append("mult_bin(public_key, tmp_, ");
+            this.asm_.append("mult_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "-":
-            this.asm_.append("sub_bin(public_key, tmp_, ");
+            this.asm_.append("sub_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
+            break;
+          case "^":
+            this.asm_.append("xor_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", p);\n");
             break;
           case "==":
-            this.asm_.append("eq_bin(public_key, tmp_, ");
+            this.asm_.append("eq_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "<":
-            this.asm_.append("lt_bin(public_key, tmp_, ");
+            this.asm_.append("lt_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "<=":
-            this.asm_.append("leq_bin(public_key, tmp_, ");
+            this.asm_.append("leq_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           default:
             throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
         }
-        this.asm_.append(rhs.getName()).append(", unpackSlotEncoding, slots)");
       } else {
         switch (op) {
           case "+":
@@ -777,6 +786,8 @@ public class T2_2_HElib extends T2_Compiler {
             append_idx(res_);
             this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             assign_to_all_slots("tmp", lhs.getName(), null);
             append_idx(res_);
@@ -805,27 +816,36 @@ public class T2_2_HElib extends T2_Compiler {
         append_idx(res_ + " = ");
         switch (op) {
           case "+":
-            this.asm_.append("add_bin(public_key, ");
+            this.asm_.append("add_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "*":
-            this.asm_.append("mult_bin(public_key, ");
+            this.asm_.append("mult_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "-":
-            this.asm_.append("sub_bin(public_key, ");
+            this.asm_.append("sub_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
+            break;
+          case "^":
+            this.asm_.append("xor_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, p);\n");
             break;
           case "==":
-            this.asm_.append("eq_bin(public_key, ");
+            this.asm_.append("eq_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<":
-            this.asm_.append("lt_bin(public_key, ");
+            this.asm_.append("lt_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<=":
-            this.asm_.append("leq_bin(public_key, ");
+            this.asm_.append("leq_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           default:
             throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
         }
-        this.asm_.append(lhs.getName()).append(", tmp_, unpackSlotEncoding, slots)");
       } else {
         append_idx(res_);
         this.asm_.append(" = ").append(lhs.getName()).append(";\n");
@@ -842,6 +862,8 @@ public class T2_2_HElib extends T2_Compiler {
             append_idx(res_ + ".addConstant(NTL::ZZX(-");
             this.asm_.append(rhs.getName()).append("));\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             assign_to_all_slots("tmp", rhs.getName(), null);
             append_idx(res_ + " = eq_plain(public_key, ");
@@ -869,27 +891,42 @@ public class T2_2_HElib extends T2_Compiler {
         switch (op) {
           case "+":
             this.asm_.append("add_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "*":
             this.asm_.append("mult_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "-":
             this.asm_.append("sub_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
+            break;
+          case "^":
+            this.asm_.append("xor_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", p);\n");
             break;
           case "==":
             this.asm_.append("eq_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "<":
             this.asm_.append("lt_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           case "<=":
             this.asm_.append("leq_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
           default:
             throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
         }
-        this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
-        this.asm_.append(", unpackSlotEncoding, slots)");
       } else {
         switch (op) {
           case "*":
@@ -901,6 +938,8 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append(" ").append(op).append("= ");
             this.asm_.append(rhs.getName()).append(";\n");
             break;
+          case "^":
+            throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(public_key, ").append(lhs.getName());

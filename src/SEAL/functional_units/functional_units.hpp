@@ -62,10 +62,10 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(
     seal::Ciphertext& encrypted_vec, size_t slots, size_t padding = 1);
 
 /// XOR between two batched binary ciphertexts
-seal::Ciphertext xor_batch(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
-                           seal::Evaluator& evaluator,
-                           const seal::RelinKeys& relinKeys);
-
+seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
+                      seal::Evaluator& evaluator,
+                      const seal::RelinKeys& relinKeys);
+                           
 seal::Ciphertext eq_bin_batched(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor, seal::BatchEncoder& batch_encoder,
     seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Ciphertext& ct2_,
@@ -127,6 +127,12 @@ seal::Plaintext encode_all_slots(
     uint64_t num, size_t slots);
 
 /// Vertical Batching functions
+
+std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
+                                      seal::RelinKeys& relinKeys, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t ptxt_mod);
 
 std::vector<seal::Ciphertext> eq_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,

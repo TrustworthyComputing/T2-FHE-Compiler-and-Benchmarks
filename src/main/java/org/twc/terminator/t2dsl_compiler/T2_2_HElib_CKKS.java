@@ -427,6 +427,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
           append_idx(res_);
           this.asm_.append(" -= ").append(rhs.getName()).append(";\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
         case "<":
         case "<=":
@@ -447,6 +449,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         case "-":
           this.asm_.append(" ").append(op).append("= (double)").append(rhs.getName()).append(";\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
         case "<":
         case "<=":
@@ -467,6 +471,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
           this.asm_.append(" ").append(op).append("= ");
           this.asm_.append(rhs.getName()).append(";\n");
           break;
+        case "^":
+          throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
         case "<":
         case "<=":
