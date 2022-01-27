@@ -519,25 +519,9 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          // TODO:
-          throw new RuntimeException("equality not yet supported");
-//          this.asm_.append(" = eq_plain(evaluator, ").append(rhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-//          append_idx(res_);
-//          this.asm_.append(" = lt(evaluator, tmp_, ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
-//          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-//          append_idx(res_);
-//          this.asm_.append(" = leq(evaluator, tmp_, ");
-//          this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
-//          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -556,7 +540,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
           break;
         case "*":
           this.asm_.append("EvalMult(").append(lhs.getName()).append(", tmp);\n");
-//          auto c2_depth1 = cc->Rescale(c2_depth2);
           break;
         case "-":
           this.asm_.append("EvalSub(").append(lhs.getName()).append(", tmp);\n");
@@ -564,23 +547,9 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          throw new RuntimeException("equality not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = eq_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = lt_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = leq_plain(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", tmp, plaintext_modulus);\n");
-//          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -596,7 +565,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
           break;
         case "*":
           this.asm_.append("EvalMultAndRelinearize(").append(lhs.getName());
-//          auto c2_depth1 = cc->Rescale(c2_depth2);
           this.asm_.append(", ").append(rhs.getName()).append(");\n");
           break;
         case "-":
@@ -606,26 +574,9 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          throw new RuntimeException("equality not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = eq(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
         case "<":
-          throw new RuntimeException("less than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = lt(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
         case "<=":
-          throw new RuntimeException("less or equal than not yet supported");
-//          append_idx(res_);
-//          this.asm_.append(" = leq(evaluator, ").append(lhs.getName());
-//          this.asm_.append(", ").append(rhs.getName());
-//          this.asm_.append(", plaintext_modulus);\n");
-//          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }

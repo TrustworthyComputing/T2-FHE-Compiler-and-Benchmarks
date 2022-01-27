@@ -519,25 +519,9 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(rhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
         case "<":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = lt(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
         case "<=":
-          append_idx("encryptor.encrypt(tmp, tmp_);\n");
-          append_idx(res_);
-          this.asm_.append(" = leq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -562,23 +546,9 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
         case "<":
-          append_idx(res_);
-          this.asm_.append(" = lt_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
         case "<=":
-          append_idx(res_);
-          this.asm_.append(" = leq_plain(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", tmp, plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -606,24 +576,9 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_);
-          this.asm_.append(" = eq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
-          break;
         case "<":
-          append_idx(res_);
-          this.asm_.append(" = lt(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName());
-          this.asm_.append(", ").append(rhs.getName());
-          this.asm_.append(", plaintext_modulus, slots);\n");
-          break;
         case "<=":
-          append_idx(res_);
-          this.asm_.append(" = leq(encryptor, encoder, evaluator, ");
-          this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-          this.asm_.append(rhs.getName()).append(", plaintext_modulus, slots);\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }

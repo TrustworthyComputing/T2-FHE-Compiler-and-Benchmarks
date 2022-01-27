@@ -432,7 +432,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         case "==":
         case "<":
         case "<=":
-          throw new RuntimeException("Not yet supported");
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -454,7 +454,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         case "==":
         case "<":
         case "<=":
-          throw new RuntimeException("Not yet supported");
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -476,7 +476,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         case "==":
         case "<":
         case "<=":
-          throw new RuntimeException("Not yet supported");
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }

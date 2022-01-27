@@ -522,17 +522,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_ + " := funits.Eq(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          break;
         case "<":
-          append_idx(res_ + " := funits.Lt(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          break;
         case "<=":
-          append_idx(res_ + " := funits.Leq(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -557,17 +549,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_ + " := funits.Eq(");
-          this.asm_.append(rhs.getName()).append(", tmp_)\n");
-          break;
         case "<":
-          append_idx(res_ + " := funits.Lt(");
-          this.asm_.append(rhs.getName()).append(", tmp_)\n");
-          break;
         case "<=":
-          append_idx(res_ + " := funits.Leq(");
-          this.asm_.append(rhs.getName()).append(", tmp_)\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
@@ -589,17 +573,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
         case "^":
           throw new Exception("XOR over encrypted doubles is not possible");
         case "==":
-          append_idx(res_ + " := funits.Eq(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
-          break;
         case "<":
-          append_idx(res_ + " := funits.Lt(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
-          break;
         case "<=":
-          append_idx(res_ + " := funits.Leq(");
-          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
-          break;
+          throw new RuntimeException("Comparisons not possible in CKKS");
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
