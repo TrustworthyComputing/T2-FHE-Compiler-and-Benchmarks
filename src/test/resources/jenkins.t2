@@ -1,0 +1,43 @@
+int main(void) {
+  int i, length;
+  EncInt hash, temp;
+  EncInt[] jkey;
+  i = 0;
+  length = 2;
+  hash = 0;
+  jkey = new EncInt[2];
+  jkey[0] = 24930; // ab
+  jkey[1] = 25444; // cd
+
+  for (i = 0; i < length; i++) {
+    temp = jkey[i];
+    hash += temp;
+    print(hash);
+    temp = hash << 10;
+    print(temp);
+    // temp &= 0xffff;
+    temp = temp << 16;
+    temp = temp >> 16;
+    print(temp);
+    hash += temp;
+    print(hash);
+    temp = hash >> 6;
+    hash = hash ^ temp;
+    print(hash);
+  }
+  temp = hash << 3;
+  hash += temp;
+  temp = hash >> 11;
+  hash = hash ^ temp;
+  temp = hash << 15;
+  // temp &= 0xffff;
+  temp = temp << 16;
+  temp = temp >> 16;
+  hash += temp;
+  // hash &= 0xffff;
+  hash = hash << 16;
+  hash = hash >> 16;
+  print(hash);
+
+  return 0;
+}

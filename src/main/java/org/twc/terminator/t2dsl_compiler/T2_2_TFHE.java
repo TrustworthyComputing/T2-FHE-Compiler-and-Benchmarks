@@ -16,7 +16,7 @@ public class T2_2_TFHE extends T2_Compiler {
   }
 
   protected void append_keygen() {
-    append_idx("const size_t word_sz = 16;\n");
+    append_idx("const size_t word_sz = " + this.word_sz_ + ";\n");
     append_idx("const size_t minimum_lambda = 80;\n");
     append_idx("TFheGateBootstrappingParameterSet* params =\n");
     append_idx("  new_default_gate_bootstrapping_parameters(minimum_lambda);\n");
@@ -278,7 +278,7 @@ public class T2_2_TFHE extends T2_Compiler {
           append_idx("copy(");
           this.asm_.append(id.getName()).append("[").append(idx.getName());
           this.asm_.append("], ").append(rhs.getName());
-          this.asm_.append(", word_sz, &key->cloud);\n");
+          this.asm_.append(", word_sz, &key->cloud)");
           break;
         } else if (rhs_type.equals("int")) {
           append_idx(id.getName());
@@ -289,6 +289,7 @@ public class T2_2_TFHE extends T2_Compiler {
       default:
         throw new Exception("error in array assignment");
     }
+    this.semicolon_ = true;
     return null;
   }
 
