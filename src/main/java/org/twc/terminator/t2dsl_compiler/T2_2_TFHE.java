@@ -499,36 +499,78 @@ public class T2_2_TFHE extends T2_Compiler {
       this.asm_.append(" = e_cloud(").append(lhs.getName());
       this.asm_.append(", word_sz, &key->cloud);\n");
       rhs_enc = rhs.getName();
+      if (op.equals("<<") || op.equals("<<")) {
+        throw new Exception("Shift over encrypted integers is not possible");
+      }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       lhs_enc = lhs.getName();
-      rhs_enc = new_ctxt_tmp();
-      append_idx(rhs_enc);
-      this.asm_.append(" = e_cloud(").append(rhs.getName());
-      this.asm_.append(", word_sz, &key->cloud);\n");
+      if (!(op.equals("<<") || op.equals("<<"))) {
+        rhs_enc = new_ctxt_tmp();
+        append_idx(rhs_enc);
+        this.asm_.append(" = e_cloud(").append(rhs.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+      }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       lhs_enc = lhs.getName();
       rhs_enc = rhs.getName();
+      if (op.equals("<<") || op.equals("<<")) {
+        throw new Exception("Shift over encrypted integers is not possible");
+      }
     } else {
       throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
     String res_ = new_ctxt_tmp();
     append_idx(res_);
     this.asm_.append(" = e_cloud(0, word_sz, &key->cloud);\n");
-    String op_str;
     switch (op) {
-      case "+": op_str = "add"; break;
-      case "*": op_str = "mult"; break;
-      case "-": op_str = "sub"; break;
-      case "^": op_str = "e_xor"; break;
-      case "==": op_str = "eq"; break;
-      case "<": op_str = "lt"; break;
-      case "<=": op_str = "leq"; break;
+      case "+":
+        append_idx("add(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "*":
+        append_idx("mult(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "-":
+        append_idx("sub(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "^":
+        append_idx("e_xor(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "==":
+        append_idx("eq(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "<":
+        append_idx("lt(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "<=":
+        append_idx("leq(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case "<<":
+        append_idx("shift_left_bin(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case ">>":
+        append_idx("shift_right_bin(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
       default:
         throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
-    append_idx(op_str);
-    this.asm_.append("(").append(res_).append(", ").append(lhs_enc);
-    this.asm_.append(", ").append(rhs_enc).append(", word_sz, &key->cloud);\n");
     return new Var_t("EncInt", res_);
   }
 

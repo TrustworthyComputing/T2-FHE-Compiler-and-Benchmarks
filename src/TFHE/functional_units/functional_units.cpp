@@ -70,34 +70,38 @@ std::vector<LweSample*> e_cloud(uint32_t ptxt_val, size_t word_sz,
   return result;
 }
 
-void rotate_inplace(std::vector<LweSample*>& result, rotation_t dir, int amt,
-                    const size_t word_sz,
+void shift_left_bin(std::vector<LweSample*>& result, 
+                    std::vector<LweSample*>& ct,
+                    int amt, const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk) {
-  LweSample* tmp = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
-
-  if (dir == LEFT) {
-    // rotate left
-    for (int i = 0 ; i < result.size(); i++) {
-      for (int j = 0; j < word_sz; j++) {
-        bootsCOPY(&tmp[j], &result[i][(j-amt)%word_sz], bk);
-      }
-      for (int j = 0; j < word_sz; j++) {
-        bootsCOPY(&result[i][j], &tmp[j], bk);
-      }
+  // shift left
+  for (int i = 0 ; i < result.size(); i++) {
+    for (int j = word_sz-1; j >= amt; j--) {
+      bootsCOPY(&result[i][j], &ct[i][j-amt], bk);
     }
-  } else {
-    // rotate right
-    for (int i = 0 ; i < result.size(); i++) {
-      for (int j = 0; j < word_sz; j++) {
-        bootsCOPY(&tmp[j], &result[i][(j+amt)%word_sz], bk);
-      }
-      for (int j = 0; j < word_sz; j++) {
-        bootsCOPY(&result[i][j], &tmp[j], bk);
-      }
+    for (int j = 0; j < amt; j++) {
+      bootsCONSTANT(&result[i][j], 0, bk);
     }
   }
-  delete_gate_bootstrapping_ciphertext_array(word_sz, tmp);
 }
+
+void shift_right_bin(std::vector<LweSample*>& result, 
+                     std::vector<LweSample*>& ct,
+                     int amt, const size_t word_sz,
+                     const TFheGateBootstrappingCloudKeySet* bk) {
+  // shift right
+  for (int i = 0 ; i < result.size(); i++) {
+    for (int j = 0; j < word_sz-amt; j++) {
+      bootsCOPY(&result[i][j], &ct[i][j+amt], bk);
+    }
+    // sign extension
+    for (int j = word_sz-amt; j < word_sz-1; j++) {
+      bootsCOPY(&result[i][j], &ct[i][word_sz-1], bk);
+    }
+  }
+}
+
+
 
 void add_mixed(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
          const std::vector<LweSample*>& b, const size_t nb_bits,

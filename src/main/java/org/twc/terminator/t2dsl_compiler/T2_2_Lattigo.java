@@ -939,6 +939,9 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.Leq(tmp_, ");
             this.asm_.append(rhs.getName()).append(")\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -976,6 +979,14 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.BinLeq(");
             this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
+          case "<<":
+            append_idx(res_ + " := funits.BinShiftLeft(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case ">>":
+            append_idx(res_ + " := funits.BinShiftRight(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -1007,6 +1018,9 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.Leq(");
             this.asm_.append(rhs.getName()).append(", tmp_)\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -1074,6 +1088,9 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.Leq(");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }

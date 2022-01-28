@@ -772,6 +772,9 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = leq(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -813,6 +816,15 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, keyPair.publicKey);\n");
             break;
+          case "<<":
+            this.asm_.append(" = shift_left_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
+          case ">>":
+            this.asm_.append(" = shift_right_bin(").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(");\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -853,6 +865,9 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = leq(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, keyPair.publicKey, plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -938,6 +953,9 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(rhs.getName());
             this.asm_.append(", keyPair.publicKey, plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }

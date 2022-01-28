@@ -54,11 +54,6 @@ std::vector<LweSample*> e_cloud(std::vector<uint32_t>& ptxt_val, size_t word_sz,
 std::vector<LweSample*> e_cloud(uint32_t ptxt_val, size_t word_sz,
                    const TFheGateBootstrappingCloudKeySet* bk);
 
-/// Rotate ciphertext array to the left or right by amt.
-void rotate_inplace(std::vector<LweSample*>& result, rotation_t dir, int amt,
-                    const size_t word_sz,
-                    const TFheGateBootstrappingCloudKeySet* bk);
-
 /// ARITHMETIC CIRCUITS
 
 /// Adder circuit: result = a + b.
@@ -102,6 +97,16 @@ void leq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
 
 /// BITWISE
 
+void shift_left_bin(std::vector<LweSample*>& result, 
+                    std::vector<LweSample*>& ct,
+                    int amt, const size_t word_sz,
+                    const TFheGateBootstrappingCloudKeySet* bk);
+
+void shift_right_bin(std::vector<LweSample*>& result, 
+                     std::vector<LweSample*>& ct,
+                     int amt, const size_t word_sz,
+                     const TFheGateBootstrappingCloudKeySet* bk);
+                     
 void e_not(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
 

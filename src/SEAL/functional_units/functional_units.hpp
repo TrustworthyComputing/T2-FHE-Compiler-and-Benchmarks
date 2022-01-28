@@ -128,6 +128,14 @@ seal::Plaintext encode_all_slots(
 
 /// Vertical Batching functions
 
+std::vector<seal::Ciphertext> shift_right_bin(std::vector<seal::Ciphertext>& ct,
+                                              size_t amt, size_t slots);
+
+std::vector<seal::Ciphertext> shift_left_bin(seal::Encryptor& encryptor, 
+                                             seal::BatchEncoder& batch_encoder,
+                                             std::vector<seal::Ciphertext>& ct, 
+                                             size_t amt, size_t slots);
+
 std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
                                       seal::RelinKeys& relinKeys, 
                                       std::vector<seal::Ciphertext>& ctxt_1, 

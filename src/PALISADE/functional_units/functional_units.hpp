@@ -79,6 +79,42 @@ Ciphertext<T> eq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
 }
 
 template <typename T>
+std::vector<Ciphertext<T>> shift_right_bin(std::vector<Ciphertext<T>>& ct,
+                                           size_t amt) {
+  assert(amt < ct.size() - 1);
+  std::vector<Ciphertext<T>> res_(ct.size());
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = (int)ct.size() - amt - 1; i >= 0; --i) {
+    res_[i + amt] = ct[i]->Clone();
+  }
+  // copy sign
+  for (int i = amt - 1; i >= 0; --i) {
+    res_[i] = ct[0]->Clone();
+  }
+  return res_;
+}
+
+template <typename T>
+std::vector<Ciphertext<T>> shift_left_bin(CryptoContext<T>& cc, 
+                                          std::vector<Ciphertext<T>>& ct, 
+                                          size_t amt, LPPublicKey<T>& pub_key) {
+  assert(amt < ct.size() - 1);
+  // Initialize with zeros
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> zero(slots, 0);
+  Plaintext pt_zero = cc->MakePackedPlaintext(zero);
+  std::vector<Ciphertext<T>> res_(ct.size());
+  for (size_t i = 0; i < res_.size(); i++) {
+    res_[i] = cc->Encrypt(pub_key, pt_zero);
+  }
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (size_t i = amt; i < ct.size(); ++i) {
+    res_[i - amt] = ct[i];
+  }
+  return res_;
+}
+
+template <typename T>
 std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc, 
                                    std::vector<Ciphertext<T>>& c1, 
                                    std::vector<Ciphertext<T>>& c2, 

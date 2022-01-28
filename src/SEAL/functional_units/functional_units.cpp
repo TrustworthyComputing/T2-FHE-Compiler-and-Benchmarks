@@ -145,6 +145,39 @@ seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
   return result;
 }
 
+std::vector<seal::Ciphertext> shift_right_bin(std::vector<seal::Ciphertext>& ct,
+                                              size_t amt, size_t slots) {
+  assert(amt < ct.size() - 1);
+  std::vector<seal::Ciphertext> res_(ct.size());  
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = ct.size() - amt - 1; i >= 0; --i) {
+    res_[i + amt] = ct[i];
+  }
+  // copy sign
+  for (int i = amt - 1; i >= 0; --i) {
+    res_[i] = ct[0];
+  }
+  return res_;
+}
+
+std::vector<seal::Ciphertext> shift_left_bin(seal::Encryptor& encryptor, 
+                                             seal::BatchEncoder& batch_encoder,
+                                             std::vector<seal::Ciphertext>& ct, 
+                                             size_t amt, size_t slots) {
+  assert(amt < ct.size() - 1);
+  // Initialize with zeros
+  seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
+  std::vector<seal::Ciphertext> res_(ct.size());  
+  for (int i = 0; i < res_.size(); i++) {
+    encryptor.encrypt(zero, res_[i]);
+  }
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = amt; i < ct.size(); ++i) {
+    res_[i - amt] = ct[i];
+  }
+  return res_;
+}
+
 std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
                                       seal::RelinKeys& relinKeys, 
                                       std::vector<seal::Ciphertext>& ctxt_1, 

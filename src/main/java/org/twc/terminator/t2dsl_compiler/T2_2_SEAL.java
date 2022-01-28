@@ -743,6 +743,8 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
             this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
             break;
+          case "<<":
+          case ">>":
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -781,6 +783,9 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
             this.asm_.append(", plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -827,6 +832,16 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, ").append(lhs.getName());
             this.asm_.append(", tmp_, ").append(this.word_sz_).append(", slots);\n");
             break;
+          case "<<":
+            this.asm_.append("shift_left_bin(encryptor, batch_encoder, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+            break;
+          case ">>":
+            this.asm_.append("shift_right_bin(");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -865,6 +880,9 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, ").append(lhs.getName());
             this.asm_.append(", tmp, plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -953,6 +971,9 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }

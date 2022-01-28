@@ -194,6 +194,39 @@ func BinSingleXor(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	return res
 }
 
+func BinShiftRight(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
+	if amt < len(ct) - 1 {
+		fmt.Errorf("BinShiftRight: shift ammount too big")
+	}
+	res := make([]*bfv.Ciphertext, len(ct))
+	// shift data (MSB is at 0, LSB is at size - 1)
+	for i := len(ct) - amt - 1; i >= 0; i-- {
+		res[i + amt] = ct[i]
+	}
+	// copy sign
+	for i := amt - 1; i >= 0; i-- {
+		res[i] = ct[0]
+	}
+	return res
+}
+
+func BinShiftLeft(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
+	if amt < len(ct) - 1 {
+		fmt.Errorf("BinShiftRight: shift ammount too big")
+	}
+	res := make([]*bfv.Ciphertext, len(ct))
+	// Initialize with zeros
+	zero := EncodeAllSlots(0)
+	for i := 0; i < len(res); i++ {
+		res[i] = (*encryptorPk_).EncryptNew(zero)
+	}
+	// shift data (MSB is at 0, LSB is at size - 1)
+	for i := amt; i < len(ct); i++ {
+		res[i - amt] = ct[i];
+	}
+	return res
+}
+
 func BinXor(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	res := make([]*bfv.Ciphertext, len(c1))
 	if ptxt_mod_ > 2 {

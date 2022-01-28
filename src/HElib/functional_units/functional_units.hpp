@@ -90,6 +90,14 @@ helib::Ctxt eq_bin_batched_plain(helib::PubKey& public_key,
     helib::Context& context, helib::Ctxt& ct1_, helib::Ptxt<helib::BGV>& pt1_, 
     helib::EncryptedArray& ea, size_t slots, size_t padding);
 
+std::vector<helib::Ctxt> shift_right_bin(helib::PubKey& public_key,
+                                         std::vector<helib::Ctxt>& ct,
+                                         size_t amt);
+
+std::vector<helib::Ctxt> shift_left_bin(helib::PubKey& public_key,
+                                        std::vector<helib::Ctxt>& ct, 
+                                        size_t amt);
+                                        
 std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& ct1_, 
                                  std::vector<helib::Ctxt>& ct2_, 

@@ -232,6 +232,40 @@ std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key,
   return ctptr_to_vec(public_key, output_wrapper);
 }
 
+std::vector<helib::Ctxt> shift_left_bin(helib::PubKey& public_key,
+                                         std::vector<helib::Ctxt>& ct,
+                                         size_t amt) {
+  assert(amt < ct.size() - 1);
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ct.size(), scratch);
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = ct.size() - amt - 1; i >= 0; --i) {
+    res_[i + amt] = ct[i];
+  }
+  // copy sign
+  for (int i = amt - 1; i >= 0; --i) {
+    res_[i] = ct[0];
+  }
+  return res_;
+}
+
+std::vector<helib::Ctxt> shift_right_bin(helib::PubKey& public_key,
+                                        std::vector<helib::Ctxt>& ct, 
+                                        size_t amt) {
+  assert(amt < ct.size() - 1);
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ct.size(), scratch);
+  // Initialize with zeros
+  for (int i = 0; i < res_.size(); i++) {
+    res_[i].clear();
+  }
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = amt; i < ct.size(); ++i) {
+    res_[i - amt] = ct[i];
+  }
+  return res_;
+}
+
 std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& ct1_, 
                                  std::vector<helib::Ctxt>& ct2_, 

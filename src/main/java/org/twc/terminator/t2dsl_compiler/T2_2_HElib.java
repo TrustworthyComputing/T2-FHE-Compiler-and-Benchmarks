@@ -803,6 +803,9 @@ public class T2_2_HElib extends T2_Compiler {
             append_idx(res_);
             this.asm_.append(" = leq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -843,6 +846,14 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append("leq_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
+          case "<<":
+            this.asm_.append("shift_left_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(");\n");
+            break;
+          case ">>":
+            this.asm_.append("shift_right_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(");\n");
+            break;
           default:
             throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
         }
@@ -879,6 +890,9 @@ public class T2_2_HElib extends T2_Compiler {
             append_idx(res_ + " = leq_plain(public_key, ");
             this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -955,6 +969,9 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append(" = leq(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
             break;
+          case "<<":
+          case ">>":
+            throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
