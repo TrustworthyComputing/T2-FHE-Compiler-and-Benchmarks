@@ -418,6 +418,17 @@ public class T2_2_Lattigo extends T2_Compiler {
           case "-=":
             append_idx(lhs.getName() + " = funits.BinSub(" + lhs.getName() + ", tmp_)");
             break;
+          case "<<=":
+            append_idx(lhs.getName() + " = funits.BinShiftLeft(" + lhs.getName() + ", " + rhs.getName() + ")");
+            break;
+          case ">>=":
+            append_idx(lhs.getName() + " = funits.BinShiftRight(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")");
+            break;
+          case ">>>=":
+            append_idx(lhs.getName() + " = funits.BinShiftRightLogical(");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -513,7 +524,25 @@ public class T2_2_Lattigo extends T2_Compiler {
           }
           break;
         } else if (rhs_type.equals("int")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          switch (op) {
+            case "<<=":
+              append_idx("funits.BinShiftLeft(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case ">>=":
+              append_idx("funits.BinShiftRight(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case ">>>=":
+              append_idx("funits.BinShiftRightLogical(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
         }
       default:
         throw new Exception("error in array assignment");
@@ -534,7 +563,6 @@ public class T2_2_Lattigo extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
@@ -941,6 +969,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -987,6 +1016,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.BinShiftRight(" + lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(")\n");
             break;
+          case ">>>":
+            append_idx(res_ + " := funits.BinShiftRightLogical(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -1020,6 +1053,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -1090,6 +1124,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

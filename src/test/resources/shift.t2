@@ -1,0 +1,21 @@
+int main(void) {
+  // Compile with w = 6.
+  EncInt enc_num, arith, logical;
+  enc_num = 5;
+  print(enc_num);   // 000101 - 5
+  enc_num <<= 2;
+  print(enc_num);   // 010100 - 20
+  enc_num = enc_num << 2;
+  print(enc_num);   // 010000 - 16
+  enc_num <<= 1;
+  print(enc_num);   // 100000 - 32
+  arith = enc_num >> 5;
+  print(arith);     // 111111 - 63
+  logical = enc_num >>> 5;
+  print(logical);   // 000001 - 1
+  enc_num = 40;
+  print(enc_num);   // 101000 - 40
+  arith = enc_num >> 3;
+  print(arith);     // 111101 - 61
+  return 0;
+}

@@ -284,23 +284,37 @@ public class T2_2_PALISADE extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       if (this.is_binary_) {
-       encrypt("tmp_", new String[]{rhs.getName()});
-       this.asm_.append(";\n");
-       append_idx(lhs.getName());
-       switch (op) {
-         case "+=":
-           this.asm_.append(" = add_bin(cc, ");
-           break;
-         case "*=":
-           this.asm_.append(" = mult_bin(cc, ");
-           break;
-         case "-=":
-           this.asm_.append(" = sub_bin(cc, ");
-           break;
-         default:
-           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
-       }
-       this.asm_.append(lhs.getName()).append(", tmp_, keyPair.publicKey)");
+        encrypt("tmp_", new String[]{rhs.getName()});
+        this.asm_.append(";\n");
+        append_idx(lhs.getName());
+        switch (op) {
+          case "+=":
+            this.asm_.append(" = add_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey)");
+            break;
+          case "*=":
+            this.asm_.append(" = mult_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey)");
+            break;
+          case "-=":
+            this.asm_.append(" = sub_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey)");
+            break;
+          case "<<=":
+            this.asm_.append(" = shift_left_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(", keyPair.publicKey)");
+            break;
+          case ">>=":
+            this.asm_.append(" = shift_right_bin(").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")");
+            break;
+          case ">>>=":
+            this.asm_.append(" = shift_right_logical_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(", keyPair.publicKey)");
+            break;
+          default:
+            throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+        }
       } else {
         append_idx("fill(" + this.vec + ".begin(), " + this.vec);
         this.asm_.append(".end(), ").append(rhs.getName()).append(");\n");
@@ -379,7 +393,25 @@ public class T2_2_PALISADE extends T2_Compiler {
           }
           break;
         } else if (rhs_type.equals("int")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          switch (op) {
+            case "<<=":
+              this.asm_.append(" = shift_left_bin(cc, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+              break;
+            case ">>=":
+              this.asm_.append(" = shift_right_bin(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case ">>>=":
+              this.asm_.append(" = shift_right_logical_bin(cc, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
         }
       default:
         throw new Exception("error in array assignment");
@@ -774,6 +806,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -825,6 +858,10 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = shift_right_bin(").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(");\n");
             break;
+          case ">>>":
+            this.asm_.append(" = shift_right_logical_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(", keyPair.publicKey);\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -867,6 +904,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -955,6 +993,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

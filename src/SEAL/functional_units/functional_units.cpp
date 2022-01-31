@@ -147,7 +147,7 @@ seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
 
 std::vector<seal::Ciphertext> shift_right_bin(std::vector<seal::Ciphertext>& ct,
                                               size_t amt, size_t slots) {
-  assert(amt < ct.size() - 1);
+  assert(amt < ct.size());
   std::vector<seal::Ciphertext> res_(ct.size());  
   // shift data (MSB is at 0, LSB is at size - 1)
   for (int i = ct.size() - amt - 1; i >= 0; --i) {
@@ -160,11 +160,29 @@ std::vector<seal::Ciphertext> shift_right_bin(std::vector<seal::Ciphertext>& ct,
   return res_;
 }
 
+std::vector<seal::Ciphertext> shift_right_logical_bin(seal::Encryptor& encryptor,
+                                              seal::BatchEncoder& batch_encoder,
+                                              std::vector<seal::Ciphertext>& ct,
+                                              size_t amt, size_t slots) {
+  assert(amt < ct.size());
+  seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
+  std::vector<seal::Ciphertext> res_(ct.size());  
+  // shift data (MSB is at 0, LSB is at size - 1)
+  for (int i = ct.size() - amt - 1; i >= 0; --i) {
+    res_[i + amt] = ct[i];
+  }
+  // shift in zeros
+  for (int i = amt - 1; i >= 0; --i) {
+    encryptor.encrypt(zero, res_[i]);
+  }
+  return res_;
+}
+
 std::vector<seal::Ciphertext> shift_left_bin(seal::Encryptor& encryptor, 
                                              seal::BatchEncoder& batch_encoder,
                                              std::vector<seal::Ciphertext>& ct, 
                                              size_t amt, size_t slots) {
-  assert(amt < ct.size() - 1);
+  assert(amt < ct.size());
   // Initialize with zeros
   seal::Plaintext zero = encode_all_slots(batch_encoder, 0, slots);
   std::vector<seal::Ciphertext> res_(ct.size());  

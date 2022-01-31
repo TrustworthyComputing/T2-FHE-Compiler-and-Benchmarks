@@ -15,28 +15,25 @@ int main(void) {
     print(hash);
     temp = hash << 10;
     print(temp);
-    // temp &= 0xffff;
     temp = temp << 16;
-    temp = temp >> 16;
+    temp >>>=  16;
     print(temp);
     hash += temp;
     print(hash);
-    temp = hash >> 6;
+    temp = (hash >>> 6);
     hash = hash ^ temp;
     print(hash);
   }
   temp = hash << 3;
   hash += temp;
-  temp = hash >> 11;
+  temp = (hash >>> 11);
   hash = hash ^ temp;
   temp = hash << 15;
-  // temp &= 0xffff;
   temp = temp << 16;
-  temp = temp >> 16;
+  temp >>>= 16;
   hash += temp;
-  // hash &= 0xffff;
   hash = hash << 16;
-  hash = hash >> 16;
+  hash >>>= 16;
   print(hash);
 
   return 0;

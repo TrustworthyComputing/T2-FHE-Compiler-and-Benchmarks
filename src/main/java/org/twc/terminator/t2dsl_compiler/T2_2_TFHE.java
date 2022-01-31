@@ -188,15 +188,45 @@ public class T2_2_TFHE extends T2_Compiler {
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
       switch (op) {
-        case "+=": append_idx("add"); break;
-        case "*=": append_idx("mult"); break;
-        case "-=": append_idx("sub"); break;
+        case "+=":
+          append_idx("add(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs_enc);
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
+        case "*=":
+          append_idx("mult(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs_enc);
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
+        case "-=":
+          append_idx("sub(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs_enc);
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
+        case "<<=":
+          append_idx("shift_left_bin(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
+        case ">>=":
+          append_idx("shift_right_bin(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
+        case ">>>=":
+          append_idx("shift_right_logical_bin(");
+          this.asm_.append(lhs.getName()).append(", ");
+          this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud)");
+          break;
         default:
           throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
-      this.asm_.append("(").append(lhs.getName()).append(", ");
-      this.asm_.append(lhs.getName()).append(", ").append(rhs_enc);
-      this.asm_.append(", word_sz, &key->cloud)");
     } else {
       throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
@@ -216,7 +246,6 @@ public class T2_2_TFHE extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
@@ -243,7 +272,34 @@ public class T2_2_TFHE extends T2_Compiler {
           this.asm_.append(", word_sz, &key->cloud)");
           break;
         } else if (rhs_type.equals("int")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          switch (op) {
+            case "<<=":
+              append_idx("shift_left_bin(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], ").append(rhs.getName());
+              this.asm_.append(", word_sz, &key->cloud)");
+              break;
+            case ">>=":
+              append_idx("shift_right_bin(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], ").append(rhs.getName());
+              this.asm_.append(", word_sz, &key->cloud)");
+              break;
+            case ">>>=":
+              append_idx("shift_right_logical_bin(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], ").append(rhs.getName());
+              this.asm_.append(", word_sz, &key->cloud)");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
         }
       default:
         throw new Exception("error in array assignment");
@@ -264,7 +320,6 @@ public class T2_2_TFHE extends T2_Compiler {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
@@ -500,12 +555,12 @@ public class T2_2_TFHE extends T2_Compiler {
       this.asm_.append(" = e_cloud(").append(lhs.getName());
       this.asm_.append(", word_sz, &key->cloud);\n");
       rhs_enc = rhs.getName();
-      if (op.equals("<<") || op.equals("<<")) {
+      if (op.equals("<<") || op.equals("<<") || op.equals(">>>")) {
         throw new Exception("Shift over encrypted integers is not possible");
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       lhs_enc = lhs.getName();
-      if (!(op.equals("<<") || op.equals("<<"))) {
+      if (!(op.equals("<<") || op.equals("<<") || op.equals(">>>"))) {
         rhs_enc = new_ctxt_tmp();
         append_idx(rhs_enc);
         this.asm_.append(" = e_cloud(").append(rhs.getName());
@@ -514,7 +569,7 @@ public class T2_2_TFHE extends T2_Compiler {
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("EncInt")) {
       lhs_enc = lhs.getName();
       rhs_enc = rhs.getName();
-      if (op.equals("<<") || op.equals("<<")) {
+      if (op.equals("<<") || op.equals("<<") || op.equals(">>>")) {
         throw new Exception("Shift over encrypted integers is not possible");
       }
     } else {
@@ -566,6 +621,11 @@ public class T2_2_TFHE extends T2_Compiler {
         break;
       case ">>":
         append_idx("shift_right_bin(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
+      case ">>>":
+        append_idx("shift_right_logical_bin(" + res_ + ", ");
         this.asm_.append(lhs_enc).append(", ").append(rhs.getName());
         this.asm_.append(", word_sz, &key->cloud);\n");
         break;

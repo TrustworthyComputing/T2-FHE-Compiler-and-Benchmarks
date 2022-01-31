@@ -51,8 +51,9 @@ TOKEN :
   | < BINAND : "&" >
   | < BINOR : "|" >
   | < BINXOR : "^" >
-  | < SLL : "<<" >
-  | < SRL : ">>" >
+  | < SLA : "<<" >
+  | < SRA : ">>" >
+  | < SRL : ">>>" >
   | < BINNOT : "~" >
   | < BOOLEAN: "boolean" >
   | < CLASS: "class" >
@@ -264,6 +265,7 @@ void CompoundOperator() : {} {
 |   "%="
 |   "<<="
 |   ">>="
+|   ">>>="
 |   "&="
 |   "|="
 |   "^="
@@ -362,6 +364,7 @@ void BinOperator() : {} {
 |  "^"
 |  "<<"
 |  ">>"
+|  ">>>"
 |  "+"
 |  "-"
 |  "*"

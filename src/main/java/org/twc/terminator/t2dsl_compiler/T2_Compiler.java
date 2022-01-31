@@ -345,7 +345,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * |   "^="
    */
   public Var_t visit(CompoundOperator n) throws Exception {
-    String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "|=", "^="};
+    String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", ">>>=", "&=", "|=", "^="};
     String op = _ret[n.f0.which];
     return new Var_t("int", op);
   }
@@ -551,6 +551,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * |  "^"
    * |  "<<"
    * |  ">>"
+   * |  ">>>"
    * |  "+"
    * |  "-"
    * |  "*"
@@ -564,12 +565,14 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * |  ">="
    */
   public Var_t visit(BinOperator n) throws Exception {
-    String[] _ret = {"&", "|", "^", "<<", ">>", "+", "-", "*", "/", "%", "==",
-                     "!=", "<", "<=", ">", ">="};
+    String[] _ret = {"&", "|", "^", "<<", ">>", ">>>", "+", "-", "*", "/", "%",
+                     "==", "!=", "<", "<=", ">", ">="};
     String op = _ret[n.f0.which];
-    if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
-        ">>".equals(op) || "<<=".equals(op) || ">>=".equals(op) || "+".equals(op) ||
-        "-".equals(op) || "*".equals(op) || "/".equals(op) || "%".equals(op)) {
+    if ("&".equals(op) || "|".equals(op) || "^".equals(op) ||
+        "<<".equals(op) || ">>".equals(op) || ">>>".equals(op) ||
+        "<<=".equals(op) || ">>=".equals(op) || ">>>=".equals(op) ||
+        "+".equals(op) || "-".equals(op) || "*".equals(op) ||
+        "/".equals(op) || "%".equals(op)) {
       return new Var_t("int", op);
     } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
                "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {

@@ -294,17 +294,34 @@ public class T2_2_SEAL extends T2_Compiler {
         switch (op) {
           case "+=":
             this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, slots)");
             break;
           case "*=":
             this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, slots)");
             break;
           case "-=":
             this.asm_.append("sub_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, slots)");
+            break;
+          case "<<=":
+            this.asm_.append("shift_left_bin(encryptor, batch_encoder, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+            break;
+          case ">>=":
+            this.asm_.append("shift_right_bin(");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+            break;
+          case ">>>=":
+            this.asm_.append("shift_right_logical_bin(encryptor, batch_encoder, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
             break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
-        this.asm_.append(lhs.getName()).append(", tmp_, slots)");
       } else {
         append_idx("tmp = uint64_to_hex_string(");
         this.asm_.append(rhs.getName());
@@ -387,6 +404,22 @@ public class T2_2_SEAL extends T2_Compiler {
           }
           break;
         } else if (rhs_type.equals("int")) {
+          if (op.equals("<<=")) {
+            this.asm_.append("shift_left_bin(encryptor, batch_encoder, ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]");
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+          } else if (op.equals(">>=")) {
+            this.asm_.append("shift_right_bin(");
+            this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]");
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+          } else if (op.equals(">>>=")) {
+            this.asm_.append("shift_right_logical_bin(encryptor, batch_encoder, ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName()).append("]");
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+          } 
           throw new Exception("Encrypt and move to temporary var.");
         }
       default:
@@ -745,6 +778,7 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -785,6 +819,7 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -842,6 +877,11 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", slots);\n");
             break;
+          case ">>>":
+            this.asm_.append("shift_right_logical_bin(encryptor, batch_encoder, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", slots);\n");
+            break;
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
@@ -882,6 +922,7 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
@@ -973,6 +1014,7 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "<<":
           case ">>":
+          case ">>>":
             throw new Exception("Shift over encrypted integers is not possible");
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);

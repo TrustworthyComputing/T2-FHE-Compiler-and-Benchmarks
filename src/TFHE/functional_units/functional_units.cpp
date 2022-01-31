@@ -70,7 +70,7 @@ std::vector<LweSample*> e_cloud(uint32_t ptxt_val, size_t word_sz,
   return result;
 }
 
-void shift_left_bin(std::vector<LweSample*>& result, 
+void shift_left_bin(std::vector<LweSample*>& result,
                     std::vector<LweSample*>& ct,
                     int amt, const size_t word_sz,
                     const TFheGateBootstrappingCloudKeySet* bk) {
@@ -85,7 +85,7 @@ void shift_left_bin(std::vector<LweSample*>& result,
   }
 }
 
-void shift_right_bin(std::vector<LweSample*>& result, 
+void shift_right_bin(std::vector<LweSample*>& result,
                      std::vector<LweSample*>& ct,
                      int amt, const size_t word_sz,
                      const TFheGateBootstrappingCloudKeySet* bk) {
@@ -95,8 +95,33 @@ void shift_right_bin(std::vector<LweSample*>& result,
       bootsCOPY(&result[i][j], &ct[i][j+amt], bk);
     }
     // sign extension
-    for (int j = word_sz-amt; j < word_sz-1; j++) {
+    for (int j = word_sz-amt; j < word_sz; j++) {
       bootsCOPY(&result[i][j], &ct[i][word_sz-1], bk);
+    }
+  }
+}
+
+void shift_right_logical_bin(std::vector<LweSample*>& result,
+                     std::vector<LweSample*>& ct,
+                     int amt, const size_t word_sz,
+                     const TFheGateBootstrappingCloudKeySet* bk) {
+  std::vector<LweSample*> tmp(ct.size());
+  for (int i = 0; i < tmp.size(); i++) {
+    tmp[i] = new_gate_bootstrapping_ciphertext_array(word_sz, bk->params);
+  }
+
+  // shift right
+  for (int i = 0 ; i < result.size(); i++) {
+    for (int j = 0; j < word_sz-amt; j++) {
+      bootsCOPY(&tmp[i][j], &ct[i][j+amt], bk);
+    }
+    for (int j = word_sz-amt; j < word_sz-1; j++) {
+      bootsCONSTANT(&tmp[i][j], 0, bk);
+    }
+  }
+  for (int i = 0; i < tmp.size(); i++) {
+    for (int j = 0; j < word_sz; j++) {
+      bootsCOPY(&result[i][j], &tmp[i][j], bk);
     }
   }
 }
