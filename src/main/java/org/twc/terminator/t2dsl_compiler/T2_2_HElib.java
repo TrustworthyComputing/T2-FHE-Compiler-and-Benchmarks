@@ -787,6 +787,10 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append("eq_bin(public_key, tmp_, ").append(rhs.getName());
             this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
+          case "!=":
+            this.asm_.append("neq_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
+            break;
           case "<":
             this.asm_.append("lt_bin(public_key, tmp_, ").append(rhs.getName());
             this.asm_.append(", unpackSlotEncoding, slots);\n");
@@ -824,17 +828,26 @@ public class T2_2_HElib extends T2_Compiler {
           case "==":
             assign_to_all_slots("tmp", lhs.getName(), null);
             append_idx(res_);
-            this.asm_.append(" = eq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
+            this.asm_.append(" = eq_plain(public_key, ");
+            this.asm_.append(rhs.getName()).append(", tmp, p, slots);\n");
+            break;
+          case "!=":
+            assign_to_all_slots("tmp", lhs.getName(), null);
+            append_idx(res_);
+            this.asm_.append(" = neq_plain(public_key, ");
+            this.asm_.append(rhs.getName()).append(", tmp, p, slots);\n");
             break;
           case "<":
             assign_to_all_slots("tmp", lhs.getName(), null);
             append_idx(res_);
-            this.asm_.append(" = lt_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
+            this.asm_.append(" = lt_plain(public_key, tmp, ");
+            this.asm_.append(rhs.getName()).append(", p, slots);\n");
             break;
           case "<=":
             assign_to_all_slots("tmp", lhs.getName(), null);
             append_idx(res_);
-            this.asm_.append(" = leq_plain(public_key, tmp, ").append(rhs.getName()).append(", p, slots);\n");
+            this.asm_.append(" = leq_plain(public_key, tmp, ");
+            this.asm_.append(rhs.getName()).append(", p, slots);\n");
             break;
           case "<<":
           case ">>":
@@ -870,6 +883,10 @@ public class T2_2_HElib extends T2_Compiler {
             break;
           case "==":
             this.asm_.append("eq_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
+            break;
+          case "!=":
+            this.asm_.append("neq_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<":
@@ -916,6 +933,11 @@ public class T2_2_HElib extends T2_Compiler {
           case "==":
             assign_to_all_slots("tmp", rhs.getName(), null);
             append_idx(res_ + " = eq_plain(public_key, ");
+            this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
+            break;
+          case "!=":
+            assign_to_all_slots("tmp", rhs.getName(), null);
+            append_idx(res_ + " = neq_plain(public_key, ");
             this.asm_.append(lhs.getName()).append(", tmp, p, slots);\n");
             break;
           case "<":
@@ -967,6 +989,11 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", unpackSlotEncoding, slots);\n");
             break;
+          case "!=":
+            this.asm_.append("neq_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", unpackSlotEncoding, slots);\n");
+            break;
           case "<":
             this.asm_.append("lt_bin(public_key, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
@@ -996,6 +1023,11 @@ public class T2_2_HElib extends T2_Compiler {
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(public_key, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
+            break;
+          case "!=":
+            append_idx(res_);
+            this.asm_.append(" = neq(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(", p, slots);\n");
             break;
           case "<":

@@ -1,6 +1,5 @@
-## SEAL
+## Lattigo
 
 ```
-cmake .
 make -j
 ```

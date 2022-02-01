@@ -11,12 +11,14 @@ var encoder_ *bfv.Encoder
 var evaluator_ *bfv.Evaluator
 var params_ *bfv.Parameters
 var ptxt_mod_ int
+var word_sz_ int
 var slots_ int
 
 func FunitsInit(encryptorPk *bfv.Encryptor, encoder *bfv.Encoder,
 	evaluator *bfv.Evaluator, params *bfv.Parameters,
-	ptxt_mod, slots int) {
+	ptxt_mod, slots, word_sz int) {
 	encryptorPk_ = encryptorPk
+	word_sz_ = word_sz
 	encoder_ = encoder
 	evaluator_ = evaluator
 	params_ = params
@@ -57,6 +59,25 @@ func Eq(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	return tmp2_
 }
 
+func NeqPlain(ctxt *bfv.Ciphertext, ptxt *bfv.Plaintext) *bfv.Ciphertext {
+	ctxt2 := (*encryptorPk_).EncryptNew(ptxt)
+	return Neq(ctxt, ctxt2)
+}
+
+func Neq(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
+	res_ := Eq(c1, c2)
+	(*evaluator_).Neg(res_, res_)
+	ptxt := bfv.NewPlaintext(*params_)
+	ones := make([]uint64, slots_)
+	for i := 0; i < slots_; i++ {
+		ones[i] = 1
+	}
+	(*encoder_).EncodeUint(ones, ptxt)
+	ones_ := (*encryptorPk_).EncryptNew(ptxt)
+	(*evaluator_).Add(res_, ones_, res_)
+	return res_;
+}
+
 func LtPlainRight(ctxt *bfv.Ciphertext, ptxt *bfv.Plaintext) *bfv.Ciphertext {
 	ctxt2 := (*encryptorPk_).EncryptNew(ptxt)
 	return Lt(ctxt, ctxt2)
@@ -76,12 +97,10 @@ func Lt(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	}
 	(*encoder_).EncodeUint(arr, ptxt)
 	result_ := (*encryptorPk_).EncryptNew(ptxt)
-
 	start := -(ptxt_mod_ - 1) / 2
 	for i := start; i < 0; i++ { // square
 		tmp_ := c1.CopyNew()
 		(*evaluator_).Sub(tmp_, c2, tmp_)
-
 		for j := 0; j < slots_; j++ {
 			arr[j] = uint64(-i)
 		}
@@ -89,7 +108,6 @@ func Lt(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 		i_ := (*encryptorPk_).EncryptNew(ptxt)
 		(*evaluator_).Add(tmp_, i_, tmp_)
 		tmp2_ := tmp_.CopyNew()
-
 		for j := 0; j < num_squares; j++ { // square
 			receiver := bfv.NewCiphertext(*params_, tmp2_.Degree()*2)
 			(*evaluator_).Mul(tmp2_, tmp2_, receiver)
@@ -137,8 +155,8 @@ func Leq(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	return result_
 }
 
-func BinEq(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
-	res := make([]*bfv.Ciphertext, word_sz)
+func BinEq(c1, c2 []*bfv.Ciphertext, in_len int) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, in_len)
 	tmp_ := bfv.NewCiphertext(*params_, c1[0].Degree())
 	receiver := bfv.NewCiphertext(*params_, tmp_.Degree()*2)
 	one := bfv.NewPlaintext(*params_)
@@ -152,21 +170,35 @@ func BinEq(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
 		arr[i] = 0
 	}
 	(*encoder_).EncodeUint(arr, zero)
-	for i := word_sz-1; i >= 0; i-- {
+	for i := in_len-1; i >= 0; i-- {
 		tmp_res_ := (*encryptorPk_).EncryptNew(one)
 		(*evaluator_).Sub(c1[i], c2[i], tmp_)
 		(*evaluator_).Mul(tmp_, tmp_, receiver)
 		tmp_ = (*evaluator_).RelinearizeNew(receiver)
 		(*evaluator_).Sub(tmp_res_, tmp_, tmp_res_)
-		if i == (word_sz-1) {
-			res[word_sz-1] = tmp_res_.CopyNew()
+		if i == (in_len-1) {
+			res[in_len-1] = tmp_res_.CopyNew()
 		} else {
-			(*evaluator_).Mul(res[word_sz-1], tmp_res_, receiver)
-			res[word_sz-1] = (*evaluator_).RelinearizeNew(receiver)
+			(*evaluator_).Mul(res[in_len-1], tmp_res_, receiver)
+			res[in_len-1] = (*evaluator_).RelinearizeNew(receiver)
 			res[i] = (*encryptorPk_).EncryptNew(zero)
 		}
 	}
 	return res
+}
+
+func BinNeq(c1, c2 []*bfv.Ciphertext, in_len int) []*bfv.Ciphertext {
+	res := BinEq(c1, c2, in_len)
+	(*evaluator_).Neg(res[in_len-1], res[in_len-1])
+	ptxt := bfv.NewPlaintext(*params_)
+	ones := make([]uint64, slots_)
+	for i := 0; i < slots_; i++ {
+		ones[i] = 1
+	}
+	(*encoder_).EncodeUint(ones, ptxt)
+	ones_ := (*encryptorPk_).EncryptNew(ptxt)
+	(*evaluator_).Add(res[in_len-1], ones_, res[in_len-1])
+	return res;
 }
 
 func EncodeAllSlots(val uint64) *bfv.Plaintext {
@@ -260,42 +292,38 @@ func BinXor(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	return res
 }
 
-func BinLt(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
-	res := make([]*bfv.Ciphertext, word_sz)
+func BinLt(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, word_sz_)
 	if len(c1) == 1 {
 		one := EncodeAllSlots(1)
 		c1_neg := (*evaluator_).NegNew(c1[0])
 		(*evaluator_).Add(c1_neg, one, c1_neg)
 		receiver := (*evaluator_).MulNew(c1_neg, c2[0])
-		res[word_sz-1] = (*evaluator_).RelinearizeNew(receiver)
+		res[word_sz_-1] = (*evaluator_).RelinearizeNew(receiver)
 		return res
 	}
-
 	length := len(c1) >> 1
 	lhs_h := slice(c1, 0, length)
 	lhs_l := slice(c1, length, len(c1))
 	rhs_h := slice(c2, 0, length)
 	rhs_l := slice(c2, length, len(c2))
-
-	term1 := BinLt(lhs_h, rhs_h, word_sz)
+	term1 := BinLt(lhs_h, rhs_h)
 	h_equal := BinEq(lhs_h, rhs_h, len(lhs_h))
-	l_equal := BinLt(lhs_l, rhs_l, word_sz)
-
-	receiver := (*evaluator_).MulNew(h_equal[len(lhs_h)-1], l_equal[word_sz-1])
+	l_equal := BinLt(lhs_l, rhs_l)
+	receiver := (*evaluator_).MulNew(h_equal[len(lhs_h)-1], l_equal[word_sz_-1])
 	term2 := (*evaluator_).RelinearizeNew(receiver)
-
-	res[word_sz-1] = BinSingleXor(term1[word_sz-1], term2)
+	res[word_sz_-1] = BinSingleXor(term1[word_sz_-1], term2)
 	zero := EncodeAllSlots(0)
-	for i := 0; i < (word_sz-1); i++ {
+	for i := 0; i < (word_sz_-1); i++ {
 		res[i] = (*encryptorPk_).EncryptNew(zero)
 	}
 	return res
 }
 
-func BinLeq(c1, c2 []*bfv.Ciphertext, word_sz int) []*bfv.Ciphertext {
-	res := BinLt(c2, c1, word_sz)
+func BinLeq(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := BinLt(c2, c1)
 	one := EncodeAllSlots(1)
-	(*evaluator_).Sub(one, res[word_sz-1], res[word_sz-1])
+	(*evaluator_).Sub(one, res[word_sz_-1], res[word_sz_-1])
 	return res
 }
 
@@ -338,7 +366,6 @@ func BinAdd(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	}
 	offset := len(bigger) - len(smaller)
 	res := make([]*bfv.Ciphertext, len(smaller))
-
 	for i := len(smaller) - 1; i >= 0; i-- {
 		xor_ := BinSingleXor(smaller[i], bigger[i + offset])
 		res[i] = BinSingleXor(xor_, carry)
@@ -363,13 +390,11 @@ func BinSub(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	carry := (*encryptorPk_).EncryptNew(carry_ptxt)
 	res := make([]*bfv.Ciphertext, len(c1))
 	neg_c2 := make([]*bfv.Ciphertext, len(c2))
-
 	for i := len(c2) - 1; i >= 0; i-- {
 		neg_c2[i] = (*evaluator_).NegNew(c2[i])
 		(*evaluator_).Add(neg_c2[i], one, neg_c2[i])
 	}
 	neg_c2 = BinInc(neg_c2)
-
 	for i := len(c1) - 1; i >= 0; i-- {
 		xor_ := BinSingleXor(c1[i], neg_c2[i])
 		res[i] = BinSingleXor(xor_, carry)
@@ -396,7 +421,6 @@ func BinMult(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	for i := 0; i < ctlen; i++ {
 		prod[i] = (*encryptorPk_).EncryptNew(zero)
 	}
-
 	for i := ctlen - 1; i >= 0; i-- {
 		for j := ctlen - 1; j >= ctlen - i - 1; j-- {
 			receiver := (*evaluator_).MulNew(c1[i], c2[j])

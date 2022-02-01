@@ -756,6 +756,10 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = eq_bin(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey);\n");;
             break;
+          case "!=":
+            this.asm_.append(" = neq_bin(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");;
+            break;
           case "<":
             this.asm_.append(" = lt_bin(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", ").append(this.word_sz_);
@@ -791,6 +795,12 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
             append_idx(res_);
             this.asm_.append(" = eq(cc, tmp_, ").append(rhs.getName());
+            this.asm_.append(", plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+            append_idx(res_);
+            this.asm_.append(" = neq(cc, tmp_, ").append(rhs.getName());
             this.asm_.append(", plaintext_modulus);\n");
             break;
           case "<":
@@ -841,6 +851,10 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(" = eq_bin(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, keyPair.publicKey);\n");
             break;
+          case "!=":
+            this.asm_.append(" = neq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, keyPair.publicKey);\n");
+            break;
           case "<":
             this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, ").append(this.word_sz_);
@@ -889,6 +903,12 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
             append_idx(res_);
             this.asm_.append(" = eq(cc, ").append(lhs.getName());
+            this.asm_.append(", tmp_, plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx("tmp_ = cc->Encrypt(keyPair.publicKey, tmp);\n");
+            append_idx(res_);
+            this.asm_.append(" = neq(cc, ").append(lhs.getName());
             this.asm_.append(", tmp_, plaintext_modulus);\n");
             break;
           case "<":
@@ -942,6 +962,11 @@ public class T2_2_PALISADE extends T2_Compiler {
             this.asm_.append(", ").append(rhs.getName());
             this.asm_.append(", keyPair.publicKey);\n");
             break;
+          case "!=":
+            this.asm_.append(" = neq_bin(cc, ").append(lhs.getName());
+            this.asm_.append(", ").append(rhs.getName());
+            this.asm_.append(", keyPair.publicKey);\n");
+            break;
           case "<":
             this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName());
@@ -978,6 +1003,11 @@ public class T2_2_PALISADE extends T2_Compiler {
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(cc, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx(res_);
+            this.asm_.append(" = neq(cc, ").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;
           case "<":

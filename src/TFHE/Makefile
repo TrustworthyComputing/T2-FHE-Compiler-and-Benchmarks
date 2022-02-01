@@ -12,11 +12,9 @@ BIN = ./bin
 RM = rm -f
 MKDIR_P = mkdir -p
 
-all: directories client
+all: directories client test
 
 client: keygen encrypt decrypt
-
-benchmarks: fibonacci factorial
 
 keygen: $(BIN)/keygen.o
 	$(CXX) $(CPPFLAGS) $(BIN)/keygen.o -o $(BIN)/keygen.out $(LIBS)
@@ -26,18 +24,6 @@ encrypt: $(BIN)/encrypt.o
 
 decrypt: $(BIN)/decrypt.o
 	$(CXX) $(CPPFLAGS) $(BIN)/decrypt.o -o $(BIN)/decrypt.out $(LIBS)
-
-fibonacci: $(BIN)/fibonacci.o $(BIN)/helper.o
-	$(CXX) $(CPPFLAGS) $(BIN)/fibonacci.o $(BIN)/helper.o -o $(BIN)/fibonacci.out $(LIBS)
-
-factorial: $(BIN)/factorial.o $(BIN)/functional_units.o
-	$(CXX) $(CPPFLAGS) $(BIN)/factorial.o $(BIN)/functional_units.o -o $(BIN)/factorial.out $(LIBS)
-
-pir: $(BIN)/pir.o $(BIN)/functional_units.o
-	$(CXX) $(CPPFLAGS) $(BIN)/pir.o $(BIN)/functional_units.o -o $(BIN)/pir.out $(LIBS)
-
-simon: $(BIN)/simon.o $(BIN)/functional_units.o
-	$(CXX) $(CPPFLAGS) $(BIN)/simon.o $(BIN)/functional_units.o -o $(BIN)/simon.out $(LIBS)
 
 test: $(BIN)/test.o $(BIN)/functional_units.o
 	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/functional_units.o -o $(BIN)/test.out $(LIBS)
@@ -50,18 +36,6 @@ $(BIN)/encrypt.o: client/encrypt.cpp
 
 $(BIN)/decrypt.o: client/decrypt.cpp
 	$(CXX) -c client/decrypt.cpp -o $(BIN)/decrypt.o
-
-$(BIN)/fibonacci.o: Microbenchmarks/fibonacci/fibonacci.cpp
-	$(CXX) -c Microbenchmarks/fibonacci/fibonacci.cpp -o $(BIN)/fibonacci.o
-
-$(BIN)/factorial.o: Microbenchmarks/factorial/factorial.cpp
-	$(CXX) -c Microbenchmarks/factorial/factorial.cpp -o $(BIN)/factorial.o
-
-$(BIN)/pir.o: Microbenchmarks/PIR/PIR.cpp
-	$(CXX) -c Microbenchmarks/PIR/PIR.cpp -o $(BIN)/pir.o
-
-$(BIN)/simon.o: Crypto/Simon/simon.cpp
-	$(CXX) -c Crypto/Simon/simon.cpp -o $(BIN)/simon.o
 
 $(BIN)/test.o: compiled/test.cpp
 	$(CXX) -c compiled/test.cpp -o $(BIN)/test.o

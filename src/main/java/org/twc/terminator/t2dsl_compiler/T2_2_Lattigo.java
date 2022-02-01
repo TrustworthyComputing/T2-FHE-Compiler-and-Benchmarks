@@ -71,7 +71,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
-                   "&params, 0x3ee0001, slots) // TODO: change ptxt_mod\n");
+                   "&params, 0x3ee0001, slots, " + this.word_sz_ + ") // TODO: change ptxt_mod\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
     append_idx("tmp := make([]uint64, slots)\n");
     append_idx("encoder.EncodeUint(tmp, ptxt)\n");
@@ -953,7 +953,13 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "==":
             append_idx(res_ + " := funits.BinEq(tmp_, ");
-            this.asm_.append(rhs.getName()).append(")\n");
+            this.asm_.append(rhs.getName()).append(", ");
+            this.asm_.append(this.word_sz_).append(")\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.BinNeq(tmp_, ");
+            this.asm_.append(rhs.getName()).append(", ");
+            this.asm_.append(this.word_sz_).append(")\n");
             break;
           case "<":
             append_idx(res_ + " := funits.BinLt(tmp_, ");
@@ -984,6 +990,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.Neq(tmp_, ");
             this.asm_.append(rhs.getName()).append(")\n");
             break;
           case "<":
@@ -1025,7 +1035,13 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "==":
             append_idx(res_ + " := funits.BinEq(");
-            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            this.asm_.append(lhs.getName()).append(", tmp_, ");
+            this.asm_.append(this.word_sz_).append(")\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.BinNeq(");
+            this.asm_.append(lhs.getName()).append(", tmp_, ");
+            this.asm_.append(this.word_sz_).append(")\n");
             break;
           case "<":
             append_idx(res_ + " := funits.BinLt(");
@@ -1068,15 +1084,19 @@ public class T2_2_Lattigo extends T2_Compiler {
             throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(");
-            this.asm_.append(rhs.getName()).append(", tmp_)\n");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.Neq(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
           case "<":
             append_idx(res_ + " := funits.Lt(");
-            this.asm_.append(rhs.getName()).append(", tmp_)\n");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
           case "<=":
             append_idx(res_ + " := funits.Leq(");
-            this.asm_.append(rhs.getName()).append(", tmp_)\n");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
           case "<<":
           case ">>":
@@ -1107,7 +1127,13 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "==":
             append_idx(res_ + " := funits.BinEq(" + lhs.getName());
-            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            this.asm_.append(", ").append(rhs.getName()).append(", ");
+            this.asm_.append(this.word_sz_).append(")\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.BinNeq(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(", ");
+            this.asm_.append(this.word_sz_).append(")\n");
             break;
           case "<":
             append_idx(res_ + " := funits.BinLt(" + lhs.getName());
@@ -1139,6 +1165,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             throw new Exception("XOR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "!=":
+            append_idx(res_ + " := funits.Neq(");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             break;
           case "<":

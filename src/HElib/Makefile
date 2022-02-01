@@ -6,16 +6,10 @@ BIN = ./bin
 RM = rm -f
 MKDIR_P = mkdir -p
 
-all: directories example
-
-example: $(BIN)/helib_example.o
-	$(CXX) $(CPPFLAGS) $(BIN)/helib_example.o -o $(BIN)/helib_example.out $(LIBS)
+all: directories test
 
 test: $(BIN)/test.o $(BIN)/functional_units.o
 	$(CXX) $(CPPFLAGS) $(BIN)/test.o $(BIN)/functional_units.o -o $(BIN)/test.out $(LIBS)
-
-$(BIN)/helib_example.o: examples/helib.cpp
-	$(CXX) $(CPPFLAGS) -c examples/helib.cpp -o $(BIN)/helib_example.o
 
 $(BIN)/test.o: compiled/test.cpp
 	$(CXX) $(CPPFLAGS) -c compiled/test.cpp -o $(BIN)/test.o

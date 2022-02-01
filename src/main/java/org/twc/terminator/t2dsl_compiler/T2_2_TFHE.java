@@ -605,6 +605,11 @@ public class T2_2_TFHE extends T2_Compiler {
         this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
         this.asm_.append(", word_sz, &key->cloud);\n");
         break;
+      case "!=":
+        append_idx("neq(" + res_ + ", ");
+        this.asm_.append(lhs_enc).append(", ").append(rhs_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        break;
       case "<":
         append_idx("lt(" + res_ + ", ");
         this.asm_.append(lhs_enc).append(", ").append(rhs_enc);

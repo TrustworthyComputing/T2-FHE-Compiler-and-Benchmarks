@@ -767,6 +767,11 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
             this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
             break;
+          case "!=":
+            this.asm_.append("neq_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
+            this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
+            break;
           case "<":
             this.asm_.append("lt_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
@@ -801,6 +806,12 @@ public class T2_2_SEAL extends T2_Compiler {
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
+            this.asm_.append("relin_keys, ").append(rhs.getName());
+            this.asm_.append(", tmp, plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx(res_);
+            this.asm_.append(" = neq_plain(encryptor, evaluator, ");
             this.asm_.append("relin_keys, ").append(rhs.getName());
             this.asm_.append(", tmp, plaintext_modulus);\n");
             break;
@@ -858,6 +869,11 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("relin_keys, ").append(lhs.getName());
             this.asm_.append(", tmp_, ").append(this.word_sz_).append(", slots);\n");
             break;
+          case "!=":
+            this.asm_.append("neq_bin(evaluator, encryptor, batch_encoder, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName());
+            this.asm_.append(", tmp_, ").append(this.word_sz_).append(", slots);\n");
+            break;
           case "<":
             this.asm_.append("lt_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, ").append(lhs.getName());
@@ -906,6 +922,12 @@ public class T2_2_SEAL extends T2_Compiler {
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName());
+            this.asm_.append(", tmp, plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx(res_);
+            this.asm_.append(" = neq_plain(encryptor, evaluator, ");
             this.asm_.append("relin_keys, ").append(lhs.getName());
             this.asm_.append(", tmp, plaintext_modulus);\n");
             break;
@@ -960,6 +982,11 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
             break;
+          case "!=":
+            this.asm_.append("neq_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", ").append(this.word_sz_).append(", slots);\n");
+            break;
           case "<":
             this.asm_.append("lt_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
@@ -997,6 +1024,12 @@ public class T2_2_SEAL extends T2_Compiler {
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(encryptor, evaluator, ");
+            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
+            this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+            break;
+          case "!=":
+            append_idx(res_);
+            this.asm_.append(" = neq(encryptor, evaluator, ");
             this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;

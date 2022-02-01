@@ -15,39 +15,6 @@ else()
   message(FATAL_ERROR "Cannot find target SEAL::seal or SEAL::seal_shared")
 endif()
 
-add_executable(factorial-bfv.out)
-target_sources(factorial-bfv.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/factorial-bfv/factorial-bfv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
-)
-
-add_executable(fibonacci-bfv.out)
-target_sources(fibonacci-bfv.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/Microbenchmarks/fibonacci-bfv/fibonacci-bfv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
-)
-
-add_executable(simon-bfv.out)
-target_sources(simon-bfv.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/Crypto/simon-bfv/simon-bfv.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
-)
-
-add_executable(simon-bfv-batched.out)
-target_sources(simon-bfv-batched.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/Crypto/simon-bfv/simon-bfv-batched.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
-)
-
-add_executable(lr-bfv-batched.out)
-target_sources(lr-bfv-batched.out PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/ML-Inference/lr/lr-bfv-batched.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/functional_units/functional_units.hpp
-)
-
 add_executable(test.out)
 target_sources(test.out PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/compiled/test.cpp

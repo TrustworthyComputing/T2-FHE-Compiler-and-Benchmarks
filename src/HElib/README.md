@@ -1,6 +1,5 @@
-## SEAL
+## HElib
 
 ```
-cmake .
 make -j
 ```

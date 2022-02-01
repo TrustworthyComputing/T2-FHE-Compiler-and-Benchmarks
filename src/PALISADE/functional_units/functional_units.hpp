@@ -20,36 +20,11 @@
 #include <vector>
 #include <cassert>
 
-#define duration(a) \
-  std::chrono::duration_cast<std::chrono::milliseconds>(a).count()
-#define duration_ns(a) \
-  std::chrono::duration_cast<std::chrono::nanoseconds>(a).count()
-#define duration_us(a) \
-  std::chrono::duration_cast<std::chrono::microseconds>(a).count()
-#define duration_ms(a) \
-  std::chrono::duration_cast<std::chrono::milliseconds>(a).count()
-#define timeNow() std::chrono::high_resolution_clock::now()
-
-#define TIC(t) t = timeNow()
-#define TOC(t) duration(timeNow() - t)
-#define TOC_NS(t) duration_ns(timeNow() - t)
-#define TOC_US(t) duration_us(timeNow() - t)
-#define TOC_MS(t) duration_ms(timeNow() - t)
-
 typedef enum scheme_t {
   BFV, BGV, CKKS, TFHE, NONE
 } scheme_t;
 
 using namespace lbcrypto; 
-
-/// Helper function to encrypt an integer repeatedly into a packed plaintext
-template <typename T>
-Ciphertext<T> encrypt_repeated_integer(CryptoContext<T>& cc, LPPublicKey<T>& pk,
-                                       int64_t num, size_t n) {
-  std::vector<int64_t> v_in(n, num);
-  Plaintext pt = cc->MakePackedPlaintext(v_in);
-  return cc->Encrypt(pk, pt);
-}
 
 /// XOR between two batched binary ciphertexts
 template <typename T>
@@ -76,6 +51,18 @@ Ciphertext<T> eq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
   std::vector<int64_t> one(slots, 1);
   Plaintext pt = cc->MakePackedPlaintext(one);
   return cc->EvalSub(pt, result_);
+}
+
+template <typename T>
+Ciphertext<T> neq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
+                 size_t ptxt_mod) {
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> one(slots, 1);
+  Ciphertext<T> res_ = eq(cc, c1, c2, ptxt_mod);
+  Plaintext pt_one = cc->MakePackedPlaintext(one);
+  res_ = cc->EvalNegate(res_);
+  res_ = cc->EvalAdd(res_, pt_one);
+  return res_;
 }
 
 template <typename T>
@@ -152,9 +139,8 @@ std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc,
       res_[i] = cc->EvalAdd(c1[i], c2[i]);
     }
   }
-  return res_;             
+  return res_;
 }
-
 
 template <typename T>
 Ciphertext<T> lt(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
@@ -223,6 +209,20 @@ std::vector<Ciphertext<T>> eq_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
+std::vector<Ciphertext<T>> neq_bin(CryptoContext<T>& cc, 
+                                  std::vector<Ciphertext<T>>& c1, 
+                                  std::vector<Ciphertext<T>>& c2,
+                                  LPPublicKey<T>& pub_key) {
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> one(slots, 1);
+  std::vector<Ciphertext<T>> res_ = eq_bin(cc, c1, c2, pub_key);
+  Plaintext pt_one = cc->MakePackedPlaintext(one);
+  res_[res_.size()-1] = cc->EvalNegate(res_[res_.size()-1]);
+  res_[res_.size()-1] = cc->EvalAdd(res_[res_.size()-1], pt_one);
+  return res_;
+}
+
+template <typename T>
 std::vector<Ciphertext<T>> slice(
     std::vector<Ciphertext<T>>& in_, size_t start, size_t end) {
   std::vector<Ciphertext<T>> res_(end-start);
@@ -256,7 +256,6 @@ std::vector<Ciphertext<T>> lt_bin(CryptoContext<T>& cc,
   std::vector<Ciphertext<T>> term1 = lt_bin(cc, lhs_h, rhs_h, word_sz, pub_key);
   std::vector<Ciphertext<T>> h_equal = eq_bin(cc, lhs_h, rhs_h, pub_key);
   std::vector<Ciphertext<T>> l_equal = lt_bin(cc, lhs_l, rhs_l, word_sz, pub_key);
-  
   Ciphertext<T> term2 = cc->EvalMultAndRelinearize(h_equal[lhs_h.size() - 1],
       l_equal[word_sz - 1]);
   res_[word_sz - 1] = exor(cc, term1[word_sz - 1], term2);
@@ -363,7 +362,6 @@ std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
   std::vector<int64_t> one(slots, 1);
   Plaintext pt_one = cc->MakePackedPlaintext(one);
   std::vector<Ciphertext<T>> res_(c1.size());
-
   // Generate two's complement of ct2_
   std::vector<Ciphertext<T>> neg_c2(c2.size());
   for (int i = c2.size()-1; i > -1; --i) {
@@ -371,13 +369,11 @@ std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
     neg_c2[i] = cc->EvalAdd(neg_c2[i], one);
   }
   neg_c2 = inc_bin(cc, neg_c2, pub_key);
-
   for (int i = c1.size()-1; i >= 0; --i) {
     // sum = (ct1_ ^ ct2_) ^ in_carry
     Ciphertext<T> xor_ = exor(cc, c1[i], neg_c2[i]);
     res_[i] = exor(cc, xor_, carry_);
     if (i == 0) break; // don't need output carry
-
     // next carry computation
     Ciphertext<T> prod_;
     prod_ = cc->EvalMultAndRelinearize(c1[i], neg_c2[i]);
