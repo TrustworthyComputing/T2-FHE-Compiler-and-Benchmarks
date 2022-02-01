@@ -44,6 +44,7 @@ public class T2_2_TFHE extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     this.asm_ = new StringBuilder();
     append_idx("#include <iostream>\n");
+    append_idx("#include <chrono>\n\n");
     append_idx("#include <tfhe/tfhe.h>\n");
     append_idx("#include <tfhe/tfhe_io.h>\n");
     append_idx("#include <tfhe/tfhe_generic_streams.h>\n\n");

@@ -165,6 +165,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("package main\n\n");
     append_idx("import (\n");
     append_idx("  \"fmt\"\n");
+    append_idx("  \"time\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/" + this.st_.backend_types.get("scheme")+ "\"\n");
     append_idx("  funits \"Lattigo/functional_units\"\n");
@@ -877,6 +878,32 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f3 -> ")"
    */
   public Var_t visit(ReduceNoiseStatement n) throws Exception {
+    return null;
+  }
+
+  /**
+   * f0 -> <START_TIMER>
+   * f1 -> "("
+   * f2 -> ")"
+   */
+  public Var_t visit(StartTimerStatement n) throws Exception {
+    append_idx(this.tstart_ + " ");
+    if (!this.timer_used_) this.asm_.append(":");
+    this.asm_.append("= time.Now()\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <END_TIMER>
+   * f1 -> "("
+   * f2 -> ")"
+   */
+  public Var_t visit(StopTimerStatement n) throws Exception {
+    append_idx(this.tdur_ + " ");
+    if (!this.timer_used_) this.asm_.append(":");
+    this.asm_.append("= time.Since(").append(this.tstart_).append(")\n");
+    append_idx("fmt.Println(\"Time: \", " + this.tdur_ + ")\n");
+    this.timer_used_ = true;
     return null;
   }
 

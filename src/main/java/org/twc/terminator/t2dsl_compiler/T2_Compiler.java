@@ -22,7 +22,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   protected boolean semicolon_;
   protected String config_file_path_;
   protected String tmp_i;
-  protected boolean is_binary_;
+  protected boolean is_binary_, timer_used_;
+  protected String tstart_, tstop_, tdur_;
 
   public T2_Compiler(SymbolTable st, String config_file_path, int word_sz) {
     this.indent_ = 0;
@@ -38,6 +39,10 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     this.tmp_i = "tmp_i";
     this.word_sz_ = word_sz;
     this.is_binary_ = (word_sz > 0);
+    this.tstart_ = "start_timer";
+    this.tstop_ = "stop_timer";
+    this.tdur_ = "duration";
+    this.timer_used_ = false;
   }
 
   public Main.ENC_TYPE getScheme() {
@@ -272,6 +277,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    *       | PrintStatement() ";"
    *       | PrintBatchedStatement() ";"
    *       | ReduceNoiseStatement() ";"
+   *       | StartTimerStatement() ";"
+   *       | StopTimerStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     n.f0.accept(this);
@@ -499,6 +506,38 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f3 -> ")"
    */
   public abstract Var_t visit(ReduceNoiseStatement n) throws Exception;
+
+
+  /**
+   * f0 -> <START_TIMER>
+   * f1 -> "("
+   * f2 -> ")"
+   */
+  public Var_t visit(StartTimerStatement n) throws Exception {
+    if (!this.timer_used_) append_idx("auto " + this.tstart_);
+    else append_idx(this.tstart_);
+    this.asm_.append(" = chrono::high_resolution_clock::now();\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <END_TIMER>
+   * f1 -> "("
+   * f2 -> ")"
+   */
+  public Var_t visit(StopTimerStatement n) throws Exception {
+    if (!this.timer_used_) append_idx("auto " + this.tstop_);
+    else append_idx(this.tstop_);
+    this.asm_.append(" = chrono::high_resolution_clock::now();\n");
+    if (!this.timer_used_) append_idx("auto " + this.tdur_);
+    else append_idx(this.tdur_);
+    this.asm_.append(" = chrono::duration_cast<chrono::milliseconds>(");
+    this.asm_.append(this.tstop_).append("-").append(this.tstart_).append(");\n");
+    append_idx("cout << \"Time: \" << " + this.tdur_);
+    this.asm_.append(".count() << \"ms\" << endl;\n");
+    this.timer_used_ = true;
+    return null;
+  }
 
   /**
    * f0 -> LogicalAndExpression()

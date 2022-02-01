@@ -79,6 +79,8 @@ TOKEN :
   | < PRINT_BATCHED: "print_batched" >
   | < VOID: "void" >
   | < REDUCE_NOISE: "reduce_noise" >
+  | < START_TIMER: "tstart" >
+  | < STOP_TIMER: "tstop" >
 }
 
 TOKEN : /* LITERALS */
@@ -231,6 +233,8 @@ void Statement() : {} {
 |   PrintStatement() ";"
 |   PrintBatchedStatement() ";"
 |   ReduceNoiseStatement() ";"
+|   StartTimerStatement() ";"
+|   StopTimerStatement() ";"
 }
 
 void Block() : {} {
@@ -328,6 +332,14 @@ void PrintBatchedStatement() : {} {
 
 void ReduceNoiseStatement() : {} {
   <REDUCE_NOISE> "(" Expression() ")"
+}
+
+void StartTimerStatement() : {} {
+  <START_TIMER> "(" ")"
+}
+
+void StopTimerStatement() : {} {
+  <STOP_TIMER> "(" ")"
 }
 
 void Expression() : {} {

@@ -98,7 +98,8 @@ public class T2_2_PALISADE extends T2_Compiler {
    * f11 -> "}"
    */
   public Var_t visit(MainClass n) throws Exception {
-    append_idx("#include <iostream>\n\n");
+    append_idx("#include <iostream>\n");
+    append_idx("#include <chrono>\n\n");
     append_idx("#include \"palisade.h\"\n");
     append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace lbcrypto;\n");
