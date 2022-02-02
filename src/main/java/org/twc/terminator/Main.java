@@ -39,6 +39,7 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-TFHE") ||
                  arg.equalsIgnoreCase("--TFHE")) {
         backend_ = HE_BACKEND.TFHE;
+        if (word_sz_ == 0) word_sz_ = 8;
       } else if (arg.equalsIgnoreCase("-PALISADE") ||
                  arg.equalsIgnoreCase("--PALISADE")) {
         backend_ = HE_BACKEND.PALISADE;
@@ -69,7 +70,8 @@ public class Main {
       }
     }
     if (word_sz_ > 0) {
-      System.out.println("[ \033[1;33m ! \033[0m ] Using Binary domain");
+      System.out.println("[ \033[1;33m ! \033[0m ] Using Binary domain with " +
+                         "word size = " + word_sz_);
     } else {
       System.out.println("[ \033[1;33m ! \033[0m ] Using Integer domain");
     }

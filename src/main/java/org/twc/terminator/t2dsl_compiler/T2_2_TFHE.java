@@ -17,7 +17,7 @@ public class T2_2_TFHE extends T2_Compiler {
 
   protected void append_keygen() {
     append_idx("const size_t word_sz = " + this.word_sz_ + ";\n");
-    append_idx("const size_t minimum_lambda = 80;\n");
+    append_idx("const size_t minimum_lambda = 128;\n");
     append_idx("TFheGateBootstrappingParameterSet* params =\n");
     append_idx("  new_default_gate_bootstrapping_parameters(minimum_lambda);\n");
     append_idx("uint32_t seed[] = { 314, 1592, 657 };\n");

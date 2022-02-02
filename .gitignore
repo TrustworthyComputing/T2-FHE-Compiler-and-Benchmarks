@@ -3,19 +3,8 @@
 *.out
 *.config
 
-# Compiled assembly and IR files
-*.spg
-*.kg
-*.asm
-
-# Log file
 *.log
-
-# BlueJ files
 *.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
 
 # Package Files #
 *.jar
@@ -40,5 +29,5 @@ target/*
 src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLvisitor/*.java
 src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLsyntaxtree/*.java
 src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLparser/*.java
-src/test/resources/*.cpp
-src/test/resources/*.go
+src/test/resources/**/*.cpp
+src/test/resources/**/*.go
