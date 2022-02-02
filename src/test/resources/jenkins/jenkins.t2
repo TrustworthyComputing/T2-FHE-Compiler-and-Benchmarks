@@ -9,6 +9,7 @@ int main(void) {
   jkey[0] = 24930; // ab
   jkey[1] = 25444; // cd
 
+  tstart();
   for (i = 0; i < length; i++) {
     temp = jkey[i];
     hash += temp;
@@ -34,6 +35,7 @@ int main(void) {
   hash += temp;
   hash = hash << 16;
   hash >>>= 16;
+  tstop();
   print(hash);
 
   return 0;

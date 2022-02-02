@@ -12,11 +12,13 @@ int main(void) {
   n_ = n;
 
   // Server side encrypted computation.
+  tstart();
   for (i = 0; i < iter; i++) {
     fact_ *= n_;
     n_++;
   }
   print(n);
   print(fact_);
+  tstop();
   return 0;
 }

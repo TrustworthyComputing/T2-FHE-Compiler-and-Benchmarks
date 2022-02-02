@@ -9,16 +9,17 @@ int main(void) {
   for (i = 0 ; i < (n+1) ; i++) {
     primes_[i] = 1;
   }
-
+  tstart();
   for (pr = 2; (pr*pr) < (n+1); pr++) {
     for (i = (2*pr); i < (n+1); i += pr) { // Update all multiples of pr
       primes_[i] = 0;
     }
   }
-
+  
   // Decrypt
   for (pr = 2; pr < (n+1); pr++) { // Print all prime numbers
     print((primes_[pr]) * pr);
   }
+  tstop();
   return 0;
 }

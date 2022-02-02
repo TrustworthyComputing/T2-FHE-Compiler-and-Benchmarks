@@ -16,12 +16,13 @@ int main(void) {
   f2_ = f2;
 
   // Server side encrypted computation.
+  tstart();
   for (i = 0; i < iter; i++) {
     fib_ = f1_ + f2_;
     f1_ = f2_;
     f2_ = fib_;
   }
-
   print(fib_);
+  tstop();
   return 0;
 }

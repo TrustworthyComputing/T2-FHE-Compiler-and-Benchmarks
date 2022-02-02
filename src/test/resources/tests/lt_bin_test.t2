@@ -2,6 +2,7 @@ int main(void) {
   EncInt ctxt1, ctxt2, ctxt3;
   int i;
   i = 1;
+  tstart();
   ctxt1 = i;
   print(ctxt1);
   ctxt2 = 2;
@@ -12,5 +13,6 @@ int main(void) {
   print(ctxt2);
   ctxt3 = (ctxt1 < ctxt1);
   print(ctxt3);
+  tstop();
   return 0;
 }

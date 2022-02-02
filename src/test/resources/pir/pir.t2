@@ -10,12 +10,13 @@ int main(void) {
   // Server side encrypted computation. //
 
   result_ = 0;
+  tstart();
   for (i = 0 ; i < (2*n) ; i+=2) {
     key_ = table_[i];
     val_ = table_[(i + 1)];
     result_ += (key_input == key_) ? val_ : zero_;
   }
-
+  tstop();
   // Decrypt
   print(result_);
   return 0;

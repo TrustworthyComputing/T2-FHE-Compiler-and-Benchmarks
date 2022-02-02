@@ -4,6 +4,8 @@ int main(void) {
   int[] arr;
   int i;
   i = 1;
+
+  tstart();
   ctxt1 = i;
   print(ctxt1);
   ctxt2 = 2;
@@ -39,5 +41,6 @@ int main(void) {
   ctxt2 += 1;
   ctxt2--;
   print(ctxt2);
+  tstop();
   return 0;
 }

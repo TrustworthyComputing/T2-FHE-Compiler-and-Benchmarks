@@ -102,7 +102,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
       System.out.println("[ \033[0;32m \u2713 \033[0m ] Configuration file found");
       return true;
     } catch (InvalidPathException | IOException e) {
-      System.out.println("[ \033[0;31m X \033[0m ] Configuration file not " +
+      System.out.println("[ \033[1;33m ! \033[0m ] Configuration file not " +
                          "found, using default config.");
       return false;
     }

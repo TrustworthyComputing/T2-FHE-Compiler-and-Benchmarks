@@ -7,7 +7,7 @@ int main(void) {
   n2_ = 9;
 
   // Server side encrypted computation. //
-
+  tstart();
   // a = (4*N0*N2 - N1^2)^2
   alpha = n0_ * n2_;
   alpha *= 4;
@@ -35,5 +35,6 @@ int main(void) {
   print(beta_1);
   print(beta_2);
   print(beta_3);
+  tstop();
   return 0;
 }

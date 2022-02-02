@@ -668,14 +668,14 @@ public class T2_2_HElib extends T2_Compiler {
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx("secret_key.Decrypt(tmp, " + expr.getName() + "[");
             this.asm_.append(this.word_sz_ - i - 1).append("]);\n");
-            append_idx("cout << tmp[0];\n");
+            append_idx("cout << tmp[0].getData()[0];\n");
           }
           append_idx("cout << endl");
         } else {
           append_idx("secret_key.Decrypt(tmp, ");
           this.asm_.append(expr.getName()).append(");\n");
           append_idx("cout << \"dec(");
-          this.asm_.append(expr.getName()).append(") = \" << tmp[0] << endl");
+          this.asm_.append(expr.getName()).append(") = \" << tmp[0].getData()[0] << endl");
         }
         break;
       default:
@@ -710,7 +710,7 @@ public class T2_2_HElib extends T2_Compiler {
       for (int i = 0; i < this.word_sz_; i++) {
         append_idx("secret_key.Decrypt(tmp, " + expr.getName());
         this.asm_.append("[").append(this.word_sz_ - i - 1).append("]);\n");
-        append_idx("cout << tmp[" + this.tmp_i + "];\n");
+        append_idx("cout << tmp[" + this.tmp_i + "].getData()[0];\n");
       }
       append_idx("cout << \"\\t\";\n");
     } else {
@@ -718,7 +718,7 @@ public class T2_2_HElib extends T2_Compiler {
       append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
-      append_idx("cout << tmp[" + this.tmp_i + "] << \"\\t\";\n");
+      append_idx("cout << tmp[" + this.tmp_i + "].getData()[0] << \"\\t\";\n");
     }
     this.indent_ -= 2;
     append_idx("}\n");

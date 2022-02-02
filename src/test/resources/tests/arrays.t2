@@ -9,6 +9,7 @@ int main(void) {
   arr = new int[10];
   enc_vec_ = new EncInt[10];
 
+  tstart();
   arr = { 1, 2 }; // ok
   arr[0] = 12; // ok
   arr[0] += 31; // ok
@@ -25,5 +26,6 @@ int main(void) {
   enc_vec_ = enc_vec_; // ok
   enc_vec_ = arr; // ok
 
+  tstop();
   return 0;
 }

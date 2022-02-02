@@ -16,6 +16,7 @@ int main(void) {
   // Server side encrypted computation. //
 
   // Multiply all attributes by the pre-trained weights and accumulate.
+  tstart();
   for (i = 0; i < num_attributes; i++) {
     w_ = weights[i];
     inputs_[i] *= w_;
@@ -32,7 +33,7 @@ int main(void) {
   accum_ += temp_;
   // Calculate x^3 + 12x + 24.
   accum_ += 24;
-
+  tstop();
   // Decrypt
   print_batched(accum_, num_inferences);
   return 0;

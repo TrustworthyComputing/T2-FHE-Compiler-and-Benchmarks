@@ -2,6 +2,8 @@ int main(void) {
   EncInt enc_sum_, enc_num_;
   int x;
   x = 2;
+
+  tstart();
   enc_num_ = 10; // encrypt
   enc_sum_ = enc_num_;
   enc_sum_ = enc_num_ + enc_num_;
@@ -29,5 +31,6 @@ int main(void) {
 
   reduce_noise(enc_sum_);
   print(enc_sum_);
+  tstop();
   return 0;
 }

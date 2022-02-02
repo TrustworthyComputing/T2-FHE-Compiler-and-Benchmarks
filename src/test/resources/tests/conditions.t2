@@ -2,6 +2,7 @@ int main(void) {
   EncInt enc_sum_, enc_num_;
   int x, i, j;
   x = 2;
+  tstart();
   if (x == 2) {
     enc_num_ = 100; // encrypt
   } else {
@@ -34,5 +35,6 @@ int main(void) {
 //    enc_num_++;
 //  }
 
+  tstop();
   return 0;
 }

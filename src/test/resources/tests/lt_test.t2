@@ -25,6 +25,7 @@ int main(void) {
 
   res_ = {0, 0, 0, 0, 0, 0};
 
+  tstart();
   for (i = 5; i > -1; i--) {
     n1_ = res_ - (age_[i]);
     n1_ *= n1_;
@@ -35,5 +36,6 @@ int main(void) {
     res_ *= res_;
   }
   print_batched(res_, 6);
+  tstop();
   return 0;
 }
