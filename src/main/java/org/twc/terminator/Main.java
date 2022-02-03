@@ -6,7 +6,6 @@ import org.twc.terminator.t2dsl_compiler.T2DSLparser.T2DSLParser;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.Goal;
 
 import java.io.*;
-import java.util.ArrayList;
 
 public class Main {
 
@@ -23,7 +22,7 @@ public class Main {
       System.err.println("fatal error: no input files.");
       System.exit(-1);
     }
-    ArrayList<String> input_files = new ArrayList<>();
+    String input_file = null;
     HE_BACKEND backend_ = HE_BACKEND.NONE;
     boolean debug_ = false;
     int word_sz_ = 0;
@@ -66,134 +65,119 @@ public class Main {
         }
         word_sz_ = Integer.parseInt(args[i]);
       } else {
-        input_files.add(arg);
+        input_file = arg;
       }
     }
-    if (word_sz_ > 0) {
-      System.out.println("[ \033[1;33m ! \033[0m ] Using Binary domain with " +
-                         "word size = " + word_sz_);
-    } else {
-      System.out.println("[ \033[1;33m ! \033[0m ] Using Integer domain");
-    }
-
-    for (String arg : input_files) {
-      InputStream input_stream = null;
-      PrintWriter writer = null;
-      File fp = new File(arg);
-      String path = fp.getPath();
-      path = path.substring(0, path.lastIndexOf('.'));
+    assert(input_file != null);
+    InputStream input_stream = null;
+    PrintWriter writer = null;
+    File fp = new File(input_file);
+    String path = fp.getPath();
+    path = path.substring(0, path.lastIndexOf('.'));
+    try {
+      System.out.println("Compiling file \"" + input_file + "\"");
+      input_stream = new FileInputStream(input_file);
+      // Type checking.
+      new T2DSLParser(input_stream);
+      Goal t2dsl_goal = T2DSLParser.Goal();
+      SymbolTableVisitor symtable_visit = new SymbolTableVisitor();
+      t2dsl_goal.accept(symtable_visit);
+      SymbolTable symbol_table = symtable_visit.getSymbolTable();
+      if (debug_) {
+        System.out.println();
+        symtable_visit.printSymbolTable();
+      }
+      System.out.println("[ 1/2 ] Class members and methods info collection" +
+                          " phase completed");
+      TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
+      t2dsl_goal.accept(type_checker);
+      ENC_TYPE scheme_ = type_checker.getScheme();
+      if (scheme_ == ENC_TYPE.ENC_DOUBLE && word_sz_ > 0) {
+        throw new RuntimeException("Cannot use binary with encrypted " +
+                                    "double type.");
+      } else if (scheme_ == ENC_TYPE.NONE) {
+        scheme_ = ENC_TYPE.ENC_INT;
+      }
+      System.out.println("[ 2/2 ] Type checking phase completed");
+      System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed");
+      System.out.print("[ \033[1;33m ! \033[0m ] Using " + backend_.name());
+      if (word_sz_ > 0) {
+        System.out.println(" in Binary domain with word size = " + word_sz_);
+      } else {
+        if (scheme_ == ENC_TYPE.ENC_INT) {
+          System.out.println(" in Integer domain");
+        } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
+          System.out.println(" in Floating-Point domain");
+        }
+      }
+      // Code generation.
+      T2_Compiler dsl_compiler = null;
+      String suffix = ".cpp";
+      switch (backend_) {
+        case NONE:
+          throw new RuntimeException("Provide a backend (i.e., -SEAL, " +
+                                     "-TFHE, -PALISADE, -HELIB, -LATTIGO)");
+        case SEAL:
+          if (scheme_ == ENC_TYPE.ENC_INT) {
+            dsl_compiler = new T2_2_SEAL(symbol_table, config, word_sz_);
+          } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
+            dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config);
+          }
+          break;
+        case TFHE:
+          dsl_compiler = new T2_2_TFHE(symbol_table, config, word_sz_);
+          break;
+        case PALISADE:
+          if (scheme_ == ENC_TYPE.ENC_INT) {
+            dsl_compiler = new T2_2_PALISADE(symbol_table, config, word_sz_);
+          } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
+            dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config);
+          }
+          break;
+        case HELIB:
+          if (scheme_ == ENC_TYPE.ENC_INT) {
+            dsl_compiler = new T2_2_HElib(symbol_table, config, word_sz_);
+          } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
+            dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config);
+          }
+          break;
+        case LATTIGO:
+          suffix = ".go";
+          if (scheme_ == ENC_TYPE.ENC_INT) {
+            dsl_compiler = new T2_2_Lattigo(symbol_table, config, word_sz_);
+          } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
+            dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config);
+          }
+          break;
+        default:
+          throw new RuntimeException("Backend is not supported yet");
+      }
+      if (dsl_compiler == null) {
+        throw new RuntimeException("Combination of backend and scheme is " +
+                                   "not supported.");
+      }
+      t2dsl_goal.accept(dsl_compiler);
+      String code = dsl_compiler.get_asm();
+      String output_path = path + suffix;
+      writer = new PrintWriter(output_path);
+      writer.print(code);
+      writer.close();
+      if (debug_) System.out.println(code);
+      System.out.println("[ \033[0;32m \u2713 \033[0m ] " + backend_.name() +
+                         " code generated to \"" + output_path + "\"");
+      input_stream = new FileInputStream(output_path);
+    } catch (ParseException | FileNotFoundException ex) {
+      ex.printStackTrace();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      System.exit(-1);
+    } finally {
       try {
-        System.out.println("Compiling file \"" + arg + "\"");
-        input_stream = new FileInputStream(arg);
-        // Type checking.
-        new T2DSLParser(input_stream);
-        Goal t2dsl_goal = T2DSLParser.Goal();
-        SymbolTableVisitor symtable_visit = new SymbolTableVisitor();
-        t2dsl_goal.accept(symtable_visit);
-        SymbolTable symbol_table = symtable_visit.getSymbolTable();
-        if (debug_) {
-          System.out.println();
-          symtable_visit.printSymbolTable();
-        }
-        System.out.println("[ 1/2 ] Class members and methods info collection" +
-                           " phase completed");
-        TypeCheckVisitor type_checker = new TypeCheckVisitor(symbol_table);
-        t2dsl_goal.accept(type_checker);
-        ENC_TYPE scheme_ = type_checker.getScheme();
-        if (scheme_ == ENC_TYPE.ENC_DOUBLE && word_sz_ > 0) {
-          throw new RuntimeException("Cannot use binary with encrypted " +
-                                     "double type.");
-        } else if (scheme_ == ENC_TYPE.NONE) {
-          scheme_ = ENC_TYPE.ENC_INT;
-        }
-        System.out.println("[ 2/2 ] Type checking phase completed");
-        System.out.println("[ \033[0;32m \u2713 \033[0m ] All checks passed, " +
-                "using " + backend_.name() + " with " + scheme_.name());
-
-        // Code generation.
-        T2_Compiler dsl_compiler = null;
-        String suffix = ".cpp";
-        switch (backend_) {
-          case NONE:
-            throw new RuntimeException("Provide a backend (i.e., -SEAL, " +
-                                       "-TFHE, -PALISADE, -HELIB, -LATTIGO)");
-          case SEAL:
-            switch (scheme_) {
-              case ENC_INT:
-                dsl_compiler = new T2_2_SEAL(symbol_table, config, word_sz_);
-                break;
-              case ENC_DOUBLE:
-                dsl_compiler = new T2_2_SEAL_CKKS(symbol_table, config);
-                break;
-            }
-            break;
-          case TFHE:
-            dsl_compiler = new T2_2_TFHE(symbol_table, config, word_sz_);
-            break;
-          case PALISADE:
-            switch (scheme_) {
-              case ENC_INT:
-                dsl_compiler =
-                    new T2_2_PALISADE(symbol_table, config, word_sz_);
-                break;
-              case ENC_DOUBLE:
-                dsl_compiler = new T2_2_PALISADE_CKKS(symbol_table, config);
-                break;
-            }
-            break;
-          case HELIB:
-            switch (scheme_) {
-              case ENC_INT:
-                dsl_compiler =
-                    new T2_2_HElib(symbol_table, config, word_sz_);
-                break;
-              case ENC_DOUBLE:
-                dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config);
-                break;
-            }
-            break;
-          case LATTIGO:
-            suffix = ".go";
-            switch (scheme_) {
-              case ENC_INT:
-                dsl_compiler =
-                    new T2_2_Lattigo(symbol_table, config, word_sz_);
-                break;
-              case ENC_DOUBLE:
-                dsl_compiler = new T2_2_Lattigo_CKKS(symbol_table, config);
-                break;
-            }
-            break;
-          default:
-            throw new RuntimeException("Backend is not supported yet");
-        }
-        if (dsl_compiler == null) {
-          throw new RuntimeException("Combination of backend and scheme is " +
-                                     "not supported.");
-        }
-        t2dsl_goal.accept(dsl_compiler);
-        String code = dsl_compiler.get_asm();
-        String output_path = path + suffix;
-        writer = new PrintWriter(output_path);
-        writer.print(code);
-        writer.close();
-        if (debug_) System.out.println(code);
-        System.out.println("[ \033[0;32m \u2713 \033[0m ] " + backend_.name() +
-                           " code generated to \"" + output_path + "\"");
-        input_stream = new FileInputStream(output_path);
-      } catch (ParseException | FileNotFoundException ex) {
-        ex.printStackTrace();
-      } catch (Exception ex) {
+        if (input_stream != null) input_stream.close();
+        if (writer != null) writer.close();
+      } catch (IOException ex) {
         ex.printStackTrace();
         System.exit(-1);
-      } finally {
-        try {
-          if (input_stream != null) input_stream.close();
-          if (writer != null) writer.close();
-        } catch (IOException ex) {
-          ex.printStackTrace();
-          System.exit(-1);
-        }
       }
     }
   }

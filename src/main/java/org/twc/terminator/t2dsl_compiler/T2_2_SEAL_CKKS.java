@@ -19,7 +19,8 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     append_idx("EncryptionParameters parms(scheme_type::ckks);\n");
     append_idx("size_t poly_modulus_degree = 16384;\n");
     append_idx("parms.set_poly_modulus_degree(poly_modulus_degree);\n");
-    append_idx("parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));\n");
+    append_idx("parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree,"
+               + " { 60, 40, 40, 40, 40, 40, 60 }));\n");
     append_idx("double scale = pow(2.0, 40);\n");
     append_idx("SEALContext context(parms);\n");
     append_idx("KeyGenerator keygen(context);\n");
@@ -101,6 +102,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
       append_idx("encoder.encode(1.0, scale, tmp);\n");
+      append_idx("evaluator.mod_switch_to_inplace(tmp, " + id.getName() + ".parms_id());\n");
       append_idx("evaluator.add_plain_inplace(");
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
@@ -120,6 +122,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     String id_type = st_.findType(id);
     if (id_type.equals("EncDouble")) {
       append_idx("encoder.encode(1.0, scale, tmp);\n");
+      append_idx("evaluator.mod_switch_to_inplace(tmp, " + id.getName() + ".parms_id());\n");
       append_idx("evaluator.sub_plain_inplace(");
       this.asm_.append(id.getName()).append(", tmp);\n");
     } else {
@@ -166,6 +169,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       append_idx("encoder.encode(");
       this.asm_.append(rhs.getName()).append(", scale, tmp);\n");
+      append_idx("evaluator.mod_switch_to_inplace(tmp, " + lhs.getName() + ".parms_id());\n");
       append_idx("evaluator.");
       switch (op) {
         case "+=": this.asm_.append("add_plain("); break;
@@ -193,7 +197,6 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
@@ -249,7 +252,6 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
@@ -373,7 +375,6 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
     assert(id_type.equals("EncDouble[]"));
-    String index_type = st_.findType(index);
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<double> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
@@ -468,6 +469,27 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
   }
 
   /**
+   * f0 -> <MATCH_PARAMS>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(MatchParamsStatement n) throws Exception { //is int
+    n.f0.accept(this);
+    n.f1.accept(this);
+    Var_t dst = n.f2.accept(this);
+    n.f3.accept(this);
+    Var_t src = n.f4.accept(this);
+    append_idx("evaluator.mod_switch_to_inplace(" + dst.getName());
+    this.asm_.append(", ").append(src.getName()).append(".parms_id());\n");
+    append_idx(dst.getName() + ".scale() = scale;\n");
+    append_idx(src.getName() + ".scale() = scale;\n");
+    return null;
+  }
+
+  /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()
    * f2 -> PrimaryExpression()
@@ -505,6 +527,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
                   rhs_type.equals("EncDouble")) {
       String res_ = new_ctxt_tmp();
       append_idx("encoder.encode(" + lhs.getName() + ", scale, tmp);\n");
+      append_idx("evaluator.mod_switch_to_inplace(tmp, " + rhs.getName() + ".parms_id());\n");
       switch (op) {
         case "+":
           append_idx("evaluator.add_plain(" + rhs.getName() + ", tmp, " + res_ + ");\n");
@@ -530,6 +553,7 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       String res_ = new_ctxt_tmp();
       append_idx("encoder.encode(" + rhs.getName() + ", scale, tmp);\n");
+      append_idx("evaluator.mod_switch_to_inplace(tmp, " + lhs.getName() + ".parms_id());\n");
       switch (op) {
         case "+":
           append_idx("evaluator.add_plain(");

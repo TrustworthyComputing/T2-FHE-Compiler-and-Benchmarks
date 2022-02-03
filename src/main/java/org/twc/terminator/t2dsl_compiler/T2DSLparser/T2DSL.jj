@@ -79,6 +79,7 @@ TOKEN :
   | < PRINT_BATCHED: "print_batched" >
   | < VOID: "void" >
   | < REDUCE_NOISE: "reduce_noise" >
+  | < MATCH_PARAMS: "match_params" >
   | < START_TIMER: "tstart" >
   | < STOP_TIMER: "tstop" >
 }
@@ -233,6 +234,7 @@ void Statement() : {} {
 |   PrintStatement() ";"
 |   PrintBatchedStatement() ";"
 |   ReduceNoiseStatement() ";"
+|   MatchParamsStatement() ";"
 |   StartTimerStatement() ";"
 |   StopTimerStatement() ";"
 }
@@ -332,6 +334,10 @@ void PrintBatchedStatement() : {} {
 
 void ReduceNoiseStatement() : {} {
   <REDUCE_NOISE> "(" Expression() ")"
+}
+
+void MatchParamsStatement() : {} {
+  <MATCH_PARAMS> "(" Expression() "," Expression() ")"
 }
 
 void StartTimerStatement() : {} {

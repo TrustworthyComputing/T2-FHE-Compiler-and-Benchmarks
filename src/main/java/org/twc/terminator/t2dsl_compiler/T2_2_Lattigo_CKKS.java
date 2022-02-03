@@ -32,11 +32,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("decryptor := ckks.NewDecryptor(params, clientSk)\n");
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
-    append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
-                   "&params, 0x3ee0001, slots) // TODO: change ptxt_mod\n");
     append_idx("var ptxt *ckks.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
-    append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+    append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n\n");
   }
 
   /**
@@ -192,8 +190,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append("AddNew(").append(lhs.getName()).append(", tmp_)");
           break;
         case "*=":
-          append_idx(lhs.getName() + " = evaluator.");
-          this.asm_.append("MulNew(").append(lhs.getName()).append(", tmp_)");
+          declare_tmp_if_not_declared();
+          append_idx("tmp_ = evaluator.MulNew(" + lhs.getName() + ", tmp_)\n");
+          append_idx(lhs.getName() + " = evaluator.RelinearizeNew(tmp_)");
           break;
         case "-=":
           append_idx(lhs.getName() + " = evaluator.");
@@ -219,7 +218,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
@@ -510,8 +508,10 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(rhs.getName()).append(")\n");
           break;
         case "*":
-          append_idx(res_ + " := evaluator.MulNew(tmp_, ");
+          declare_tmp_if_not_declared();
+          append_idx("tmp_ = evaluator.MulNew(tmp_, ");
           this.asm_.append(rhs.getName()).append(")\n");
+          append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
           break;
         case "-":
           append_idx(res_ + " := evaluator.SubNew(tmp_, ");
@@ -538,8 +538,10 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(lhs.getName()).append(", tmp_)\n");
           break;
         case "*":
-          append_idx(res_ + " := evaluator.MulNew(");
+          declare_tmp_if_not_declared();
+          append_idx("tmp_ = evaluator.MulNew(");
           this.asm_.append(lhs.getName()).append(", tmp_)\n");
+          append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
           break;
         case "-":
           append_idx(res_ + " := evaluator.SubNew(");

@@ -54,7 +54,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
       append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
       this.asm_.append(tmp_vec).append(");\n");
       append_idx(lhs.getName());
-      this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp);\n");
+      this.asm_.append(" = cc->Encrypt(keyPair.publicKey, tmp)");
       this.semicolon_ = true;
     } else if (lhs_type.equals("EncDouble[]") &&
                 (rhs_type.equals("double[]") || rhs_type.equals("int[]"))) {
@@ -376,7 +376,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
     assert(id_type.equals("EncDouble[]"));
-    String index_type = st_.findType(index);
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<double> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());

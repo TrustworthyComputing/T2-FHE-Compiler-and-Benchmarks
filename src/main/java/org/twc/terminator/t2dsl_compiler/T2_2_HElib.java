@@ -77,9 +77,9 @@ public class T2_2_HElib extends T2_Compiler {
     append_idx("const EncryptedArray& ea = context.getEA();\n");
     append_idx("std::vector<helib::zzX> unpackSlotEncoding;\n");
     append_idx("buildUnpackSlotEncoding(unpackSlotEncoding, ea);\n");
-    append_idx("long slots = ea.size();\n\n");
+    append_idx("long slots = ea.size();\n");
     append_idx("Ptxt<helib::BGV> tmp(context);\n");
-    append_idx("Ctxt scratch(public_key);\n\n");
+    append_idx("Ctxt scratch(public_key);\n");
     append_idx(this.st_.backend_types.get("EncInt") + " tmp_");
     if (this.is_binary_) {
       this.asm_.append("(").append(this.word_sz_).append(", scratch);\n\n");

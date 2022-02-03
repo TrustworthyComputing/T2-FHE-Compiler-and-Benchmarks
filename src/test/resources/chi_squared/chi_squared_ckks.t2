@@ -1,0 +1,54 @@
+int main(void) {
+  EncDouble n0_, n1_, n2_;
+  EncDouble alpha, beta_1, beta_2, beta_3;
+  EncDouble n1_squared, two_n0_plus_n1, two_n2_plus_n1;
+  n0_ = 2.1;
+  n1_ = 7.1;
+  n2_ = 9.1;
+
+  // Server side encrypted computation. //
+  tstart();
+  // a = (4*N0*N2 - N1^2)^2
+  alpha = n0_ * n2_;
+  reduce_noise(alpha);        // rescale
+  alpha *= 4.0;
+  reduce_noise(alpha);        // rescale
+  n1_squared = n1_ * n1_;
+  reduce_noise(n1_squared);   // rescale
+  match_params(n1_squared, alpha);
+  alpha -= n1_squared;
+  alpha *= alpha;
+  reduce_noise(alpha);
+
+  // beta_1 = 2(2*N0 + N1)^2
+  two_n0_plus_n1 = 2.0 * n0_;
+  reduce_noise(two_n0_plus_n1); // rescale
+  match_params(n1_, two_n0_plus_n1);
+  two_n0_plus_n1 += n1_;
+  beta_1 = two_n0_plus_n1 * two_n0_plus_n1;
+  reduce_noise(beta_1);
+  beta_1 *= 2.0;
+  reduce_noise(beta_1);
+
+  // beta_2 = (2*N0 + N1)(2*N2 + N1)
+  two_n2_plus_n1 = 2.0 * n2_;
+  reduce_noise(two_n2_plus_n1); // rescale
+  match_params(n1_, two_n2_plus_n1);
+  two_n2_plus_n1 += n1_;
+  beta_2 = two_n0_plus_n1 * two_n2_plus_n1;
+  reduce_noise(beta_2);
+
+  // beta_3 = 2(2*N2 + N1)^2
+  beta_3 = two_n2_plus_n1 * two_n2_plus_n1;
+  reduce_noise(beta_3);
+  beta_3 *= 2.0;
+  reduce_noise(beta_3);
+
+  // Decrypt
+  print(alpha);
+  print(beta_1);
+  print(beta_2);
+  print(beta_3);
+  tstop();
+  return 0;
+}

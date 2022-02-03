@@ -76,7 +76,7 @@ public class T2_2_Lattigo extends T2_Compiler {
                "&params, int(paramDef.T), slots, " + this.word_sz_ + ")\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
     append_idx("tmp := make([]int64, slots)\n");
-    append_idx("encoder.EncodeInt(tmp, ptxt)\n");
+    append_idx("encoder.EncodeInt(tmp, ptxt)\n\n");
   }
 
   protected void declare_tmp_if_not_declared() {
@@ -175,7 +175,9 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("  \"time\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/" + this.st_.backend_types.get("scheme")+ "\"\n");
-    append_idx("  funits \"Lattigo/functional_units\"\n");
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
+      append_idx("  funits \"Lattigo/functional_units\"\n");
+    }
     append_idx(")\n\n");
     append_idx("func main() {\n");
     this.indent_ = 2;
@@ -451,8 +453,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append("AddNew(").append(lhs.getName()).append(", tmp_)");
             break;
           case "*=":
-            append_idx(lhs.getName() + " = evaluator.");
-            this.asm_.append("MulNew(").append(lhs.getName()).append(", tmp_)");
+            declare_tmp_if_not_declared();
+            append_idx("tmp_ = evaluator.");
+            this.asm_.append("MulNew(").append(lhs.getName()).append(", tmp_)\n");
+            append_idx(lhs.getName() + " = evaluator.RelinearizeNew(tmp_)");
             break;
           case "-=":
             append_idx(lhs.getName() + " = evaluator.");
@@ -992,8 +996,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(")\n");
             break;
           case "*":
-            append_idx(res_ + " := evaluator.MulNew(tmp_, ");
+            declare_tmp_if_not_declared();
+            append_idx("tmp_ = evaluator.MulNew(tmp_, ");
             this.asm_.append(rhs.getName()).append(")\n");
+            append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
             break;
           case "-":
             append_idx(res_ + " := evaluator.SubNew(tmp_, ");
@@ -1087,8 +1093,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
           case "*":
-            append_idx(res_ + " := evaluator.MulNew(");
+            declare_tmp_if_not_declared();
+            append_idx("tmp_ = evaluator.MulNew(");
             this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
             break;
           case "-":
             append_idx(res_ + " := evaluator.SubNew(");

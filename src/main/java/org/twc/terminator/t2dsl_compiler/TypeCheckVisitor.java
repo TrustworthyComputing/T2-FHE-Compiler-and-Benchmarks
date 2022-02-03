@@ -211,6 +211,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    *       | ForStatement()
    *       | PrintStatement() ";"
    *       | ReduceNoiseStatement() ";"
+   *       | MatchParamsStatement() ";"
    */
   public Var_t visit(Statement n) throws Exception {
     return n.f0.accept(this);
@@ -621,13 +622,35 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * f2 -> Expression()
    * f3 -> ")"
    */
-  public Var_t visit(ReduceNoiseStatement n) throws Exception { //is int
+  public Var_t visit(ReduceNoiseStatement n) throws Exception {
     n.f0.accept(this);
     n.f1.accept(this);
     Var_t expr = n.f2.accept(this);
     n.f3.accept(this);
     String expr_type = st_.findType(expr);
     if (expr_type.equals("EncInt") || expr_type.equals("EncDouble")) {
+      return null;
+    }
+    throw new Exception("Reduce noise statement not EncInt.");
+  }
+
+  /**
+   * f0 -> <MATCH_PARAMS>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(MatchParamsStatement n) throws Exception {
+    n.f0.accept(this);
+    n.f1.accept(this);
+    Var_t dst = n.f2.accept(this);
+    n.f3.accept(this);
+    Var_t src = n.f4.accept(this);
+    String dst_type = st_.findType(dst);
+    String src_type = st_.findType(src);
+    if (dst_type.equals("EncDouble") && src_type.equals("EncDouble")) {
       return null;
     }
     throw new Exception("Reduce noise statement not EncInt.");
