@@ -4,8 +4,8 @@ int main(void) {
   fib = 1;
   f1 = 0;
   f2 = 1;
-  n = 5;
-  iter = 2;
+  n = 3;
+  iter = 20;
   for (i = 2; i < n; i++) {
     fib = f1 + f2;
     f1 = f2;
@@ -22,7 +22,7 @@ int main(void) {
     f1_ = f2_;
     f2_ = fib_;
   }
-  print(fib_);
   tstop();
+  print(fib_);
   return 0;
 }

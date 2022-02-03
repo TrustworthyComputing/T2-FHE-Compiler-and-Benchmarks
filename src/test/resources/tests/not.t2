@@ -1,0 +1,21 @@
+int main(void) {
+  EncInt x;
+  int a;
+  tstart();
+  a = 6;
+  print(a);   //  6  -- 000110
+  a = ~a;
+  print(a);   // -7  -- 111001
+  x = 10;
+  print(x);   //  10 -- 001010
+  x = ~x;
+  print(x);   // -11 -- 110101
+  x = ~10;
+  print(x);   // -11 -- 110101
+  x = ~x;
+  print(x);   //  10 -- 001010
+  x = ~(~10);
+  print(x);   //  10 -- 001010
+  tstop();
+  return 0;
+}

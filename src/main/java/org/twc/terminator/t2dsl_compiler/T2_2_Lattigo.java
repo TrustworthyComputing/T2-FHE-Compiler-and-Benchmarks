@@ -10,12 +10,14 @@ import java.util.List;
 
 public class T2_2_Lattigo extends T2_Compiler {
 
+  protected boolean is_tmp_declared_ = false;
+
   public T2_2_Lattigo(SymbolTable st, String config_file_path,
                       int word_sz) {
     super(st, config_file_path, word_sz);
     this.st_.backend_types.put("scheme", "bfv");
-    this.st_.backend_types.put("int", "uint64");
-    this.st_.backend_types.put("int[]", "[]uint64");
+    this.st_.backend_types.put("int", "int64");
+    this.st_.backend_types.put("int[]", "[]int64");
     if (this.is_binary_) {
       this.st_.backend_types.put("EncInt", "[]*bfv.Ciphertext");
       this.st_.backend_types.put("EncInt[]", "[][]*bfv.Ciphertext");
@@ -34,7 +36,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx(lhs);
     this.asm_.append("[").append(tmp_j);
     if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
-      this.asm_.append("] = uint64(");
+      this.asm_.append("] = int64(");
       if (rhs_idx != null) {
         this.asm_.append(rhs).append("[").append(rhs_idx).append("])\n");
       } else {
@@ -71,15 +73,20 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
-                   "&params, 0x3ee0001, slots, " + this.word_sz_ + ") // TODO: change ptxt_mod\n");
+               "&params, int(paramDef.T), slots, " + this.word_sz_ + ")\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
-    append_idx("tmp := make([]uint64, slots)\n");
-    append_idx("encoder.EncodeUint(tmp, ptxt)\n");
-    if (is_binary_) {
+    append_idx("tmp := make([]int64, slots)\n");
+    append_idx("encoder.EncodeInt(tmp, ptxt)\n");
+  }
+
+  protected void declare_tmp_if_not_declared() {
+    if (this.is_tmp_declared_) return;
+    this.is_tmp_declared_ = true;
+    if (this.is_binary_) {
       append_idx("tmp_ := make(" + this.st_.backend_types.get("EncInt"));
-      this.asm_.append(", ").append(this.word_sz_).append(")").append("\n\n");
+      this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
     } else {
-      append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n\n");
+      append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n");
     }
   }
 
@@ -112,10 +119,10 @@ public class T2_2_Lattigo extends T2_Compiler {
   protected void encrypt(String dst, String[] src_lst) {
     if (this.is_binary_) {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-      append_idx(tmp_vec + " := make([][]uint64, " + this.word_sz_ + ")\n");
+      append_idx(tmp_vec + " := make([][]int64, " + this.word_sz_ + ")\n");
       append_idx("for " + this.tmp_i + " := range " + tmp_vec + " {\n");
       this.indent_ += 2;
-      append_idx(tmp_vec + "[" + this.tmp_i + "] = make([]uint64, slots)\n");
+      append_idx(tmp_vec + "[" + this.tmp_i + "] = make([]int64, slots)\n");
       this.indent_ -= 2;
       append_idx("}\n");
       for (int slot = 0; slot < src_lst.length; slot++) {
@@ -135,14 +142,14 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
       for (int i = 0; i < this.word_sz_; i++) {
-        append_idx("encoder.EncodeUint(" + tmp_vec + "[" + i + "], ptxt)\n");
+        append_idx("encoder.EncodeInt(" + tmp_vec + "[" + i + "], ptxt)\n");
         append_idx(dst + "[" + i + "] = encryptorSk.EncryptNew(ptxt)");
         if (i < this.word_sz_ - 1) this.asm_.append("\n");
       }
     } else {
       assert(src_lst.length == 1);
       assign_to_all_slots("tmp", src_lst[0], null);
-      append_idx("encoder.EncodeUint(tmp, ptxt)\n");
+      append_idx("encoder.EncodeInt(tmp, ptxt)\n");
       append_idx(dst + " = encryptorSk.EncryptNew(ptxt)");
     }
   }
@@ -316,6 +323,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (this.is_binary_) {
         append_idx(id.getName() + " = funits.BinInc(" + id.getName() + ")");
       } else {
+        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{"1"});
         this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.AddNew(");
@@ -339,6 +347,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (this.is_binary_) {
         append_idx(id.getName() + " = funits.BinDec(" + id.getName() + ")");
       } else {
+        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{"1"});
         this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.SubNew(");
@@ -391,6 +400,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(")");
             break;
           case "*=":
+            declare_tmp_if_not_declared();
             append_idx("tmp_ = evaluator.");
             this.asm_.append("MulNew(").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(")\n");
@@ -406,6 +416,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      declare_tmp_if_not_declared();
       encrypt("tmp_", new String[]{rhs.getName()});
       this.asm_.append("\n");
       if (this.is_binary_) {
@@ -507,6 +518,7 @@ public class T2_2_Lattigo extends T2_Compiler {
                 this.asm_.append(rhs.getName()).append(")");
                 break;
               case "*=":
+                declare_tmp_if_not_declared();
                 this.asm_.append("tmp_ = evaluator.MulNew(").append(id.getName());
                 this.asm_.append("[").append(idx.getName()).append("], ");
                 this.asm_.append(rhs.getName()).append(")\n");
@@ -569,7 +581,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     switch (id_type) {
       case "int[]":
         append_idx(id.getName());
-        this.asm_.append("[").append(idx.getName()).append("] = uint64(");
+        this.asm_.append("[").append(idx.getName()).append("] = int64(");
         this.asm_.append(rhs.getName()).append(")");
         break;
       case "EncInt[]":
@@ -605,7 +617,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     String exp_type = st_.findType(exp);
     switch (id_type) {
       case "int[]":
-        append_idx(id.getName() + " = []uint64{ " + exp.getName());
+        append_idx(id.getName() + " = []int64{ " + exp.getName());
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
             this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
@@ -626,14 +638,14 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append("\n");
         } else {
           String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-          append_idx(tmp_vec + " := []uint64{ " + exp.getName());
+          append_idx(tmp_vec + " := []int64{ " + exp.getName());
           if (n.f4.present()) {
             for (int i = 0; i < n.f4.size(); i++) {
               this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
             }
           }
           this.asm_.append(" }\n");
-          append_idx("encoder.EncodeUint(" + tmp_vec + ", ptxt)\n");
+          append_idx("encoder.EncodeInt(" + tmp_vec + ", ptxt)\n");
           append_idx(id.getName() + " = encryptorSk.EncryptNew(ptxt)\n");
         }
         break;
@@ -712,14 +724,14 @@ public class T2_2_Lattigo extends T2_Compiler {
       this.asm_.append("\n");
     } else {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-      append_idx(tmp_vec + " := []uint64{ " + exp.getName());
+      append_idx(tmp_vec + " := []int64{ " + exp.getName());
       if (n.f7.present()) {
         for (int i = 0; i < n.f7.size(); i++) {
           this.asm_.append(", ").append((n.f7.nodes.get(i).accept(this)).getName());
         }
       }
       this.asm_.append(" }\n");
-      append_idx("encoder.EncodeUint(" + tmp_vec + ", ptxt)\n");
+      append_idx("encoder.EncodeInt(" + tmp_vec + ", ptxt)\n");
       append_idx(id.getName() + "[" + index.getName() + "] = encryptorSk.EncryptNew(ptxt)\n");
     }
     return null;
@@ -819,12 +831,12 @@ public class T2_2_Lattigo extends T2_Compiler {
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx("ptxt = decryptor.DecryptNew(" + expr.getName());
             this.asm_.append("[").append(i).append("])\n");
-            append_idx("fmt.Print(encoder.DecodeUintNew(ptxt)[0])\n");
+            append_idx("fmt.Print(encoder.DecodeIntNew(ptxt)[0])\n");
           }
           append_idx("fmt.Println()\n");
         } else {
           append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
-          append_idx("fmt.Println(encoder.DecodeUintNew(ptxt)[0])\n");
+          append_idx("fmt.Println(encoder.DecodeIntNew(ptxt)[0])\n");
         }
         break;
       default:
@@ -858,7 +870,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       for (int i = 0; i < this.word_sz_; i++) {
         append_idx("ptxt = decryptor.DecryptNew(" + expr.getName());
         this.asm_.append("[").append(i).append("])\n");
-        append_idx("fmt.Print(encoder.DecodeUintNew(ptxt)[" + this.tmp_i + "])\n");
+        append_idx("fmt.Print(encoder.DecodeIntNew(ptxt)[" + this.tmp_i + "])\n");
       }
       append_idx("fmt.Print(\"\\t\")\n");
       this.indent_ -= 2;
@@ -866,7 +878,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       append_idx("fmt.Println()\n");
     } else {
       append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
-      append_idx("fmt.Println(encoder.DecodeUintNew(ptxt)[:" + size.getName() + "])\n");
+      append_idx("fmt.Println(encoder.DecodeIntNew(ptxt)[:" + size.getName() + "])\n");
     }
     return null;
   }
@@ -931,6 +943,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
+      declare_tmp_if_not_declared();
       encrypt("tmp_", new String[]{lhs.getName()});
       this.asm_.append("\n");
       if (this.is_binary_) {
@@ -1013,6 +1026,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
+      declare_tmp_if_not_declared();
       encrypt("tmp_", new String[]{rhs.getName()});
       this.asm_.append("\n");
       if (this.is_binary_) {
@@ -1153,6 +1167,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             break;
           case "*":
+            declare_tmp_if_not_declared();
             append_idx("tmp_ = evaluator.MulNew(");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
@@ -1191,6 +1206,31 @@ public class T2_2_Lattigo extends T2_Compiler {
       throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
     }
     return new Var_t("EncInt", res_);
+  }
+
+  /**
+   * f0 -> "~"
+   * f1 -> PrimaryExpression()
+   */
+  public Var_t visit(BinNotExpression n) throws Exception {
+    Var_t exp = n.f1.accept(this);
+    String exp_type = st_.findType(exp);
+    if (exp_type.equals("int")) {
+        return new Var_t("int", "^" + exp.getName());
+    } else if (exp_type.equals("EncInt")) {
+      String res_ = "tmp_" + (++tmp_cnt_);
+      if (this.is_binary_) {
+        append_idx(res_ + " := funits.BinNot(" + exp.getName() + ")\n");
+      } else {
+        append_idx(res_ + " := evaluator.NegNew(" + exp.getName() + ")\n");
+        declare_tmp_if_not_declared();
+        encrypt("tmp_", new String[]{"1"});
+        this.asm_.append("\n");
+        append_idx(res_ + " = evaluator.SubNew(" + res_ + ", tmp_)\n");
+      }
+      return new Var_t("EncInt", res_);
+    }
+    throw new Exception("Wrong type for ~: " + exp_type);
   }
 
   /**

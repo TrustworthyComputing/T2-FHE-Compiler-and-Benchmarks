@@ -434,3 +434,13 @@ func BinMult(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	}
 	return prod
 }
+
+func BinNot(ct []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(ct))
+	one := EncodeAllSlots(1)
+	for i := 0; i < len(res); i++ {
+		res[i] = (*evaluator_).NegNew(ct[i])
+		(*evaluator_).Add(res[i], one, res[i]);
+	}
+	return res
+}

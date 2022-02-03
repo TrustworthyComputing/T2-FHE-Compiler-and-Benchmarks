@@ -410,4 +410,18 @@ std::vector<Ciphertext<T>> mult_bin(CryptoContext<T>& cc,
   return prod_;
 }
 
+template <typename T>
+std::vector<Ciphertext<T>> not_bin(CryptoContext<T>& cc, 
+                                    std::vector<Ciphertext<T>>& ct) {
+  std::vector<Ciphertext<T>> res_(ct.size());
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> one(slots, 1);
+  Plaintext pt_one = cc->MakePackedPlaintext(one);
+  for (size_t i = 0; i < res_.size(); i++) {
+    res_[i] = cc->EvalNegate(ct[i]);
+    res_[i] = cc->EvalAdd(res_[i], pt_one);
+  }
+  return res_;
+}
+
 #endif  // FUNCTIONAL_UNITS_HPP_

@@ -38,7 +38,10 @@ std::vector<helib::Ctxt> shift_right_bin(helib::PubKey& public_key,
 std::vector<helib::Ctxt> shift_left_bin(helib::PubKey& public_key,
                                         std::vector<helib::Ctxt>& ct, 
                                         size_t amt);
-                                        
+
+std::vector<helib::Ctxt> not_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct);
+                                 
 std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& c1, 
                                  std::vector<helib::Ctxt>& c2, 

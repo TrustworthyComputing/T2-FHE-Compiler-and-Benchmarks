@@ -1035,4 +1035,29 @@ public class T2_2_PALISADE extends T2_Compiler {
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
   }
 
+  /**
+   * f0 -> "~"
+   * f1 -> PrimaryExpression()
+   */
+  public Var_t visit(BinNotExpression n) throws Exception {
+    Var_t exp = n.f1.accept(this);
+    String exp_type = st_.findType(exp);
+    if (exp_type.equals("int")) {
+        return new Var_t("int", "~" + exp.getName());
+    } else if (exp_type.equals("EncInt")) {
+      String res_ = new_ctxt_tmp();
+      if (this.is_binary_) {
+        append_idx(res_ + " = not_bin(cc, " + exp.getName() + ");\n");
+      } else {
+        append_idx(res_ + " = cc->EvalNegate(" + exp.getName() + ");\n");
+        append_idx("fill(" + this.vec + ".begin(), " + this.vec);
+        this.asm_.append(".end(), 1);\n");
+        append_idx("tmp = cc->MakePackedPlaintext(" + this.vec + ");\n");
+        append_idx(res_ + " = cc->EvalSub(" + res_ + ", tmp);\n");
+      }
+      return new Var_t("EncInt", res_);
+    }
+    throw new Exception("Wrong type for ~: " + exp_type);
+  }
+
 }

@@ -47,6 +47,18 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(
   return result_vec;
 }
 
+std::vector<seal::Ciphertext> not_bin(seal::Evaluator& evaluator, 
+                            seal::BatchEncoder& batch_encoder, 
+                            std::vector<seal::Ciphertext>& ct_, size_t slots) {
+  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  std::vector<seal::Ciphertext> res_(ct_.size());
+  for (int i = 0; i < ct_.size(); i++) {
+    evaluator.negate(ct_[i], res_[i]);
+    evaluator.add_plain(res_[i], one, res_[i]);
+  }
+  return res_;
+}
+
 seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
                            seal::Evaluator& evaluator,
                            const seal::RelinKeys& relinKeys) {

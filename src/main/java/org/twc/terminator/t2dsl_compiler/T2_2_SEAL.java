@@ -61,9 +61,9 @@ public class T2_2_SEAL extends T2_Compiler {
           }
         } else {
           for (int i = 0; i < this.word_sz_; i++) {
-            append_idx(tmp_vec + "[" + i + "][" + slot + "] = (uint64_t)(");
+            append_idx(tmp_vec + "[" + i + "][" + slot + "] = static_cast<uint64_t>((");
             this.asm_.append(src).append(" >> ").append(this.word_sz_ - i - 1);
-            this.asm_.append(") & 1;\n");
+            this.asm_.append(") & 1);\n");
           }
         }
       }
@@ -505,11 +505,13 @@ public class T2_2_SEAL extends T2_Compiler {
           this.asm_.append(";\n");
         } else {
           String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-          append_idx("vector<uint64_t> ");
-          this.asm_.append(tmp_vec).append(" = { (uint64_t)").append(exp.getName());
+          append_idx("vector<uint64_t> " + tmp_vec);
+          this.asm_.append(" = { static_cast<uint64_t>(");
+          this.asm_.append(exp.getName()).append(")");
           if (n.f4.present()) {
             for (int i = 0; i < n.f4.size(); i++) {
-              this.asm_.append(", (uint64_t)").append((n.f4.nodes.get(i).accept(this)).getName());
+              this.asm_.append(", static_cast<uint64_t>(");
+              this.asm_.append((n.f4.nodes.get(i).accept(this)).getName()).append(")");
             }
           }
           this.asm_.append(" };\n");
@@ -584,11 +586,12 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(";\n");
     } else {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-      append_idx("vector<uint64_t> ");
-      this.asm_.append(tmp_vec).append(" = { (uint64_t)").append(exp.getName());
+      append_idx("vector<uint64_t> " + tmp_vec);
+      this.asm_.append(" = { static_cast<uint64_t>(").append(exp.getName()).append(")");
       if (n.f7.present()) {
         for (int i = 0; i < n.f7.size(); i++) {
-          this.asm_.append(", (uint64_t)").append((n.f7.nodes.get(i).accept(this)).getName());
+          this.asm_.append(", static_cast<uint64_t>(");
+          this.asm_.append((n.f7.nodes.get(i).accept(this)).getName()).append(")");
         }
       }
       this.asm_.append(" };\n");
@@ -1057,6 +1060,36 @@ public class T2_2_SEAL extends T2_Compiler {
       return new Var_t("EncInt", res_);
     }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+  }
+
+  /**
+   * f0 -> "~"
+   * f1 -> PrimaryExpression()
+   */
+  public Var_t visit(BinNotExpression n) throws Exception {
+    Var_t exp = n.f1.accept(this);
+    String exp_type = st_.findType(exp);
+    if (exp_type.equals("int")) {
+      if (this.is_binary_) {
+        return new Var_t("int", "~" + exp.getName());
+      } else {
+        return new Var_t("int", "plaintext_modulus + ~" + exp.getName());
+      }
+    } else if (exp_type.equals("EncInt")) {
+      String res_ = new_ctxt_tmp();
+      if (this.is_binary_) {
+        append_idx(res_ + " = not_bin(evaluator, batch_encoder, ");
+        this.asm_.append(exp.getName()).append(", slots);\n");
+      } else {
+        append_idx("evaluator.negate(");
+        this.asm_.append(exp.getName());
+        this.asm_.append(", ").append(res_).append(");\n");
+        append_idx("tmp = uint64_to_hex_string(1);\n");
+        append_idx("evaluator.sub_plain_inplace(" + res_ + ", tmp);\n");
+      }
+      return new Var_t("EncInt", res_);
+    }
+    throw new Exception("Wrong type for ~: " + exp_type);
   }
 
 }

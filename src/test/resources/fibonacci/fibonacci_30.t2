@@ -1,0 +1,28 @@
+int main(void) {
+  EncInt fib_, f1_, f2_;
+  int fib, f1, f2, i, n, iter;
+  fib = 1;
+  f1 = 0;
+  f2 = 1;
+  n = 3;
+  iter = 30;
+  for (i = 2; i < n; i++) {
+    fib = f1 + f2;
+    f1 = f2;
+    f2 = fib;
+  }
+  fib_ = fib;
+  f1_ = f1;
+  f2_ = f2;
+
+  // Server side encrypted computation.
+  tstart();
+  for (i = 0; i < iter; i++) {
+    fib_ = f1_ + f2_;
+    f1_ = f2_;
+    f2_ = fib_;
+  }
+  tstop();
+  print(fib_);
+  return 0;
+}

@@ -100,6 +100,9 @@ void shift_right_logical_bin(std::vector<LweSample*>& result,
                      int amt, const size_t word_sz,
                      const TFheGateBootstrappingCloudKeySet* bk);
 
+void e_not(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
+           
 void e_xor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const std::vector<LweSample*>& b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk);

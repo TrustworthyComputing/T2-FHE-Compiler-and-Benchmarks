@@ -625,10 +625,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
    * f0 -> "~"
    * f1 -> PrimaryExpression()
    */
-  public Var_t visit(BinNotExpression n) throws Exception {
-    this.asm_.append("~");
-    return n.f1.accept(this);
-  }
+  public abstract Var_t visit(BinNotExpression n) throws Exception;
 
   /**
    * f0 -> PrimaryExpression()

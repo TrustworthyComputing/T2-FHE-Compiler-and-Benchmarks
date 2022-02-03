@@ -659,7 +659,7 @@ public class T2_2_HElib extends T2_Compiler {
       case "int":
         append_idx("cout << ");
         this.asm_.append(expr.getName());
-        this.asm_.append(" << endl;\n");
+        this.asm_.append(" << endl");
         break;
       case "EncInt":
         if (this.is_binary_) {
@@ -668,14 +668,14 @@ public class T2_2_HElib extends T2_Compiler {
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx("secret_key.Decrypt(tmp, " + expr.getName() + "[");
             this.asm_.append(this.word_sz_ - i - 1).append("]);\n");
-            append_idx("cout << tmp[0].getData()[0];\n");
+            append_idx("cout << static_cast<long>(tmp[0]);\n");
           }
           append_idx("cout << endl");
         } else {
           append_idx("secret_key.Decrypt(tmp, ");
           this.asm_.append(expr.getName()).append(");\n");
           append_idx("cout << \"dec(");
-          this.asm_.append(expr.getName()).append(") = \" << tmp[0].getData()[0] << endl");
+          this.asm_.append(expr.getName()).append(") = \" << static_cast<long>(tmp[0]) << endl");
         }
         break;
       default:
@@ -710,7 +710,7 @@ public class T2_2_HElib extends T2_Compiler {
       for (int i = 0; i < this.word_sz_; i++) {
         append_idx("secret_key.Decrypt(tmp, " + expr.getName());
         this.asm_.append("[").append(this.word_sz_ - i - 1).append("]);\n");
-        append_idx("cout << tmp[" + this.tmp_i + "].getData()[0];\n");
+        append_idx("cout << static_cast<long>(tmp[" + this.tmp_i + "]);\n");
       }
       append_idx("cout << \"\\t\";\n");
     } else {
@@ -718,7 +718,7 @@ public class T2_2_HElib extends T2_Compiler {
       append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
-      append_idx("cout << tmp[" + this.tmp_i + "].getData()[0] << \"\\t\";\n");
+      append_idx("cout << static_cast<long>(tmp[" + this.tmp_i + "]) << \"\\t\";\n");
     }
     this.indent_ -= 2;
     append_idx("}\n");
@@ -1051,6 +1051,29 @@ public class T2_2_HElib extends T2_Compiler {
       return new Var_t("EncInt", res_);
     }
     throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+  }
+
+  /**
+   * f0 -> "~"
+   * f1 -> PrimaryExpression()
+   */
+  public Var_t visit(BinNotExpression n) throws Exception {
+    Var_t exp = n.f1.accept(this);
+    String exp_type = st_.findType(exp);
+    if (exp_type.equals("int")) {
+        return new Var_t("int", "~" + exp.getName());
+    } else if (exp_type.equals("EncInt")) {
+      if (this.is_binary_) {
+        String res_ = new_ctxt_tmp();
+        append_idx(res_ + " = not_bin(public_key, " + exp.getName() + ");\n");
+        return new Var_t("EncInt", res_);
+      } else {
+        append_idx(exp.getName() + ".negate();\n");
+        append_idx(exp.getName() + ".addConstant(NTL::ZZX(-1));\n");
+        return new Var_t("EncInt", exp.getName());
+      }
+    }
+    throw new Exception("Wrong type for ~: " + exp_type);
   }
 
   /**

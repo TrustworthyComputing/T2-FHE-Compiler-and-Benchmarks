@@ -86,6 +86,18 @@ std::vector<helib::Ctxt> shift_right_logical_bin(helib::PubKey& public_key,
   return res_;
 }
 
+std::vector<helib::Ctxt> not_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& ct) {
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ct.size(), scratch);
+  for (int i = 0; i < res_.size(); i++) {
+    res_[i] = ct[i];
+    res_[i].negate();
+    res_[i].addConstant(NTL::ZZX(1));
+  }
+  return res_;
+}
+
 std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& c1, 
                                  std::vector<helib::Ctxt>& c2, 

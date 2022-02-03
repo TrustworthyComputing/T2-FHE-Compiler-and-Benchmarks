@@ -641,4 +641,24 @@ public class T2_2_TFHE extends T2_Compiler {
     return new Var_t("EncInt", res_);
   }
 
+  /**
+   * f0 -> "~"
+   * f1 -> PrimaryExpression()
+   */
+  public Var_t visit(BinNotExpression n) throws Exception {
+    Var_t exp = n.f1.accept(this);
+    String exp_type = st_.findType(exp);
+    if (exp_type.equals("int")) {
+        return new Var_t("int", "~" + exp.getName());
+    } else if (exp_type.equals("EncInt")) {
+      String res_ = new_ctxt_tmp();
+      append_idx(res_);
+      this.asm_.append(" = e_cloud(0, word_sz, &key->cloud);\n");
+      append_idx("e_not(" + res_ + ", ");
+      this.asm_.append(exp.getName()).append(", word_sz, &key->cloud);\n");
+      return new Var_t("EncInt", res_);
+    }
+    throw new Exception("Wrong type for ~: " + exp_type);
+  }
+
 }
