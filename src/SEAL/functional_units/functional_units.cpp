@@ -70,6 +70,23 @@ seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
   return result;
 }
 
+seal::Ciphertext mux(seal::Evaluator& evaluator, 
+                     seal::RelinKeys& relin_keys, seal::Ciphertext& sel, 
+                     seal::Ciphertext& ctxt_1,  seal::Ciphertext& ctxt_2,
+                     size_t slots) {
+  seal::Ciphertext res_, not_sel, tmp;
+  evaluator.negate(sel, not_sel);
+  seal::Plaintext one("1");
+  evaluator.add_plain(not_sel, one, not_sel);
+  evaluator.multiply(ctxt_1, sel, res_);
+  evaluator.relinearize_inplace(res_, relin_keys);
+  evaluator.multiply(ctxt_2, not_sel, tmp);
+  evaluator.relinearize_inplace(tmp, relin_keys);
+  evaluator.add(res_, tmp, res_);
+  return res_;
+}
+
+
 std::vector<seal::Ciphertext> shift_right_bin(std::vector<seal::Ciphertext>& ct,
                                               size_t amt, size_t slots) {
   assert(amt < ct.size());
@@ -139,6 +156,28 @@ std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
     for (int i = 0; i < res_.size(); i++) {
       evaluator.add(ctxt_1[i], ctxt_2[i], res_[i]);
     }
+  }
+  return res_;
+}
+
+std::vector<seal::Ciphertext> mux_bin(seal::Evaluator& evaluator,
+                                      seal::BatchEncoder& batch_encoder,
+                                      seal::RelinKeys& relin_keys, 
+                                      std::vector<seal::Ciphertext>& sel, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t slots) {
+  std::vector<seal::Ciphertext> res_(ctxt_1.size());
+  seal::Ciphertext not_sel, tmp;
+  evaluator.negate(sel[sel.size()-1], not_sel);
+  seal::Plaintext one = encode_all_slots(batch_encoder, 1, slots);
+  evaluator.add_plain(not_sel, one, not_sel);
+  for (int i = 0; i < res_.size(); i++) {
+    evaluator.multiply(ctxt_1[i], sel[sel.size()-1], res_[i]);
+    evaluator.relinearize_inplace(res_[i], relin_keys);
+    evaluator.multiply(ctxt_2[i], not_sel, tmp);
+    evaluator.relinearize_inplace(tmp, relin_keys);
+    evaluator.add(res_[i], tmp, res_[i]);
   }
   return res_;
 }

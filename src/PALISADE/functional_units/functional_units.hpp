@@ -35,6 +35,20 @@ Ciphertext<T> exor(CryptoContext<T>& cc, Ciphertext<T>& c1,
 }
 
 template <typename T>
+Ciphertext<T> mux(CryptoContext<T>& cc, Ciphertext<T>& sel, 
+                  Ciphertext<T>& c1, Ciphertext<T>& c2) {
+  Ciphertext<T> not_sel = cc->EvalNegate(sel);
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> one(slots, 1);
+  Plaintext pt_one = cc->MakePackedPlaintext(one);
+  not_sel = cc->EvalAdd(not_sel, pt_one);
+  Ciphertext<T> res_ = cc->EvalMultAndRelinearize(c1, sel);
+  Ciphertext<T> tmp_ = cc->EvalMultAndRelinearize(c2, not_sel);
+  res_ = cc->EvalAdd(res_, tmp_);
+  return res_;
+}
+
+template <typename T>
 Ciphertext<T> eq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
                  size_t ptxt_mod) {
   int num_squares = (int) log2(ptxt_mod-1);
@@ -117,6 +131,25 @@ std::vector<Ciphertext<T>> shift_left_bin(CryptoContext<T>& cc,
   // shift data (MSB is at 0, LSB is at size - 1)
   for (size_t i = amt; i < ct.size(); ++i) {
     res_[i - amt] = ct[i];
+  }
+  return res_;
+}
+
+template <typename T>
+std::vector<Ciphertext<T>> mux_bin(CryptoContext<T>& cc, 
+                                   std::vector<Ciphertext<T>>& sel, 
+                                   std::vector<Ciphertext<T>>& c1, 
+                                   std::vector<Ciphertext<T>>& c2) {
+  std::vector<Ciphertext<T>> res_(c1.size());
+  Ciphertext<T> not_sel = cc->EvalNegate(sel[sel.size()-1]);
+  size_t slots(cc->GetRingDimension());
+  std::vector<int64_t> one(slots, 1);
+  Plaintext pt_one = cc->MakePackedPlaintext(one);
+  not_sel = cc->EvalAdd(not_sel, pt_one);
+  for (size_t i = 0; i < res_.size(); i++) {
+    res_[i] = cc->EvalMultAndRelinearize(c1[i], sel[sel.size()-1]);
+    Ciphertext<T> tmp_ = cc->EvalMultAndRelinearize(c2[i], not_sel);
+    res_[i] = cc->EvalAdd(res_[i], tmp_);
   }
   return res_;
 }

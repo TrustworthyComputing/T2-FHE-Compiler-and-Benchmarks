@@ -226,6 +226,18 @@ func BinSingleXor(c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	return res
 }
 
+func Mux(sel, c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
+	not_sel := (*evaluator_).NegNew(sel)
+	one := EncodeAllSlots(1)
+	(*evaluator_).Add(not_sel, one, not_sel)
+	receiver := (*evaluator_).MulNew(c1, sel)
+	res := (*evaluator_).RelinearizeNew(receiver)
+	receiver = (*evaluator_).MulNew(c2, not_sel)
+	tmp := (*evaluator_).RelinearizeNew(receiver)
+	(*evaluator_).Add(res, tmp, res)
+	return res
+}
+
 func BinShiftRightLogical(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
 	if amt < len(ct) - 1 {
 		fmt.Errorf("BinShiftRight: shift ammount too big")
@@ -272,6 +284,21 @@ func BinShiftLeft(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
 	// shift data (MSB is at 0, LSB is at size - 1)
 	for i := amt; i < len(ct); i++ {
 		res[i - amt] = ct[i];
+	}
+	return res
+}
+
+func BinMux(sel, c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	not_sel := (*evaluator_).NegNew(sel[len(sel)-1])
+	one := EncodeAllSlots(1)
+	(*evaluator_).Add(not_sel, one, not_sel)
+	for i := 0; i < len(res); i++ {
+		receiver := (*evaluator_).MulNew(c1[i], sel[len(sel)-1])
+		res[i] = (*evaluator_).RelinearizeNew(receiver)
+		receiver = (*evaluator_).MulNew(c2[i], not_sel)
+		tmp := (*evaluator_).RelinearizeNew(receiver)
+		(*evaluator_).Add(res[i], tmp, res[i])	
 	}
 	return res
 }

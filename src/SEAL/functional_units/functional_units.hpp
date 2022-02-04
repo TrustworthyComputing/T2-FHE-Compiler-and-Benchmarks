@@ -24,11 +24,15 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(
     seal::Decryptor& decryptor, seal::BatchEncoder& batch_encoder,
     seal::Ciphertext& encrypted_vec, size_t slots, size_t padding = 1);
 
-/// XOR between two batched binary ciphertexts
 seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
                       seal::Evaluator& evaluator,
                       const seal::RelinKeys& relinKeys);
-                           
+
+seal::Ciphertext mux(seal::Evaluator& evaluator, 
+                     seal::RelinKeys& relin_keys, seal::Ciphertext& sel, 
+                     seal::Ciphertext& ctxt_1,  seal::Ciphertext& ctxt_2,
+                     size_t slots);
+
 seal::Ciphertext eq(
     seal::Encryptor& encryptor, seal::Evaluator& evaluator,
     seal::RelinKeys& relin_keys, seal::Ciphertext& ct1_, seal::Ciphertext& ct2_,
@@ -94,6 +98,13 @@ std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
                                       std::vector<seal::Ciphertext>& ctxt_2,
                                       size_t ptxt_mod);
 
+std::vector<seal::Ciphertext> mux_bin(seal::Evaluator& evaluator,
+                                      seal::BatchEncoder& batch_encoder,
+                                      seal::RelinKeys& relin_keys, 
+                                      std::vector<seal::Ciphertext>& sel, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t slots);
 std::vector<seal::Ciphertext> eq_bin(
     seal::Evaluator& evaluator, seal::Encryptor& encryptor,
     seal::BatchEncoder& batch_encoder, seal::RelinKeys& relin_keys, 

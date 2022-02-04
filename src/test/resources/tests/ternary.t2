@@ -7,21 +7,28 @@ int main(void) {
   y_ = 17;
 
   tstart();
-  y = (x == 2) ? 5 : 0;
+  y = (x == 2) ? 5 : 0; // 5 
   print(y);
 
-  res = (x == 2) ? x_ : y_;
+  res = (x == 2) ? x_ : y_; // 12
   print(res);
 
-  res = (x == 2) ? 13 : y_;
+  res = (x == 2) ? 13 : y_; // 13
   print(res);
 
-  res = (x > 2) ? y_ : 14;
+  res = (x > 2) ? y_ : 14; // 14
   print(res);
 
-//  res = (x_ == 12) ? 15 : y_;
-//  print(res);
+  res = (x_ == 12) ? 15 : y_; // 15 
+  print(res);
 
+  res = (x_ != 12) ? y_ : 16; // 16
+  print(res);
+
+  x_ = 17;
+  res = (res == 16) ? x_ : y_; // 17
+  print(res);
   tstop();
+  
   return 0;
 }

@@ -20,6 +20,20 @@ helib::Ctxt exor(helib::PubKey& public_key, helib::Ctxt& ctxt_1,
   return result;
 }
 
+helib::Ctxt mux(helib::PubKey& public_key, helib::Ctxt& sel, helib::Ctxt& ctxt_1,
+                helib::Ctxt& ctxt_2) {
+  helib::Ctxt res(public_key), not_sel(public_key), tmp(public_key);
+  not_sel = sel;
+  not_sel.negate();
+  not_sel.addConstant(NTL::ZZX(1));
+  res = ctxt_1;
+  res *= sel;
+  tmp = ctxt_2;
+  tmp *= not_sel;
+  res += tmp;
+  return res;
+}
+
 std::vector<helib::Ctxt> add_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& c1, 
                                  std::vector<helib::Ctxt>& c2, 
@@ -116,6 +130,26 @@ std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key,
       res_[i] = c1[i];
       res_[i] += c2[i];
     }
+  }
+  return res_;
+}
+
+std::vector<helib::Ctxt> mux_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& sel, 
+                                 std::vector<helib::Ctxt>& ctxt_1,
+                                 std::vector<helib::Ctxt>& ctxt_2) {
+  helib::Ctxt scratch(public_key);
+  std::vector<helib::Ctxt> res_(ctxt_1.size(), scratch);
+  helib::Ctxt not_sel(public_key), tmp(public_key);
+  not_sel = sel[0];
+  not_sel.negate();
+  not_sel.addConstant(NTL::ZZX(1));
+  for (size_t i = 0; i < res_.size(); i++) {
+    res_[i] = ctxt_1[i];
+    res_[i] *= sel[0];
+    tmp = ctxt_2[i];
+    tmp *= not_sel;
+    res_[i] += tmp;
   }
   return res_;
 }

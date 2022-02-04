@@ -1141,7 +1141,7 @@ public class T2_2_SEAL extends T2_Compiler {
         if (this.is_binary_) {
           append_idx(res_ + " = mux_bin(evaluator, batch_encoder, relin_keys, ");
         } else {
-          append_idx(res_ + " = mux(evaluator, batch_encoder, relin_keys, ");
+          append_idx(res_ + " = mux(evaluator, relin_keys, ");
         }
         this.asm_.append(cond.getName()).append(", ").append(e1.getName());
         this.asm_.append(", ").append(e2.getName()).append(", slots);\n");
@@ -1154,7 +1154,7 @@ public class T2_2_SEAL extends T2_Compiler {
         if (this.is_binary_) {
           append_idx(res_ + " = mux_bin(evaluator, batch_encoder, relin_keys, ");
         } else {
-          append_idx(res_ + " = mux(evaluator, batch_encoder, relin_keys, ");
+          append_idx(res_ + " = mux(evaluator, relin_keys, ");
         }
         this.asm_.append(cond.getName()).append(", ").append(e1.getName());
         this.asm_.append(", ").append(e2_enc).append(", slots);\n");
@@ -1167,7 +1167,7 @@ public class T2_2_SEAL extends T2_Compiler {
         if (this.is_binary_) {
           append_idx(res_ + " = mux_bin(evaluator, batch_encoder, relin_keys, ");
         } else {
-          append_idx(res_ + " = mux(evaluator, batch_encoder, relin_keys, ");
+          append_idx(res_ + " = mux(evaluator, relin_keys, ");
         }
         this.asm_.append(cond.getName()).append(", ").append(e1_enc);
         this.asm_.append(", ").append(e2.getName()).append(", slots);\n");
