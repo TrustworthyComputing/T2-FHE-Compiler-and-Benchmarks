@@ -846,35 +846,44 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * f6 -> Expression()
    */
   public Var_t visit(TernaryExpression n) throws Exception {
-    Var_t expr = n.f1.accept(this);
-    String expr_type = st_.findType(expr);
-    Var_t expr_1 = n.f4.accept(this);
-    String expr_1_type = st_.findType(expr_1);
-    Var_t expr_2 = n.f6.accept(this);
-    String expr_2_type = st_.findType(expr_2);
-    if (expr_type.equals("bool")) {
-      if (expr_1_type.equals(expr_2_type)) {
-        return new Var_t(expr_1_type, null);
-      }
-      throw new Exception("Ternary types mismatch: " + expr_1_type + " " + expr_2_type);
-    } else if (expr_type.equals("EncInt")) {
-      if (expr_1_type.equals(expr_2_type) ||
-           ( (expr_1_type.equals("int") || expr_1_type.equals("EncInt")) &&
-             (expr_2_type.equals("int") || expr_2_type.equals("EncInt")) )
-      ) {
-        return new Var_t("EncInt", null);
-      }
-      throw new Exception("Ternary types mismatch: " + expr_1_type + " " + expr_2_type);
-    } else if (expr_type.equals("EncDouble")) {
-      if (expr_1_type.equals(expr_2_type) ||
-          ( (expr_1_type.equals("int") || expr_1_type.equals("double") || expr_1_type.equals("EncDouble")) &&
-            (expr_2_type.equals("int") || expr_1_type.equals("double") || expr_2_type.equals("EncDouble")) )
-      ) {
-        return new Var_t("EncDouble", null);
-      }
-      throw new Exception("Ternary types mismatch: " + expr_1_type + " " + expr_2_type);
+    Var_t cond = n.f1.accept(this);
+    String cond_t = st_.findType(cond);
+    Var_t e1 = n.f4.accept(this);
+    String e1_t = st_.findType(e1);
+    Var_t e2 = n.f6.accept(this);
+    String e2_t = st_.findType(e2);
+    switch (cond_t) {
+      case "bool":
+      case "int":
+      case "double":
+        if (e1_t.equals(e2_t)) {
+          return new Var_t(e1_t, null);
+        } else if ( (e1_t.equals("int") || e1_t.equals("EncInt")) &&
+                    (e2_t.equals("int") || e2_t.equals("EncInt")) ) {
+          return new Var_t("EncInt", null);
+        } else if ( (e1_t.equals("int") || e1_t.equals("double") || e1_t.equals("EncDouble")) &&
+                    (e2_t.equals("int") || e2_t.equals("double") || e2_t.equals("EncDouble")) ) {
+          return new Var_t("EncDouble", null);
+        }
+        throw new Exception("Ternary types mismatch: " + e1_t + " " + e2_t);
+      case "EncInt":
+        if (e1_t.equals(e2_t) ||
+            ((e1_t.equals("int") || e1_t.equals("EncInt")) &&
+             (e2_t.equals("int") || e2_t.equals("EncInt")))
+        ) {
+          return new Var_t("EncInt", null);
+        }
+        throw new Exception("Ternary types mismatch: " + e1_t + " " + e2_t);
+      case "EncDouble":
+        if (e1_t.equals(e2_t) ||
+          ((e1_t.equals("int") || e1_t.equals("double") || e1_t.equals("EncDouble")) &&
+           (e2_t.equals("int") || e2_t.equals("double") || e2_t.equals("EncDouble")))
+        ) {
+          return new Var_t("EncDouble", null);
+        }
+        throw new Exception("Ternary types mismatch: " + e1_t + " " + e2_t);
     }
-    throw new Exception("If-condition is not a boolean Expression " + expr_type);
+    throw new Exception("If-condition is not a boolean Expression " + cond_t);
   }
 
   /**

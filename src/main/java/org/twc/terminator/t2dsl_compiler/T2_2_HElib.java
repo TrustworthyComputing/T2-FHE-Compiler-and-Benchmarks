@@ -75,8 +75,10 @@ public class T2_2_HElib extends T2_Compiler {
     append_idx("addSome1DMatrices(secret_key);\n");
     append_idx("PubKey& public_key = secret_key;\n");
     append_idx("const EncryptedArray& ea = context.getEA();\n");
-    append_idx("std::vector<helib::zzX> unpackSlotEncoding;\n");
-    append_idx("buildUnpackSlotEncoding(unpackSlotEncoding, ea);\n");
+    if (this.is_binary_) {
+      append_idx("std::vector<helib::zzX> unpackSlotEncoding;\n");
+      append_idx("buildUnpackSlotEncoding(unpackSlotEncoding, ea);\n");
+    }
     append_idx("long slots = ea.size();\n");
     append_idx("Ptxt<helib::BGV> tmp(context);\n");
     append_idx("Ctxt scratch(public_key);\n");
@@ -1091,6 +1093,92 @@ public class T2_2_HElib extends T2_Compiler {
     } else {
       return new Var_t("EncInt[]", "resize(" + size + ", scratch)");
     }
+  }
+
+  /**
+   * f0 -> "("
+   * f1 -> Expression()
+   * f2 -> ")"
+   * f3 -> "?"
+   * f4 -> Expression()
+   * f5 -> ":"
+   * f6 -> Expression()
+   */
+  public Var_t visit(TernaryExpression n) throws Exception {
+    Var_t cond = n.f1.accept(this);
+    Var_t e1 = n.f4.accept(this);
+    Var_t e2 = n.f6.accept(this);
+    String cond_t = st_.findType(cond);
+    String e1_t = st_.findType(e1);
+    String e2_t = st_.findType(e2);
+    String res_;
+    if (cond_t.equals("bool") || cond_t.equals("int") || cond_t.equals("double")) {
+      if (e1_t.equals(e2_t)) {
+        res_ = "tmp_" + (++tmp_cnt_);
+        append_idx(this.st_.backend_types.get(e1_t) + " " + res_ + " = (");
+        this.asm_.append(cond.getName()).append(")").append(" ? ");
+        this.asm_.append(e1.getName()).append(" : ").append(e2.getName()).append(";\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+              (e2_t.equals("int") || e2_t.equals("double")) ) {
+        res_ = new_ctxt_tmp();
+        String e2_enc = new_ctxt_tmp();
+        encrypt(e2_enc, new String[]{e2.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_ + " = (" + cond.getName() + ") ? " + e1.getName());
+        this.asm_.append(" : ").append(e2_enc).append(";\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        res_ = new_ctxt_tmp();
+        String e1_enc = new_ctxt_tmp();
+        encrypt(e1_enc, new String[]{e1.getName()});
+        this.asm_.append(";\n");
+        append_idx(res_ + " = (" + cond.getName() + ") ? " + e1_enc);
+        this.asm_.append(" : ").append(e2.getName()).append(";\n");
+        return new Var_t(e2_t, res_);
+      }
+    } else if (cond_t.equals("EncInt") || cond_t.equals("EncDouble")) {
+      res_ = new_ctxt_tmp();
+      if (e1_t.equals(e2_t)) {
+        if (this.is_binary_) {
+          append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+        }
+        this.asm_.append(e1.getName()).append(", ").append(e2.getName());
+        this.asm_.append(");\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+                  (e2_t.equals("int") || e2_t.equals("double")) ) {
+        String e2_enc = new_ctxt_tmp();
+        encrypt(e2_enc, new String[]{e2.getName()});
+        this.asm_.append(";\n");
+        if (this.is_binary_) {
+          append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+        }
+        this.asm_.append(e1.getName()).append(", ").append(e2_enc).append(");\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        String e1_enc = new_ctxt_tmp();
+        encrypt(e1_enc, new String[]{e1.getName()});
+        this.asm_.append(";\n");
+        if (this.is_binary_) {
+          append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+        }
+        this.asm_.append(e1_enc).append(", ").append(e2.getName()).append(");\n");
+        return new Var_t(e2_t, res_);
+      }
+    }
+    throw new RuntimeException("Ternary condition error: " +
+            cond.getName() + " type: " + cond_t +
+            e1.getName() + " type: " + e1_t +
+            e2.getName() + " type: " + e2_t);
   }
 
 }

@@ -661,4 +661,83 @@ public class T2_2_TFHE extends T2_Compiler {
     throw new Exception("Wrong type for ~: " + exp_type);
   }
 
+  /**
+   * f0 -> "("
+   * f1 -> Expression()
+   * f2 -> ")"
+   * f3 -> "?"
+   * f4 -> Expression()
+   * f5 -> ":"
+   * f6 -> Expression()
+   */
+  public Var_t visit(TernaryExpression n) throws Exception {
+    Var_t cond = n.f1.accept(this);
+    Var_t e1 = n.f4.accept(this);
+    Var_t e2 = n.f6.accept(this);
+    String cond_t = st_.findType(cond);
+    String e1_t = st_.findType(e1);
+    String e2_t = st_.findType(e2);
+    String res_;
+    if (cond_t.equals("bool") || cond_t.equals("int") || cond_t.equals("double")) {
+      if (e1_t.equals(e2_t)) {
+        res_ = "tmp_" + (++tmp_cnt_);
+        append_idx(this.st_.backend_types.get(e1_t) + " " + res_ + " = (");
+        this.asm_.append(cond.getName()).append(")").append(" ? ").append(e1.getName());
+        this.asm_.append(" : ").append(e2.getName()).append(";\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+                  (e2_t.equals("int") || e2_t.equals("double")) ) {
+        res_ = new_ctxt_tmp();
+        String e2_enc = new_ctxt_tmp();
+        append_idx(e2_enc + " = e_cloud(" + e2.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        append_idx(res_ + " = (" + cond.getName() + ") ? " + e1.getName());
+        this.asm_.append(" : ").append(e2_enc).append(";\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        res_ = new_ctxt_tmp();
+        String e1_enc = new_ctxt_tmp();
+        append_idx(e1_enc + " = e_cloud(" + e1.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        append_idx(res_ + " = (" + cond.getName() + ") ? " + e1_enc);
+        this.asm_.append(" : ").append(e2.getName()).append(";\n");
+        return new Var_t(e2_t, res_);
+      }
+    } else if (cond_t.equals("EncInt") || cond_t.equals("EncDouble")) {
+      res_ = new_ctxt_tmp();
+      if (e1_t.equals(e2_t)) {
+        append_idx(res_ + " = e_cloud(0, word_sz, &key->cloud);\n");
+        append_idx("e_mux(" + res_ + ", " + cond.getName() + ", ");
+        this.asm_.append(e1.getName()).append(", ").append(e2.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+                  (e2_t.equals("int") || e2_t.equals("double")) ) {
+        append_idx(res_ + " = e_cloud(0, word_sz, &key->cloud);\n");
+        String e2_enc = new_ctxt_tmp();
+        append_idx(e2_enc + " = e_cloud(" + e2.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        append_idx("e_mux(" + res_ + ", " + cond.getName() + ", ");
+        this.asm_.append(e1.getName()).append(", ").append(e2_enc);
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        append_idx(res_ + " = e_cloud(0, word_sz, &key->cloud);\n");
+        String e1_enc = new_ctxt_tmp();
+        append_idx(e1_enc + " = e_cloud(" + e1.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        append_idx("e_mux(" + res_ + ", " + cond.getName() + ", ");
+        this.asm_.append(e1_enc).append(", ").append(e2.getName());
+        this.asm_.append(", word_sz, &key->cloud);\n");
+        return new Var_t(e2_t, res_);
+      }
+    }
+    throw new RuntimeException("Ternary condition error: " +
+                                cond.getName() + " type: " + cond_t +
+                                e1.getName() + " type: " + e1_t +
+                                e2.getName() + " type: " + e2_t);
+  }
+
 }

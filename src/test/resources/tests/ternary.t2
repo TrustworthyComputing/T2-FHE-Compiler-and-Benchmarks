@@ -1,0 +1,27 @@
+int main(void) {
+  EncInt res, x_, y_;
+  int x, y;
+  x = 2;
+  y = 7;
+  x_ = 12;
+  y_ = 17;
+
+  tstart();
+  y = (x == 2) ? 5 : 0;
+  print(y);
+
+  res = (x == 2) ? x_ : y_;
+  print(res);
+
+  res = (x == 2) ? 13 : y_;
+  print(res);
+
+  res = (x > 2) ? y_ : 14;
+  print(res);
+
+//  res = (x_ == 12) ? 15 : y_;
+//  print(res);
+
+  tstop();
+  return 0;
+}

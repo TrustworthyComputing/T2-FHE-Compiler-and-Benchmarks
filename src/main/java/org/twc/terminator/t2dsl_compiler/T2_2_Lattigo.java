@@ -73,7 +73,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
-               "&params, int(paramDef.T), slots, " + this.word_sz_ + ")\n");
+                   "&params, int(paramDef.T), slots, " + this.word_sz_ + ")\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
     append_idx("tmp := make([]int64, slots)\n");
     append_idx("encoder.EncodeInt(tmp, ptxt)\n\n");
@@ -231,10 +231,11 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f1 -> Identifier()
    */
   public Var_t visit(VarDeclarationRest n) throws Exception {
-    if (!this.is_binary_) {
+    Var_t id = n.f1.accept(this);
+    String id_t = st_.findType(id);
+    if (!(this.is_binary_ && (id_t.equals("EncInt") || id_t.equals("EncDouble")))) {
       this.asm_.append(", ");
     }
-    Var_t id = n.f1.accept(this);
     this.asm_.append(id.getName());
     return null;
   }
@@ -1271,6 +1272,123 @@ public class T2_2_Lattigo extends T2_Compiler {
     this.asm_.append(" := ").append(arr.getName()).append("[");
     this.asm_.append(idx.getName()).append("]\n");
     return ret;
+  }
+
+  /**
+   * f0 -> "("
+   * f1 -> Expression()
+   * f2 -> ")"
+   * f3 -> "?"
+   * f4 -> Expression()
+   * f5 -> ":"
+   * f6 -> Expression()
+   */
+  public Var_t visit(TernaryExpression n) throws Exception {
+    Var_t cond = n.f1.accept(this);
+    Var_t e1 = n.f4.accept(this);
+    Var_t e2 = n.f6.accept(this);
+    String cond_t = st_.findType(cond);
+    String e1_t = st_.findType(e1);
+    String e2_t = st_.findType(e2);
+    String res_ = "tmp_" + (++tmp_cnt_);
+    if (cond_t.equals("bool") || cond_t.equals("int") || cond_t.equals("double")) {
+      if (e1_t.equals(e2_t)) {
+        append_idx("var " + res_ + " " + this.st_.backend_types.get(e1_t) + "\n");
+        append_idx("if " + cond.getName() + " {\n");
+        append_idx("  " + res_ + " = " + e1.getName() + "\n");
+        append_idx("} else {\n");
+        append_idx("  " + res_ + " = " + e2.getName() + "\n");
+        append_idx("}\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+                  (e2_t.equals("int") || e2_t.equals("double")) ) {
+        append_idx("var " + res_ + " " + this.st_.backend_types.get(e1_t) + "\n");
+        String e2_enc = "tmp_" + (++tmp_cnt_);
+        if (this.is_binary_) {
+          append_idx(e2_enc + " := make(" + this.st_.backend_types.get(e1_t));
+          this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+        } else {
+          append_idx("var " + e2_enc + " " + this.st_.backend_types.get(e1_t) + "\n");
+        }
+        encrypt(e2_enc, new String[]{e2.getName()});
+        this.asm_.append("\n");
+        append_idx("if " + cond.getName() + " {\n");
+        append_idx("  " + res_ + " = " + e1.getName() + "\n");
+        append_idx("} else {\n");
+        append_idx("  " + res_ + " = " + e2_enc + "\n");
+        append_idx("}\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        append_idx("var " + res_ + " " + this.st_.backend_types.get(e2_t) + "\n");
+        String e1_enc = "tmp_" + (++tmp_cnt_);
+        if (this.is_binary_) {
+          append_idx(e1_enc + " := make(" + this.st_.backend_types.get(e2_t));
+          this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+        } else {
+          append_idx("var " + e1_enc + " " + this.st_.backend_types.get(e2_t) + "\n");
+        }
+        encrypt(e1_enc, new String[]{e1.getName()});
+        this.asm_.append("\n");
+        append_idx("if " + cond.getName() + " {\n");
+        append_idx("  " + res_ + " = " + e1_enc + "\n");
+        append_idx("} else {\n");
+        append_idx("  " + res_ + " = " + e2.getName() + "\n");
+        append_idx("}\n");
+        return new Var_t(e2_t, res_);
+      }
+    } else if (cond_t.equals("EncInt") || cond_t.equals("EncDouble")) {
+      if (e1_t.equals(e2_t)) {
+        if (this.is_binary_) {
+          append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+        }
+        this.asm_.append(e1.getName()).append(", ").append(e2.getName());
+        this.asm_.append(")\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
+                  (e2_t.equals("int") || e2_t.equals("double")) ) {
+        String e2_enc = "tmp_" + (++tmp_cnt_);
+        if (this.is_binary_) {
+          append_idx(e2_enc + " := make(" + this.st_.backend_types.get(e1_t));
+          this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+        } else {
+          append_idx("var " + e2_enc + " " + this.st_.backend_types.get(e1_t) + "\n");
+        }
+        encrypt(e2_enc, new String[]{e2.getName()});
+        this.asm_.append("\n");
+        if (this.is_binary_) {
+          append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+        }
+        this.asm_.append(e1.getName()).append(", ").append(e2_enc).append(")\n");
+        return new Var_t(e1_t, res_);
+      } else if ((e2_t.equals("EncInt") || e2_t.equals("EncDouble")) &&
+                  (e1_t.equals("int") || e1_t.equals("double")) ) {
+        String e1_enc = "tmp_" + (++tmp_cnt_);
+        if (this.is_binary_) {
+          append_idx(e1_enc + " := make(" + this.st_.backend_types.get(e2_t));
+          this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+        } else {
+          append_idx("var " + e1_enc + " " + this.st_.backend_types.get(e2_t) + "\n");
+        }
+        encrypt(e1_enc, new String[]{e1.getName()});
+        this.asm_.append("\n");
+        if (this.is_binary_) {
+          append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
+        } else {
+          append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+        }
+        this.asm_.append(e1_enc).append(", ").append(e2.getName()).append(")\n");
+        return new Var_t(e2_t, res_);
+      }
+    }
+    throw new RuntimeException("Ternary condition error: " +
+            cond.getName() + " type: " + cond_t +
+            e1.getName() + " type: " + e1_t +
+            e2.getName() + " type: " + e2_t);
   }
 
 }
