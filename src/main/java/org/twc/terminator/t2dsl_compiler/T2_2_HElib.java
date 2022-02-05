@@ -1141,14 +1141,30 @@ public class T2_2_HElib extends T2_Compiler {
     } else if (cond_t.equals("EncInt") || cond_t.equals("EncDouble")) {
       res_ = new_ctxt_tmp();
       if (e1_t.equals(e2_t)) {
-        if (this.is_binary_) {
-          append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
-        } else {
-          append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+        if (e1_t.equals("int") || e1_t.equals("double")) {
+          String e1_enc = new_ctxt_tmp(), e2_enc = new_ctxt_tmp();
+          encrypt(e1_enc, new String[]{e1.getName()});
+          this.asm_.append(";\n");
+          encrypt(e2_enc, new String[]{e2.getName()});
+          this.asm_.append(";\n");
+          if (this.is_binary_) {
+            append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
+          } else {
+            append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+          }
+          this.asm_.append(e1_enc).append(", ").append(e2_enc);
+          this.asm_.append(");\n");
+          return new Var_t("EncInt", res_);
+        } else if (e1_t.equals("EncInt") || e1_t.equals("EncDouble")) {
+          if (this.is_binary_) {
+            append_idx(res_ + " = mux_bin(public_key, " + cond.getName() + ", ");
+          } else {
+            append_idx(res_ + " = mux(public_key, " + cond.getName() + ", ");
+          }
+          this.asm_.append(e1.getName()).append(", ").append(e2.getName());
+          this.asm_.append(");\n");
+          return new Var_t(e1_t, res_);
         }
-        this.asm_.append(e1.getName()).append(", ").append(e2.getName());
-        this.asm_.append(");\n");
-        return new Var_t(e1_t, res_);
       } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
                   (e2_t.equals("int") || e2_t.equals("double")) ) {
         String e2_enc = new_ctxt_tmp();

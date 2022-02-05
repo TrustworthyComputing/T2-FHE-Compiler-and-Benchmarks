@@ -238,14 +238,14 @@ func Mux(sel, c1, c2 *bfv.Ciphertext) *bfv.Ciphertext {
 	return res
 }
 
-func BinShiftRightLogical(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
-	if amt < len(ct) - 1 {
+func BinShiftRightLogical(ct []*bfv.Ciphertext, amt int64) []*bfv.Ciphertext {
+	if amt < int64(len(ct)) - 1 {
 		fmt.Errorf("BinShiftRight: shift ammount too big")
 	}
 	res := make([]*bfv.Ciphertext, len(ct))
 	zero := EncodeAllSlots(0)
 	// shift data (MSB is at 0, LSB is at size - 1)
-	for i := len(ct) - amt - 1; i >= 0; i-- {
+	for i := int64(len(ct)) - amt - 1; i >= 0; i-- {
 		res[i + amt] = ct[i]
 	}
 	// shift in zeros
@@ -255,13 +255,13 @@ func BinShiftRightLogical(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
 	return res
 }
 
-func BinShiftRight(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
-	if amt < len(ct) - 1 {
+func BinShiftRight(ct []*bfv.Ciphertext, amt int64) []*bfv.Ciphertext {
+	if amt < int64(len(ct)) - 1 {
 		fmt.Errorf("BinShiftRight: shift ammount too big")
 	}
 	res := make([]*bfv.Ciphertext, len(ct))
 	// shift data (MSB is at 0, LSB is at size - 1)
-	for i := len(ct) - amt - 1; i >= 0; i-- {
+	for i := int64(len(ct)) - amt - 1; i >= 0; i-- {
 		res[i + amt] = ct[i]
 	}
 	// copy sign
@@ -271,8 +271,8 @@ func BinShiftRight(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
 	return res
 }
 
-func BinShiftLeft(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
-	if amt < len(ct) - 1 {
+func BinShiftLeft(ct []*bfv.Ciphertext, amt int64) []*bfv.Ciphertext {
+	if amt < int64(len(ct)) - 1 {
 		fmt.Errorf("BinShiftRight: shift ammount too big")
 	}
 	res := make([]*bfv.Ciphertext, len(ct))
@@ -282,7 +282,7 @@ func BinShiftLeft(ct []*bfv.Ciphertext, amt int) []*bfv.Ciphertext {
 		res[i] = (*encryptorPk_).EncryptNew(zero)
 	}
 	// shift data (MSB is at 0, LSB is at size - 1)
-	for i := amt; i < len(ct); i++ {
+	for i := amt; i < int64(len(ct)); i++ {
 		res[i - amt] = ct[i];
 	}
 	return res

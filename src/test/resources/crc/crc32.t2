@@ -1,0 +1,27 @@
+int main(void) {
+  EncInt crc, data, t3mp;
+  int length, i, j, block;
+  block = 66;
+  block += (101 << 8);
+  block += (101 << 16);
+  block += (102 << 24);
+  length = 4; 
+  crc = 4294967295; // 0xFFFFFFFF
+  data = block;
+  tstart();
+  for (i = length-1; i >= 0; i--) {
+    t3mp = (data << (i*8));
+    t3mp >>>= 24;
+    crc = crc ^ t3mp;
+    print(crc);
+    for (j = 0; j < 8; j++) {
+      t3mp = crc >>> 1;
+      crc = (crc) ? (t3mp ^ 3988292384) : t3mp;
+    }
+    print(crc);
+  }
+  crc = ~crc;
+  tstop();
+  print(crc);
+  return 0;
+}

@@ -721,8 +721,8 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     String t1 = st_.findType(clause_1);
     String t2 = st_.findType(clause_2);
     if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
-        ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
-        "/".equals(op) || "%".equals(op)
+        ">>".equals(op) || ">>>".equals(op) || "+".equals(op) || 
+        "-".equals(op) || "*".equals(op) || "/".equals(op) || "%".equals(op)
     ) {
       if (t1.equals("int") && t2.equals("int")) {
         return new Var_t("int", null);
@@ -767,6 +767,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * |  "^"
    * |  "<<"
    * |  ">>"
+   * |  ">>>"
    * |  "+"
    * |  "-"
    * |  "*"
@@ -780,12 +781,13 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * |  ">="
    */
   public Var_t visit(BinOperator n) throws Exception {
-    String[] _ret = {"&", "|", "^", "<<", ">>", "+", "-", "*", "/", "%", "==",
+    String[] _ret = {"&", "|", "^", "<<", ">>", ">>>", "+", "-", "*", "/", "%", "==",
                      "!=", "<", "<=", ">", ">="};
     String op = _ret[n.f0.which];
     if ("&".equals(op) || "|".equals(op) || "^".equals(op) || "<<".equals(op) ||
-            ">>".equals(op) || "<<=".equals(op) || ">>=".equals(op) || "+".equals(op) ||
-            "-".equals(op) || "*".equals(op) || "/".equals(op) || "%".equals(op)) {
+            ">>".equals(op) || ">>>".equals(op) || "<<=".equals(op) || 
+            ">>=".equals(op) || "+".equals(op) || "-".equals(op) || 
+            "*".equals(op) || "/".equals(op) || "%".equals(op)) {
       return new Var_t("int", op);
     } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
             "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {

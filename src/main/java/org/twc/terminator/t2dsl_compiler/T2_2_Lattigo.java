@@ -1339,14 +1339,39 @@ public class T2_2_Lattigo extends T2_Compiler {
       }
     } else if (cond_t.equals("EncInt") || cond_t.equals("EncDouble")) {
       if (e1_t.equals(e2_t)) {
-        if (this.is_binary_) {
-          append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
-        } else {
-          append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+        if (e1_t.equals("int") || e1_t.equals("double")) {
+          String e1_enc = "tmp_" + (++tmp_cnt_), e2_enc = "tmp_" + (++tmp_cnt_);
+          if (this.is_binary_) {
+            append_idx(e1_enc + " := make(" + this.st_.backend_types.get("EncInt"));
+            this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+            append_idx(e2_enc + " := make(" + this.st_.backend_types.get("EncInt"));
+            this.asm_.append(", ").append(this.word_sz_).append(")").append("\n");
+          } else {
+            append_idx("var " + e1_enc + " " + this.st_.backend_types.get("EncInt") + "\n");
+            append_idx("var " + e2_enc + " " + this.st_.backend_types.get("EncInt") + "\n");
+          }
+          encrypt(e1_enc, new String[]{e1.getName()});
+          this.asm_.append(";\n");
+          encrypt(e2_enc, new String[]{e2.getName()});
+          this.asm_.append(";\n");
+          if (this.is_binary_) {
+            append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
+          } else {
+            append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+          }
+          this.asm_.append(e1_enc).append(", ").append(e2_enc);
+          this.asm_.append(")\n");
+          return new Var_t("EncInt", res_);
+        } else if (e1_t.equals("EncInt") || e1_t.equals("EncDouble")) {
+          if (this.is_binary_) {
+            append_idx(res_ + " := funits.BinMux(" + cond.getName() + ", ");
+          } else {
+            append_idx(res_ + " := funits.Mux(" + cond.getName() + ", ");
+          }
+          this.asm_.append(e1.getName()).append(", ").append(e2.getName());
+          this.asm_.append(")\n");
+          return new Var_t(e1_t, res_);
         }
-        this.asm_.append(e1.getName()).append(", ").append(e2.getName());
-        this.asm_.append(")\n");
-        return new Var_t(e1_t, res_);
       } else if ((e1_t.equals("EncInt") || e1_t.equals("EncDouble")) &&
                   (e2_t.equals("int") || e2_t.equals("double")) ) {
         String e2_enc = "tmp_" + (++tmp_cnt_);

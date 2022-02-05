@@ -114,7 +114,7 @@ void shift_right_logical_bin(std::vector<LweSample*>& result,
     for (int j = 0; j < word_sz-amt; j++) {
       bootsCOPY(&tmp[i][j], &ct[i][j+amt], bk);
     }
-    for (int j = word_sz-amt; j < word_sz-1; j++) {
+    for (int j = word_sz-amt; j < word_sz; j++) {
       bootsCONSTANT(&tmp[i][j], 0, bk);
     }
   }

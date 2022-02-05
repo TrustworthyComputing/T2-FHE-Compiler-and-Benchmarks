@@ -1,0 +1,16 @@
+// http://www.sunshine2k.de/coding/javascript/crc/crc_js.html
+
+int main(void) {
+  EncInt crc, t3mp;
+  int i;
+  crc = 66;
+  tstart();  
+  for (i = 0; i < 8; i++) {
+    t3mp = crc >>> 7;
+    t3mp = (t3mp) ? 7 : 0;
+    crc = t3mp ^ (crc << 1);
+  }
+  tstop();
+  print(crc);
+  return 0;
+}

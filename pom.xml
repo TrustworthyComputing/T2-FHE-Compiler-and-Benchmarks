@@ -137,6 +137,8 @@
               </includes>
               <excludes>
                 <exclude>**/*.t2</exclude>
+                <exclude>**/crc8_ptxt.cpp</exclude>
+                <exclude>**/crc32_ptxt.cpp</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
