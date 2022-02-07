@@ -93,6 +93,8 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
 
   protected boolean read_keygen_from_file() {
     try {
+      if (config_file_path_ == null || config_file_path_.equals(""))
+        throw new IOException();
       Path filePath = Paths.get(config_file_path_);
       Stream<String> lines = Files.lines(filePath);
       lines.forEach((line)->{

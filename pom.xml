@@ -6,6 +6,9 @@
   <groupId>org.twc</groupId>
   <artifactId>terminator-compiler</artifactId>
   <version>1.0</version>
+  <name>T2: Homomorphic Day</name>
+  <description>T2 offers a language and a  compiler for FHE libraries</description>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -13,8 +16,36 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <gen.sources.skip>false</gen.sources.skip> <!-- default -->
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>5.6.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.6.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.6.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
+      <!-- Run tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.0</version>
+      </plugin>
       <!-- Generate sources -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -55,6 +86,7 @@
               <executable>javacc</executable>
               <workingDirectory>src/main/java/org/twc/terminator/t2dsl_compiler/T2DSLparser</workingDirectory>
               <arguments>
+                <argument>-STATIC=false</argument>
                 <argument>T2DSL-jtb.jj</argument>
               </arguments>
             </configuration>

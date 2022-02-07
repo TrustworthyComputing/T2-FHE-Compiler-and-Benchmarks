@@ -78,8 +78,7 @@ public class Main {
       System.out.println("Compiling file \"" + input_file + "\"");
       input_stream = new FileInputStream(input_file);
       // Type checking.
-      new T2DSLParser(input_stream);
-      Goal t2dsl_goal = T2DSLParser.Goal();
+      Goal t2dsl_goal = new T2DSLParser(input_stream).Goal();
       SymbolTableVisitor symtable_visit = new SymbolTableVisitor();
       t2dsl_goal.accept(symtable_visit);
       SymbolTable symbol_table = symtable_visit.getSymbolTable();

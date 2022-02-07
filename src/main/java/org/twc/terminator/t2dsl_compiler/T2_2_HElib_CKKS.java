@@ -288,7 +288,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     Var_t index = n.f2.accept(this);
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
-    assert(id_type.equals("EncDouble[]"));
+    if (!id_type.equals("EncDouble[]"))
+      throw new RuntimeException("BatchArrayAssignmentStatement");
     String index_type = st_.findType(index);
     tmp_cnt_++;
     append_idx("tmp[0] = ");
@@ -347,10 +348,13 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
   public Var_t visit(PrintBatchedStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncDouble"));
+    if (!expr_type.equals("EncDouble"))
+      throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
-    String size_type = st_.findType(expr);
-    assert(size_type.equals("int"));
+    String size_type = size.getType();
+    if (size_type == null) size_type = st_.findType(expr);
+    if (!size_type.equals("int"))
+      throw new RuntimeException("PrintBatchedStatement: size type");
     append_idx("ptxt.decryptComplex(");
     this.asm_.append(expr.getName()).append(", secret_key);\n");
     append_idx("ptxt.store(tmp);\n");

@@ -23,6 +23,45 @@ D. Mouris, N. G. Tsoutsos and M. Maniatakos,
 IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
 ```
 
+## Build and Run Instructions
+### Dependencies
+```powershell
+apt install openjdk-8-jdk maven javacc
+```
+
+### Compile
+```powershell
+mvn initialize package
+```
+
+To skip running the test when compiling the T2 compiler run:
+```powershell
+mvn package -Dmaven.test.skip
+```
+
+### Compile T2 programs 
+To compile a T2 program type:
+```powershell
+java -jar target/terminator-compiler-1.0.jar <path_to_t2_file> [--debug] <LIB> [--w word_size]
+```
+where `<LIB>` can be one of `HElib`, `Lattigo`, `SEAL`, `PALISADE`, and `TFHE`. For instance:
+```powershell
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --seal
+```
+will use `SEAL` as the back-end over the integers, whereas:
+```powershell
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bin_test.t2 --lattigo --w 6
+```
+will use `Lattigo` as the back-end in the binary domain. The T2 compiler 
+automatically detects the appropriate scheme (i.e., `BFV/BGV` or `CKKS`) based 
+on the type of the encrypted variables that the T2 program uses (i.e., 
+`EncInt` or `EncDouble`).
+For example:
+```powershell
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ckks_test.t2 --seal
+```
+will use `SEAL` with the `CKKS` scheme.
+
 
 <p align="center">
     <img src="./logos/twc.png" height="20%" width="20%">

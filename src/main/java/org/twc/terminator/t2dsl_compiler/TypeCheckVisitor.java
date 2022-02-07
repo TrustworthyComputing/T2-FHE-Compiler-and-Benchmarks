@@ -608,8 +608,10 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     n.f3.accept(this);
     String expr_type = st_.findType(expr);
     Var_t size = n.f4.accept(this);
-    String size_type = st_.findType(size);
-    assert(size_type.equals("int"));
+    String size_type = size.getType();
+    if (size_type == null) size_type = st_.findType(expr);
+    if (!size_type.equals("int"))
+      throw new RuntimeException("PrintBatchedStatement: size type");
     if (expr_type.equals("EncInt") || expr_type.equals("EncDouble")) {
       return null;
     }
@@ -823,8 +825,10 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     n.f1.accept(this);
     Var_t idx = n.f2.accept(this);
     String array_type = st_.findType(array);
-    String idx_type = st_.findType(idx);
-    assert(idx_type.equals("int"));
+    String idx_type = idx.getType();
+    if (idx_type == null) idx_type = st_.findType(idx);
+    if (!idx_type.equals("int"))
+      throw new RuntimeException("ArrayLookup: index type");
     switch (array_type) {
       case "int[]":
         return new Var_t("int", null);

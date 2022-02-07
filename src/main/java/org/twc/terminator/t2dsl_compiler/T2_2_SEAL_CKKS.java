@@ -374,7 +374,8 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     Var_t index = n.f2.accept(this);
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
-    assert(id_type.equals("EncDouble[]"));
+    if (!id_type.equals("EncDouble[]"))
+      throw new RuntimeException("BatchArrayAssignmentStatement: id type");
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("vector<double> ");
     this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
@@ -435,10 +436,13 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
   public Var_t visit(PrintBatchedStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncDouble"));
+    if (!expr_type.equals("EncDouble"))
+      throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
-    String size_type = st_.findType(expr);
-    assert(size_type.equals("int"));
+    String size_type = size.getType();
+    if (size_type == null) size_type = st_.findType(expr);
+    if (!size_type.equals("int"))
+      throw new RuntimeException("PrintBatchedStatement: size type");
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("decryptor.decrypt(");
     this.asm_.append(expr.getName()).append(", tmp);\n");
@@ -462,7 +466,8 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
   public Var_t visit(ReduceNoiseStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncDouble"));
+    if (!expr_type.equals("EncDouble"))
+      throw new RuntimeException("ReduceNoiseStatement");
     append_idx("evaluator.rescale_to_next_inplace(");
     this.asm_.append(expr.getName()).append(");\n");
     return null;

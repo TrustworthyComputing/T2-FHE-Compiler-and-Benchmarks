@@ -74,7 +74,8 @@ public class T2_2_PALISADE extends T2_Compiler {
         if (i < this.word_sz_ - 1) this.asm_.append(";\n");
       }
     } else {
-      assert(src_lst.length == 1);
+      if (src_lst.length != 1)
+        throw new RuntimeException("encrypt: list length");
       append_idx("fill(" + this.vec + ".begin(), " + this.vec);
       this.asm_.append(".end(), ").append(src_lst[0]).append(");\n");
       append_idx("tmp = cc->MakePackedPlaintext(");
@@ -563,7 +564,8 @@ public class T2_2_PALISADE extends T2_Compiler {
     Var_t index = n.f2.accept(this);
     Var_t exp = n.f6.accept(this);
     String id_type = st_.findType(id);
-    assert(id_type.equals("EncInt[]"));
+    if (!id_type.equals("EncInt[]"))
+      throw new RuntimeException("BatchArrayAssignmentStatement");
     if (this.is_binary_) {
       String[] elems = new String[1 + n.f7.size()];
       elems[0] = exp.getName();
@@ -650,10 +652,13 @@ public class T2_2_PALISADE extends T2_Compiler {
   public Var_t visit(PrintBatchedStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncInt"));
+    if (!expr_type.equals("EncInt"))
+      throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
-    String size_type = st_.findType(expr);
-    assert(size_type.equals("int"));
+    String size_type = size.getType();
+    if (size_type == null) size_type = st_.findType(expr);
+    if (!size_type.equals("int"))
+      throw new RuntimeException("PrintBatchedStatement: size type");
     if (this.is_binary_) {
       for (int i = 0; i < this.word_sz_; i++) {
         append_idx("cc->Decrypt(keyPair.secretKey,");
@@ -701,7 +706,8 @@ public class T2_2_PALISADE extends T2_Compiler {
   public Var_t visit(ReduceNoiseStatement n) throws Exception {
     Var_t expr = n.f2.accept(this);
     String expr_type = st_.findType(expr);
-    assert(expr_type.equals("EncInt"));
+    if (!expr_type.equals("EncInt"))
+      throw new RuntimeException("ReduceNoiseStatement");
     append_idx("cc->ModReduceInPlace(");
     this.asm_.append(expr.getName()).append(");\n");
     return null;
