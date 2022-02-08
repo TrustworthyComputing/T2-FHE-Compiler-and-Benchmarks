@@ -9,7 +9,7 @@ public class TFHETest extends IntegerBinaryTest {
 
   public T2_Compiler getT2Compiler(SymbolTable symbol_table,
                                    String config, int word_sz) {
-    return new T2_2_TFHE(symbol_table, config, word_sz);
+    return new T2_2_TFHE(symbol_table, config, word_sz, false);
   }
 
 }

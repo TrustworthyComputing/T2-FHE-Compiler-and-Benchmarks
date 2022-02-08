@@ -24,7 +24,7 @@ public class Main {
     }
     String input_file = null;
     HE_BACKEND backend_ = HE_BACKEND.NONE;
-    boolean debug_ = false;
+    boolean debug_ = false, print_bin_ = false;
     int word_sz_ = 0;
     String config = "path to config";
     for (int i = 0; i < args.length; i++) {
@@ -48,6 +48,9 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-LATTIGO") ||
                  arg.equalsIgnoreCase("--LATTIGO")) {
         backend_ = HE_BACKEND.LATTIGO;
+      } else if (arg.equalsIgnoreCase("-PRINTBIN") ||
+              arg.equalsIgnoreCase("--PRINTBIN")) {
+        print_bin_ = true;
       } else if (arg.equalsIgnoreCase("-CONFIG") ||
                  arg.equalsIgnoreCase("--CONFIG")) {
         if (++i >= args.length) {
@@ -109,6 +112,11 @@ public class Main {
           System.out.println(" in Floating-Point domain");
         }
       }
+      if (print_bin_ && word_sz_ == 0 && !backend_.equals(HE_BACKEND.TFHE)) {
+        System.out.println("[ \033[1;33m ! \033[0m ] PRINTBIN option is only " +
+            "supported by TFHE. Use the binary\n        domain by setting " +
+            "the word size parameter (e.g., --w 8)");
+      }
       // Code generation.
       T2_Compiler dsl_compiler = null;
       String suffix = ".cpp";
@@ -124,7 +132,7 @@ public class Main {
           }
           break;
         case TFHE:
-          dsl_compiler = new T2_2_TFHE(symbol_table, config, word_sz_);
+          dsl_compiler = new T2_2_TFHE(symbol_table, config, word_sz_, print_bin_);
           break;
         case PALISADE:
           if (scheme_ == ENC_TYPE.ENC_INT) {

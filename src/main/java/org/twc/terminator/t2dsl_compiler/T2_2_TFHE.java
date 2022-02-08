@@ -9,8 +9,12 @@ import java.util.List;
 
 public class T2_2_TFHE extends T2_Compiler {
 
-  public T2_2_TFHE(SymbolTable st, String config_file_path, int word_sz) {
+  private boolean print_bin_;
+
+  public T2_2_TFHE(SymbolTable st, String config_file_path, int word_sz,
+                   boolean print_bin) {
     super(st, config_file_path, word_sz);
+    this.print_bin_ = print_bin;
     this.st_.backend_types.put("EncInt", "vector<LweSample*>");
     this.st_.backend_types.put("EncInt[]", "vector<vector<LweSample*>>");
   }
@@ -44,6 +48,7 @@ public class T2_2_TFHE extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     this.asm_ = new StringBuilder();
     append_idx("#include <iostream>\n");
+    append_idx("#include <bitset>\n");
     append_idx("#include <chrono>\n\n");
     append_idx("#include <tfhe/tfhe.h>\n");
     append_idx("#include <tfhe/tfhe_io.h>\n");
@@ -472,8 +477,12 @@ public class T2_2_TFHE extends T2_Compiler {
         this.asm_.append(expr.getName()).append(", key);\n");
         append_idx("for (auto v : ");
         this.asm_.append(tmp_vec).append(") {\n");
-        append_idx("  cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << v << \"\\t\";\n");
+        append_idx("  cout << \"dec(" + expr.getName() + ") = \" << ");
+        if (this.print_bin_) {
+          this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \"\\t\";\n");
+        } else {
+          this.asm_.append("v << \"\\t\";\n");
+        }
         append_idx("}\n");
         append_idx("cout << endl");
         break;
@@ -508,8 +517,12 @@ public class T2_2_TFHE extends T2_Compiler {
     this.asm_.append(expr.getName()).append(", key);\n");
     append_idx("for (auto v : ");
     this.asm_.append(tmp_vec).append(") {\n");
-    append_idx("  cout << \"dec(");
-    this.asm_.append(expr.getName()).append(") = \" << v << \"\\t\";\n");
+    append_idx("  cout << \"dec(" + expr.getName() + ") = \" << ");
+    if (this.print_bin_) {
+      this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \"\\t\";\n");
+    } else {
+      this.asm_.append("v << \"\\t\";\n");
+    }
     append_idx("}\n");
     append_idx("cout << endl");
     this.semicolon_ = true;
