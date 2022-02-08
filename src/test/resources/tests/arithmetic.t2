@@ -25,11 +25,6 @@ int main(void) {
   enc_sum_ *= 2; // ok
   print(enc_sum_);
 
-//  enc_sum_ = x ^ enc_num_; // ok
-//  enc_sum_ = enc_num_ ^ x; // ok
-//  enc_sum_ = enc_num_ ^ enc_num_; // ok
-
-  reduce_noise(enc_sum_);
   print(enc_sum_);
   tstop();
   return 0;

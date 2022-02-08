@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(SEALExamples VERSION 3.7.1 LANGUAGES CXX)
+project(SEALExamples VERSION 3.7.2 LANGUAGES CXX)
 
 # Import Microsoft SEAL
-find_package(SEAL 3.7.1 EXACT REQUIRED)
+find_package(SEAL 3.7.2 EXACT REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
