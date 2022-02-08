@@ -12,8 +12,8 @@ jobs:
       - checkout # change this from "checkout" to "*localCheckout" when running CircleCI locally
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}-{{ .Branch }}
-            - v1-dependencies-
+            - deps-{{ checksum ".circleci/build_libs.sh" }}-{{ checksum "pom.xml" }}-{{ .Branch }}
+            - deps-{{ checksum "pom.xml" }}-{{ .Branch }}
 
       - run:
           name: Install dependencies to build HE libraries
@@ -33,61 +33,13 @@ jobs:
           command: export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib" && mvn package
 
       - run:
-          name: Clone HE Libraries
-          command: >
-            git clone git@github.com:homenc/HElib.git &&
-            git clone git@github.com:ldsec/lattigo.git &&
-            git clone https://gitlab.com/palisade/palisade-release.git &&
-            git clone git@github.com:microsoft/SEAL.git &&
-            git clone git@github.com:tfhe/tfhe.git
+          name: Clone HE libraries
+          command: .circleci/clone_libs.sh
 
       - run:
-          name: Build HElib v2.2.1
-          command: >
-            git reset --hard f0e3e01 &&
-            mkdir build && cd build &&
-            cmake -DPACKAGE_BUILD=ON -DCMAKE_INSTALL_PREFIX=/opt/helib_install .. &&
-            make -j2 &&
-            sudo make install &&
-            sudo ln -s /usr/local/lib/libntl.so.44 /usr/lib/libntl.so.44
-          no_output_timeout: 30m
-          working_directory: HElib
-
-      - run:
-          name: Build Lattigo v2.4.0
-          command: >
-            git reset --hard 55f9a0247e2092a53be7630d6b2ca79021700a62
-          working_directory: lattigo
-
-      - run:
-          name: Build PALISADE v1.11.6
-          command: >
-            git reset --hard 0860127401ab794591f931fa2c61426c7b56ee2d &&
-            mkdir build && cd build &&
-            cmake .. &&
-            make -j2 &&
-            sudo make install
-          no_output_timeout: 30m
-          working_directory: palisade-release
-
-      - run:
-          name: Build SEAL 3.7.2
-          command: >
-            git reset --hard 88bbc51 &&
-            cmake -S . -B build &&
-            cmake --build build &&
-            sudo cmake --install build
-          working_directory: SEAL
-
-      - run:
-          name: Build TFHE 1.1
-          command: >
-            make -j2 && sudo make install &&
-            sudo ln -s /usr/local/lib/libtfhe-nayuki-avx.so /usr/lib/libtfhe-nayuki-avx.so &&
-            sudo ln -s /usr/local/lib/libtfhe-nayuki-portable.so /usr/lib/libtfhe-nayuki-portable.so &&
-            sudo ln -s /usr/local/lib/libtfhe-spqlios-avx.so /usr/lib/libtfhe-spqlios-avx.so &&            
-            sudo ln -s /usr/local/lib/libtfhe-spqlios-fma.so /usr/lib/libtfhe-spqlios-fma.so
-          working_directory: tfhe
+          name: Build HE libraries
+          command: .circleci/build_libs.sh
+          no_output_timeout: 40m
 
       - save_cache:
           paths:
@@ -97,7 +49,42 @@ jobs:
             - ~/project/palisade-release
             - ~/project/SEAL
             - ~/project/tfhe
-          key: v1-dependencies-{{ checksum "pom.xml" }}-{{ .Branch }}
+          key: deps-{{ checksum ".circleci/build_libs.sh" }}-{{ checksum "pom.xml" }}-{{ .Branch }}
+
+      - run:
+          name: Install HElib v2.2.1
+          command: >
+            sudo make install &&
+            sudo ln -sf /usr/local/lib/libntl.so.44 /usr/lib/libntl.so.44
+          working_directory: HElib/build
+
+      - run:
+          name: Install Lattigo v2.4.0
+          command: >
+            git reset --hard 55f9a0247e2092a53be7630d6b2ca79021700a62
+          working_directory: lattigo
+
+      - run:
+          name: Install PALISADE v1.11.6
+          command: >
+            sudo make install
+          working_directory: palisade-release/build
+
+      - run:
+          name: Install SEAL 3.7.2
+          command: >
+            sudo cmake --install build
+          working_directory: SEAL
+
+      - run:
+          name: Install TFHE 1.1
+          command: >
+            sudo make install &&
+            sudo ln -sf /usr/local/lib/libtfhe-nayuki-avx.so /usr/lib/libtfhe-nayuki-avx.so &&
+            sudo ln -sf /usr/local/lib/libtfhe-nayuki-portable.so /usr/lib/libtfhe-nayuki-portable.so &&
+            sudo ln -sf /usr/local/lib/libtfhe-spqlios-avx.so /usr/lib/libtfhe-spqlios-avx.so &&            
+            sudo ln -sf /usr/local/lib/libtfhe-spqlios-fma.so /usr/lib/libtfhe-spqlios-fma.so
+          working_directory: tfhe
 
       - run:
           name: Run T2 tests

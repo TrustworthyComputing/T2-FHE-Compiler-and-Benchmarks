@@ -166,6 +166,7 @@
               <includes>
                 <include>**/*.cpp</include>
                 <include>**/*.go</include>
+                <include>**/*.log</include>
               </includes>
               <excludes>
                 <exclude>**/*.t2</exclude>
