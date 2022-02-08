@@ -31,6 +31,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
 
     append_idx("auto keyPair = cc->KeyGen();\n");
     append_idx("cc->EvalMultKeyGen(keyPair.secretKey);\n");
+    append_idx("vector<complex<double>> " + this.vec + "(slots);\n");
     append_idx("Plaintext tmp;\n");
     append_idx("Ciphertext<DCRTPoly> tmp_;\n\n");
   }
@@ -414,8 +415,9 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         append_idx("cc->Decrypt(keyPair.secretKey,");
         this.asm_.append(expr.getName()).append(", &tmp);\n");
         append_idx("tmp->SetLength(1);\n");
-        append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp << endl");
+        append_idx(this.vec + " = tmp->GetCKKSPackedValue();\n");
+        append_idx("cout << \"dec(" + expr.getName() + ") = \" << real(");
+        this.asm_.append(this.vec).append("[0]) << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -447,7 +449,16 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     this.asm_.append(expr.getName()).append(", ").append("&tmp);\n");
     append_idx("tmp->SetLength(");
     this.asm_.append(size.getName()).append(");\n");
-    append_idx("cout << tmp << \"\\t\" << endl");
+    append_idx(this.vec + " = tmp->GetCKKSPackedValue();\n");
+    append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
+    append_idx("for (size_t ");
+    this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
+    this.asm_.append(size.getName()).append("; ++").append(this.tmp_i);
+    this.asm_.append(") {\n");
+    append_idx("  cout << real(" + this.vec + "[i]) << \" \";\n");
+    append_idx("}\n");
+    append_idx("cout << endl");
+
     this.semicolon_ = true;
     return null;
   }

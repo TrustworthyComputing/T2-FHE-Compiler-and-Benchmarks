@@ -719,13 +719,15 @@ public class T2_2_HElib extends T2_Compiler {
         this.asm_.append("[").append(this.word_sz_ - i - 1).append("]);\n");
         append_idx("cout << static_cast<long>(tmp[" + this.tmp_i + "]);\n");
       }
-      append_idx("cout << \"\\t\";\n");
+      append_idx("cout << \" \";\n");
     } else {
       append_idx("secret_key.Decrypt(tmp, " + expr.getName() + ");\n");
+      append_idx("cout << \"dec(");
+      this.asm_.append(expr.getName()).append(") = \";\n");
       append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
-      append_idx("cout << static_cast<long>(tmp[" + this.tmp_i + "]) << \"\\t\";\n");
+      append_idx("cout << static_cast<long>(tmp[" + this.tmp_i + "]) << \" \";\n");
     }
     this.indent_ -= 2;
     append_idx("}\n");

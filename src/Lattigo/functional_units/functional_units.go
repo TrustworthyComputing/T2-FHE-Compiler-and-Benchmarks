@@ -1,9 +1,9 @@
 package functional_units
 
 import (
+	"fmt"
 	"github.com/ldsec/lattigo/v2/bfv"
 	"math"
-	"fmt"
 )
 
 var encryptorPk_ *bfv.Encryptor
@@ -470,4 +470,8 @@ func BinNot(ct []*bfv.Ciphertext) []*bfv.Ciphertext {
 		(*evaluator_).Add(res[i], one, res[i]);
 	}
 	return res
+}
+
+func Round(val float64, precision int) float64 {
+	return math.Round(val*(math.Pow10(precision))) / math.Pow10(precision)
 }

@@ -176,9 +176,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("  \"time\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
     append_idx("  \"github.com/ldsec/lattigo/v2/" + this.st_.backend_types.get("scheme")+ "\"\n");
-    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
-      append_idx("  funits \"Lattigo/functional_units\"\n");
-    }
+    append_idx("  funits \"Lattigo/functional_units\"\n");
     append_idx(")\n\n");
     append_idx("func main() {\n");
     this.indent_ = 2;
@@ -843,6 +841,8 @@ public class T2_2_Lattigo extends T2_Compiler {
           append_idx("fmt.Println()\n");
         } else {
           append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
+          append_idx("fmt.Print(\"dec(");
+          this.asm_.append(expr.getName()).append(") = \")\n");
           append_idx("fmt.Println(encoder.DecodeIntNew(ptxt)[0])\n");
         }
         break;
@@ -871,7 +871,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
     if (this.is_binary_) {
-      append_idx("fmt.Println(\"dec(");
+      append_idx("fmt.Print(\"dec(");
       this.asm_.append(expr.getName()).append(") = \")\n");
       append_idx("for " + this.tmp_i + " := 0; ");
       this.asm_.append(this.tmp_i).append(" < ").append(size.getName());
@@ -882,13 +882,21 @@ public class T2_2_Lattigo extends T2_Compiler {
         this.asm_.append("[").append(i).append("])\n");
         append_idx("fmt.Print(encoder.DecodeIntNew(ptxt)[" + this.tmp_i + "])\n");
       }
-      append_idx("fmt.Print(\"\\t\")\n");
+      append_idx("fmt.Print(\" \")\n");
       this.indent_ -= 2;
       append_idx("}\n");
       append_idx("fmt.Println()\n");
     } else {
       append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
-      append_idx("fmt.Println(encoder.DecodeIntNew(ptxt)[:" + size.getName() + "])\n");
+      append_idx("fmt.Print(\"dec(");
+      this.asm_.append(expr.getName()).append(") = \")\n");
+      append_idx("for " + this.tmp_i + " := 0; ");
+      this.asm_.append(this.tmp_i).append(" < ").append(size.getName());
+      this.asm_.append("; ").append(this.tmp_i).append("++ {\n");
+      append_idx("  fmt.Print(encoder.DecodeIntNew(ptxt)[" + this.tmp_i + "])\n");
+      append_idx("  fmt.Print(\" \")\n");
+      append_idx("}\n");
+      append_idx("fmt.Println()\n");
     }
     return null;
   }

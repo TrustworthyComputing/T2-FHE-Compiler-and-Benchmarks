@@ -83,6 +83,28 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
 
   /**
    * f0 -> Identifier()
+   * f1 -> "++"
+   */
+  public Var_t visit(IncrementAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    append_idx(id.getName() + " += 1.0");
+    this.semicolon_ = true;
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "--"
+   */
+  public Var_t visit(DecrementAssignmentStatement n) throws Exception {
+    Var_t id = n.f0.accept(this);
+    append_idx(id.getName() + " -= 1.0");
+    this.semicolon_ = true;
+    return null;
+  }
+
+  /**
+   * f0 -> Identifier()
    * f1 -> CompoundOperator()
    * f2 -> Expression()
    */
@@ -328,7 +350,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         this.asm_.append(expr.getName()).append(", secret_key);\n");
         append_idx("ptxt.store(tmp);\n");
         append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << tmp[0] << endl");
+        this.asm_.append(expr.getName()).append(") = \" << real(tmp[0]) << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -358,9 +380,10 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     append_idx("ptxt.decryptComplex(");
     this.asm_.append(expr.getName()).append(", secret_key);\n");
     append_idx("ptxt.store(tmp);\n");
+    append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
     append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
-    append_idx("  cout << tmp[" + this.tmp_i + "] << \"\\t\";\n");
+    append_idx("  cout << real(tmp[" + this.tmp_i + "]) << \" \";\n");
     append_idx("}\n");
     append_idx("cout << endl");
     this.semicolon_ = true;

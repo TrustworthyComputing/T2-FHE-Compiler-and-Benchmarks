@@ -479,9 +479,9 @@ public class T2_2_TFHE extends T2_Compiler {
         this.asm_.append(tmp_vec).append(") {\n");
         append_idx("  cout << \"dec(" + expr.getName() + ") = \" << ");
         if (this.print_bin_) {
-          this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \"\\t\";\n");
+          this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \" \";\n");
         } else {
-          this.asm_.append("v << \"\\t\";\n");
+          this.asm_.append("v << \" \";\n");
         }
         append_idx("}\n");
         append_idx("cout << endl");
@@ -515,13 +515,14 @@ public class T2_2_TFHE extends T2_Compiler {
     append_idx("vector<uint32_t> ");
     this.asm_.append(tmp_vec).append(" = d_client(word_sz, ");
     this.asm_.append(expr.getName()).append(", key);\n");
+    append_idx("  cout << \"dec(" + expr.getName() + ") = \";\n");
     append_idx("for (auto v : ");
     this.asm_.append(tmp_vec).append(") {\n");
-    append_idx("  cout << \"dec(" + expr.getName() + ") = \" << ");
+    append_idx("  cout << ");
     if (this.print_bin_) {
-      this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \"\\t\";\n");
+      this.asm_.append("bitset<").append(this.word_sz_).append(">(v) << \" \";\n");
     } else {
-      this.asm_.append("v << \"\\t\";\n");
+      this.asm_.append("v << \" \";\n");
     }
     append_idx("}\n");
     append_idx("cout << endl");

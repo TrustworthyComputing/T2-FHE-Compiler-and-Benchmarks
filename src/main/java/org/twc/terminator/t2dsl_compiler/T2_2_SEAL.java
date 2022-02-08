@@ -629,6 +629,7 @@ public class T2_2_SEAL extends T2_Compiler {
             append_idx("  decryptor, batch_encoder, ");
             this.asm_.append(expr.getName()).append("[").append(i).append("], slots);\n");
           }
+          append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
           append_idx("for (int " + this.tmp_i + " = 0; ");
           this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
           this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
@@ -676,6 +677,7 @@ public class T2_2_SEAL extends T2_Compiler {
         this.asm_.append(expr.getName()).append("[").append(i).append("], slots);\n");
       }
       String tmp_s = "tmp_s";
+      append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
       append_idx("for (int " + tmp_s + " = 0; ");
       this.asm_.append(tmp_s).append(" < ").append(size.getName());
       this.asm_.append("; ++").append(tmp_s).append(") {\n");
@@ -687,7 +689,7 @@ public class T2_2_SEAL extends T2_Compiler {
       append_idx("cout << " + tmp_vec + "[" + this.tmp_i + "][" + tmp_s + "];\n");
       this.indent_ -= 2;
       append_idx("}\n");
-      append_idx("cout << \"\\t\";\n");
+      append_idx("cout << \" \";\n");
       this.indent_ -= 2;
       append_idx("}\n");
       append_idx("cout << endl");
@@ -696,10 +698,11 @@ public class T2_2_SEAL extends T2_Compiler {
       this.asm_.append(tmp_vec).append(" = decrypt_array_batch_to_nums(\n");
       append_idx("  decryptor, batch_encoder, ");
       this.asm_.append(expr.getName()).append(", slots);\n");
+      append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
       append_idx("for (int " + this.tmp_i + " = 0; ");
       this.asm_.append(this.tmp_i).append(" < ").append(size.getName());
       this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
-      append_idx("  cout << " + tmp_vec + "[" + this.tmp_i + "] << \"\\t\";\n");
+      append_idx("  cout << " + tmp_vec + "[" + this.tmp_i + "] << \" \";\n");
       append_idx("}\n");
       append_idx("cout << endl");
     }

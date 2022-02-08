@@ -426,7 +426,8 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
         break;
       case "EncDouble":
         append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
-        append_idx("fmt.Println(encoder.Decode(ptxt, slots)[0])\n");
+        append_idx("fmt.Print(\"dec(" + expr.getName() + ") = \")\n");
+        append_idx("fmt.Println(funits.Round(real(encoder.Decode(ptxt, slots)[0]), 2))\n");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -453,12 +454,15 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
     append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
+    append_idx("fmt.Print(\"dec(");
+    this.asm_.append(expr.getName()).append(") = \")\n");
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx(tmp_vec + " := encoder.Decode(ptxt, slots)\n");
     append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < " + size.getName());
     this.asm_.append("; ").append(this.tmp_i).append("++ {\n");
     this.indent_ += 2;
-    append_idx("fmt.Print(" + tmp_vec + "[" + this.tmp_i + "], \"\\t\")\n");
+    append_idx("fmt.Print(funits.Round(real(" + tmp_vec + "[" + this.tmp_i +
+                "]), 2), \" \")\n");
     this.indent_ -= 2;
     append_idx("}\n");
     append_idx("fmt.Println()\n");

@@ -13,11 +13,16 @@ int main(void) {
 
   tstart();
   batched_ctxt = { 1, 3 }; // batching
+  print_batched(batched_ctxt, 2);
   batched_ctxt_vec = { 1, 3 }; // non-batching
+  print(batched_ctxt_vec[0]);
   batched_ctxt_vec[0] = { 1, 3 }; // batching
+  print_batched(batched_ctxt_vec[0], 2);
 
   batched_ctxt_vec[0] = batched_ctxt + batched_ctxt; // ok
+  print_batched(batched_ctxt_vec[0], 2);
   batched_ctxt += batched_ctxt; // ok
+  print_batched(batched_ctxt, 2);
   tstop();
 
   return 0;

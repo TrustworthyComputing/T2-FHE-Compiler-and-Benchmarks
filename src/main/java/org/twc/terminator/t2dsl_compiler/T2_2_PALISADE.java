@@ -618,6 +618,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx("tmp->SetLength(slots);\n");
             append_idx(bin_vec + "[" + i + "] = tmp->GetPackedValue();\n");
           }
+          append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
           append_idx("for (int " + this.tmp_i + " = 0; ");
           this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
           this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
@@ -666,6 +667,7 @@ public class T2_2_PALISADE extends T2_Compiler {
         append_idx("tmp->SetLength(slots);\n");
         append_idx(this.bin_vec + "[" + i + "] = tmp->GetPackedValue();\n");
       }
+      append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
       String tmp_s = "tmp_s";
       append_idx("for (int " + tmp_s + " = 0; ");
       this.asm_.append(tmp_s).append(" < ").append(size.getName());
@@ -678,7 +680,7 @@ public class T2_2_PALISADE extends T2_Compiler {
       append_idx("cout << " + this.bin_vec + "[" + this.tmp_i + "][" + tmp_s + "];\n");
       this.indent_ -= 2;
       append_idx("}\n");
-      append_idx("cout << \"\\t\";\n");
+      append_idx("cout << \" \";\n");
       this.indent_ -= 2;
       append_idx("}\n");
       append_idx("cout << endl");
@@ -688,8 +690,9 @@ public class T2_2_PALISADE extends T2_Compiler {
       append_idx("tmp->SetLength(");
       this.asm_.append(size.getName()).append(");\n");
       append_idx(this.vec + "  = tmp->GetPackedValue();\n");
+      append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
       append_idx("for (auto v : " + this.vec + ") {\n");
-      append_idx("  cout << v << \"\\t\";\n");
+      append_idx("  cout << v << \" \";\n");
       append_idx("}\n");
       append_idx("cout << endl");
     }
