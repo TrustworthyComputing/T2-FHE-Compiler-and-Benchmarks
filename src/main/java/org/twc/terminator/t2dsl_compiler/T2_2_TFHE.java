@@ -381,10 +381,10 @@ public class T2_2_TFHE extends T2_Compiler {
         }
       }
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-      append_idx("vector<uint32_t> ");
-      this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+      append_idx("vector<uint32_t> " + tmp_vec + " = { static_cast<uint32_t>(");
+      this.asm_.append(exp.getName()).append(")");
       for (String init : inits) {
-        this.asm_.append(", ").append(init);
+        this.asm_.append(", static_cast<uint32_t>(").append(init).append(")");
       }
       this.asm_.append(" };\n");
       append_idx(id.getName());
@@ -434,11 +434,12 @@ public class T2_2_TFHE extends T2_Compiler {
       throw new RuntimeException("BatchArrayAssignmentStatement");
     String index_type = st_.findType(index);
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-    append_idx("vector<uint32_t> ");
-    this.asm_.append(tmp_vec).append(" = { ").append(exp.getName());
+    append_idx("vector<uint32_t> " + tmp_vec + " = { static_cast<uint32_t>(");
+    this.asm_.append(exp.getName()).append(")");
     if (n.f7.present()) {
       for (int i = 0; i < n.f7.size(); i++) {
-        this.asm_.append(", ").append((n.f7.nodes.get(i).accept(this)).getName());
+        this.asm_.append(", static_cast<uint32_t>(");
+        this.asm_.append((n.f7.nodes.get(i).accept(this)).getName()).append(")");
       }
     }
     this.asm_.append(" };\n");
