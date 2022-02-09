@@ -50,7 +50,7 @@ else
     echo "Found in cache"
 fi
 
-echo "Build PALISADE v1.11.6"
+echo "Build TFHE v1.1"
 if [ ! -d "tfhe/build" ] ; then
     cd ./tfhe
     make -j2 && sudo make install

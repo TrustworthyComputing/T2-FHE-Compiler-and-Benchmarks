@@ -91,64 +91,24 @@ jobs:
           command: mvn test
 
       - run:
-          name: Compile arithmetic.t2 for HElib
-          command: >
-            java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --helib &&
-            mkdir -p ./src/HElib/compiled &&
-            cp ./src/test/resources/tests/arithmetic.cpp ./src/HElib/compiled/test.cpp
-      - run:
-          name: Run arithmetic.t2 for HElib
-          command: >
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/helib_install/helib_pack/lib &&
-            make && ./bin/test.out
-          working_directory: ./src/HElib/
+          name: Run HElib tests
+          command: .circleci/test_HElib.sh
 
       - run:
-          name: Compile arithmetic.t2 for Lattigo
-          command: >
-            java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --Lattigo &&
-            mkdir -p ./src/Lattigo/compiled &&
-            cp ./src/test/resources/tests/arithmetic.go ./src/Lattigo/compiled/test.go
-      - run:
-          name: Run arithmetic.t2 for Lattigo
-          command: >
-            export PATH=$PATH:/usr/local/go/bin &&
-            go mod init Lattigo && go mod tidy &&
-            make && ./bin/test.out
-          working_directory: ./src/Lattigo/
+          name: Run Lattigo tests
+          command: .circleci/test_Lattigo.sh
 
       - run:
-          name: Compile arithmetic.t2 for PALISADE
-          command: >
-            java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --PALISADE &&
-            mkdir -p ./src/PALISADE/compiled &&
-            cp ./src/test/resources/tests/arithmetic.cpp ./src/PALISADE/compiled/test.cpp
-      - run:
-          name: Run arithmetic.t2 for PALISADE
-          command: cmake . && make && ./bin/test.out
-          working_directory: ./src/PALISADE/
+          name: Run PALISADE tests
+          command: .circleci/test_PALISADE.sh
 
       - run:
-          name: Compile arithmetic.t2 for SEAL
-          command: >
-            java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --SEAL &&
-            mkdir -p ./src/SEAL/compiled &&
-            cp ./src/test/resources/tests/arithmetic.cpp ./src/SEAL/compiled/test.cpp
-      - run:
-          name: Run arithmetic.t2 for SEAL
-          command: cmake . && make && ./bin/test.out
-          working_directory: ./src/SEAL/
+          name: Run SEAL tests
+          command: .circleci/test_SEAL.sh
 
       - run:
-          name: Compile shift.t2 for TFHE
-          command: >
-            java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/shift.t2 --TFHE &&
-            mkdir -p ./src/TFHE/compiled &&
-            cp ./src/test/resources/tests/shift.cpp ./src/TFHE/compiled/test.cpp
-      - run:
-          name: Run shift.t2 for TFHE
-          command: make && ./bin/test.out
-          working_directory: ./src/TFHE/
+          name: Run TFHE tests
+          command: .circleci/test_TFHE.sh
 
 workflows:
   version: 2.1
