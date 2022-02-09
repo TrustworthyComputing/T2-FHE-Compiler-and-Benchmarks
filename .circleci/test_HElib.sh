@@ -32,3 +32,11 @@ make
 ./bin/test.out > ../test/resources/tests/shift_HElib.log
 diff <(head -n -1 ../test/resources/tests/shift_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/shift.res
 cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/batching.t2 --HElib --w 5
+cp ./src/test/resources/tests/batching.cpp ./src/HElib/compiled/test.cpp
+cd ./src/HElib
+make
+./bin/test.out > ../test/resources/tests/batching_w5_HElib.log
+diff <(head -n -1 ../test/resources/tests/batching_w5_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/batching_w5.res
+cd ../..

@@ -25,8 +25,9 @@ std::vector<uint64_t> decrypt_array_batch_to_nums(
     seal::Ciphertext& encrypted_vec, size_t slots, size_t padding = 1);
 
 seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
-                      seal::Evaluator& evaluator,
-                      const seal::RelinKeys& relinKeys);
+                           seal::Evaluator& evaluator,
+                           seal::Encryptor& encryptor,
+                           const seal::RelinKeys& relinKeys);
 
 seal::Ciphertext mux(seal::Evaluator& evaluator, 
                      seal::RelinKeys& relin_keys, seal::Ciphertext& sel, 
@@ -92,7 +93,9 @@ std::vector<seal::Ciphertext> shift_left_bin(seal::Encryptor& encryptor,
                                              std::vector<seal::Ciphertext>& ct, 
                                              size_t amt, size_t slots);
 
+
 std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
+                                      seal::Encryptor& encryptor,
                                       seal::RelinKeys& relinKeys, 
                                       std::vector<seal::Ciphertext>& ctxt_1, 
                                       std::vector<seal::Ciphertext>& ctxt_2,

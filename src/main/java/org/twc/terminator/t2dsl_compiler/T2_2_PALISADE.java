@@ -25,7 +25,7 @@ public class T2_2_PALISADE extends T2_Compiler {
   }
 
   protected void append_keygen() {
-    append_idx("uint32_t depth = 20;\n");
+    append_idx("uint32_t depth = 2;\n");
     append_idx("double sigma = 3.2;\n");
     append_idx("SecurityLevel securityLevel = HEStd_128_classic;\n");
     append_idx("size_t plaintext_modulus = 65537;\n");

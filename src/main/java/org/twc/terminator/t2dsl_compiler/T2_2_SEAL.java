@@ -771,7 +771,7 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            this.asm_.append("xor_bin(evaluator, relin_keys, tmp_, ");
+            this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, tmp_, ");
             this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;
           case "==":
@@ -873,7 +873,7 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            this.asm_.append("xor_bin(evaluator, relin_keys, ");
+            this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", tmp_, plaintext_modulus);\n");
             break;
           case "==":
@@ -985,7 +985,7 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(", slots);\n");
             break;
           case "^":
-            this.asm_.append("xor_bin(evaluator, relin_keys, ");
+            this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", plaintext_modulus);\n");
             break;
