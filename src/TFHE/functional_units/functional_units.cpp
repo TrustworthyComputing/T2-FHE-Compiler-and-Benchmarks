@@ -470,11 +470,41 @@ void inc(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
   delete_gate_bootstrapping_ciphertext_array(nb_bits, carry);
 }
 
+/// Decrement ciphertext a by 1. result = a - 1.
+void dec(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+         const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {
+  if (nb_bits <= 0) return ;
+  size_t num_ops = a.size();
+  result.resize(a.size());
+  LweSample* carry =
+    new_gate_bootstrapping_ciphertext_array(nb_bits, bk->params);
+  LweSample* temp = new_gate_bootstrapping_ciphertext(bk->params);
+  LweSample* not_a = new_gate_bootstrapping_ciphertext(bk->params);
+  for (int i = 0; i < num_ops; i++) {
+    bootsCONSTANT(&carry[0], 1, bk);
+    for (int j = 0; j < (nb_bits - 1); j++) {
+      bootsXOR(temp, &carry[j], &a[i][j], bk);
+      bootsNOT(not_a, &a[i][j], bk);
+      bootsAND(&carry[j+1], &carry[j], not_a, bk);
+      bootsCOPY(&result[i][j], temp, bk);
+    }
+    bootsXOR(&result[i][nb_bits-1], &carry[nb_bits-1], &a[i][nb_bits-1], bk);
+  }
+  delete_gate_bootstrapping_ciphertext_array(nb_bits, carry);
+}
+
 /// Incrementer circuit: result++.
 void inc_inplace(std::vector<LweSample*>& result, const size_t nb_bits,
                  const TFheGateBootstrappingCloudKeySet* bk) {
   inc(result, result, nb_bits, bk);
 }
+
+/// Decrementer circuit: result--.
+void dec_inplace(std::vector<LweSample*>& result, const size_t nb_bits,
+                 const TFheGateBootstrappingCloudKeySet* bk) {
+  dec(result, result, nb_bits, bk);
+}
+
 
 /// Equality check. result = a == b
 void eq(std::vector<LweSample*>& result_, const std::vector<LweSample*>& a,
