@@ -40,6 +40,14 @@ make
 diff <(head -n -1 ../test/resources/tests/ternary_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ternary.res
 cd ../..
 
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arrays.t2 --HElib
+cp ./src/test/resources/tests/arrays.cpp ./src/HElib/compiled/test.cpp
+cd ./src/HElib
+make
+./bin/test.out > ../test/resources/tests/arrays_HElib.log
+diff <(head -n -1 ../test/resources/tests/arrays_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays.res
+cd ../..
+
 # Binary Domain Tests
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/shift.t2 --HElib --w 6
 cp ./src/test/resources/tests/shift.cpp ./src/HElib/compiled/test.cpp
@@ -71,4 +79,12 @@ cd ./src/HElib
 make
 ./bin/test.out > ../test/resources/tests/ternary_w6_HElib.log
 diff <(head -n -1 ../test/resources/tests/ternary_w6_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ternary_w6.res
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arrays.t2 --HElib --w 5
+cp ./src/test/resources/tests/arrays.cpp ./src/HElib/compiled/test.cpp
+cd ./src/HElib
+make
+./bin/test.out > ../test/resources/tests/arrays_w5_HElib.log
+diff <(head -n -1 ../test/resources/tests/arrays_w5_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays_w5.res
 cd ../..

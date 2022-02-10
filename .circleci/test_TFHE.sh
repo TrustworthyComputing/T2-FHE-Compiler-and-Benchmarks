@@ -62,3 +62,11 @@ make
 ./bin/test.out > ../test/resources/tests/ternary_TFHE.log
 diff <(head -n -1 ../test/resources/tests/ternary_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ternary.res
 cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arrays.t2 --TFHE --w 5
+cp ./src/test/resources/tests/arrays.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/tests/arrays_TFHE.log
+diff <(head -n -1 ../test/resources/tests/arrays_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays.res
+cd ../..

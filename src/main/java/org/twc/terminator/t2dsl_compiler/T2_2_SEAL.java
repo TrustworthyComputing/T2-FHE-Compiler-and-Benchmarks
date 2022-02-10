@@ -537,7 +537,7 @@ public class T2_2_SEAL extends T2_Compiler {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
             String v_type = st_.findType(new Var_t(null, init));
-            if (v_type.equals("int") || v_type.equals("double") || isNumeric(init)) {
+            if (v_type.equals("int") || isNumeric(init)) {
               String tmp_ = new_ctxt_tmp();
               encrypt(tmp_, new String[]{init});
               this.asm_.append(";\n");
