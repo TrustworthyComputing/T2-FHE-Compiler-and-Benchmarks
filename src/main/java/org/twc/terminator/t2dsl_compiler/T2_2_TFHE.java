@@ -367,54 +367,64 @@ public class T2_2_TFHE extends T2_Compiler {
     String id_type = st_.findType(id);
     Var_t exp = n.f3.accept(this);
     String exp_type = st_.findType(exp);
-    if ("int[]".equals(id_type)) {
-      append_idx(id.getName());
-      this.asm_.append(" = { ").append(exp.getName());
-      if (n.f4.present()) {
-        for (int i = 0; i < n.f4.size(); i++) {
-          this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
-        }
-      }
-      this.asm_.append(" };\n");
-      return null;
-    } else {
-      List<String> inits = new ArrayList<>();
-      if (n.f4.present()) {
-        for (int i = 0; i < n.f4.size(); i++) {
-          String init = (n.f4.nodes.get(i).accept(this)).getName();
-          inits.add(init);
-        }
-      }
-      String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
-      append_idx("vector<uint32_t> " + tmp_vec + " = { static_cast<uint32_t>(");
-      this.asm_.append(exp.getName()).append(")");
-      for (String init : inits) {
-        this.asm_.append(", static_cast<uint32_t>(").append(init).append(")");
-      }
-      this.asm_.append(" };\n");
-      append_idx(id.getName());
-      if ("EncInt".equals(id_type)) {
-        this.asm_.append(" = ");
-        this.asm_.append("e_client(");
-        this.asm_.append(tmp_vec).append(", word_sz, key);\n");
-      } else if ("EncInt[]".equals(id_type)) {
-        this.asm_.append(".resize(").append(tmp_vec).append(".size());\n");
-        append_idx("for (size_t ");
-        this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
-        this.asm_.append(tmp_vec).append(".size(); ++").append(this.tmp_i);
-        this.asm_.append(") {\n");
-        this.indent_ += 2;
+    switch (id_type) {
+      case "int[]":
         append_idx(id.getName());
-        this.asm_.append("[").append(this.tmp_i).append("] = ");
-        this.asm_.append("e_client(");
-        this.asm_.append(tmp_vec).append("[").append(this.tmp_i);
-        this.asm_.append("], word_sz, key)");
-        this.asm_.append(";\n");
-        this.indent_ -= 2;
-        append_idx("}\n");
-      } else {
+        this.asm_.append(" = { ").append(exp.getName());
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            this.asm_.append(", ").append((n.f4.nodes.get(i).accept(this)).getName());
+          }
+        }
+        this.asm_.append(" };\n");
+        break;
+      case "EncInt":
+        String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+        append_idx("vector<uint32_t> " + tmp_vec + " = { static_cast<uint32_t>(");
+        this.asm_.append(exp.getName()).append(")");
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            this.asm_.append(", static_cast<uint32_t>(");
+            this.asm_.append((n.f4.nodes.get(i).accept(this)).getName()).append(")");
+          }
+        }
+        this.asm_.append(" };\n");
+        append_idx(id.getName() + " = e_client(");
+        this.asm_.append(tmp_vec).append(", word_sz, key);\n");
+        break;
+      case "EncInt[]":
+        String exp_var;
+        if (exp_type.equals("int")) {
+          exp_var = new_ctxt_tmp();
+          append_idx(exp_var + " = e_client(");
+          this.asm_.append(exp.getName()).append(", word_sz, key);\n");
+        } else { // exp type is EncInt
+          exp_var = exp.getName();
+        }
+        List<String> inits = new ArrayList<>();
+        if (n.f4.present()) {
+          for (int i = 0; i < n.f4.size(); i++) {
+            String init = (n.f4.nodes.get(i).accept(this)).getName();
+            String v_type = st_.findType(new Var_t(null, init));
+            if (v_type.equals("int") || isNumeric(init)) {
+              String tmp_ = new_ctxt_tmp();
+              append_idx(tmp_ + " = e_client(");
+              this.asm_.append(init).append(", word_sz, key);\n");
+              inits.add(tmp_);
+            } else { // exp type is EncInt
+              inits.add(init);
+            }
+          }
+        }
+        append_idx(id.getName());
+        this.asm_.append(" = { ").append(exp_var);
+        for (String init : inits) {
+          this.asm_.append(", ").append(init);
+        }
+        this.asm_.append(" };\n");
+        break;
+      default:
         throw new Exception("Bad operand types: " + id.getName() + " " + exp_type);
-      }
     }
     return null;
   }

@@ -38,3 +38,27 @@ make
 ./bin/test.out > ../test/resources/tests/batching_w5_TFHE.log
 diff <(head -n -1 ../test/resources/tests/batching_w5_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/batching_w5.res
 cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/cmp.t2 --TFHE --w 5
+cp ./src/test/resources/tests/cmp.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/tests/cmp_TFHE.log
+diff <(head -n -1 ../test/resources/tests/cmp_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/cmp.res
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/cmp.t2 --TFHE --w 5 --printbin
+cp ./src/test/resources/tests/cmp.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/tests/cmp_w5_TFHE.log
+diff <(head -n -1 ../test/resources/tests/cmp_w5_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/cmp_w5.res
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ternary.t2 --TFHE --w 6
+cp ./src/test/resources/tests/ternary.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/tests/ternary_TFHE.log
+diff <(head -n -1 ../test/resources/tests/ternary_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ternary.res
+cd ../..

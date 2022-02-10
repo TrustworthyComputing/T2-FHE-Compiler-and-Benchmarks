@@ -93,22 +93,27 @@ jobs:
       - run:
           name: Run HElib tests
           command: .circleci/test_HElib.sh
+          no_output_timeout: 40m
 
       - run:
           name: Run Lattigo tests
           command: .circleci/test_Lattigo.sh
+          no_output_timeout: 40m
 
       - run:
           name: Run PALISADE tests
           command: .circleci/test_PALISADE.sh
+          no_output_timeout: 40m
 
       - run:
           name: Run SEAL tests
           command: .circleci/test_SEAL.sh
+          no_output_timeout: 40m
 
       - run:
           name: Run TFHE tests
           command: .circleci/test_TFHE.sh
+          no_output_timeout: 40m
 
 workflows:
   version: 2.1

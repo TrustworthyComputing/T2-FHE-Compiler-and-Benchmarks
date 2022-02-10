@@ -268,7 +268,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
-            if (exp_type.equals("int") || exp_type.equals("double")) {
+            String v_type = st_.findType(new Var_t(null, init));
+            if (v_type.equals("int") || v_type.equals("double") || isNumeric(init)) {
               String tmp_ = new_ctxt_tmp();
               assign_to_all_slots("tmp", init, null);
               append_idx("ptxt = tmp; // encode\n");

@@ -73,7 +73,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
     append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
-                   "&params, int(paramDef.T), slots, " + this.word_sz_ + ")\n");
+                   "&params, int(paramDef.T), slots, word_sz)\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
     append_idx("tmp := make([]int64, slots)\n");
     append_idx("encoder.EncodeInt(tmp, ptxt)\n\n");
@@ -180,6 +180,7 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx(")\n\n");
     append_idx("func main() {\n");
     this.indent_ = 2;
+    this.append_idx("word_sz := " + this.word_sz_ + "\n");
     if (!read_keygen_from_file()) {
       append_keygen();
     }

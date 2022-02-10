@@ -2,13 +2,11 @@ int main(void) {
   EncInt res, x_, y_;
   int x, y;
   x = 2;
-  y = 7;
   x_ = 12;
-  y_ = 17;
 
   tstart();
-  y = (x == 2) ? 5 : 0; // 5 
-  print(y);
+  y = (x == 2) ? 17 : 0; // 17 
+  y_ = y;
 
   res = (x == 2) ? x_ : y_; // 12
   print(res);
@@ -25,8 +23,8 @@ int main(void) {
   res = (x_ != 12) ? y_ : 16; // 16
   print(res);
 
-  x_ = 17;
-  res = (res == 16) ? x_ : y_; // 17
+  x_ = 7;
+  res = (y_ == 17) ? y_ : x_; // 17
   print(res);
   tstop();
   

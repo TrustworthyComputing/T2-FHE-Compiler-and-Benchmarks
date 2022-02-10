@@ -6,57 +6,37 @@ int main(void) {
   tstart();
   res_ = a_ == b_;  // 0
   print(res_);      // 0
-  tstop();
 
-  tstart();
   res_ += a_ == 10; // 1 -- ctxt comparison
   print(res_);      // 1
-  tstop();
 
-  tstart();
   res_ += 10 == a_; // 1 -- ctxt comparison
   print(res_);      // 2
-  tstop();
 
-  tstart();
   res_ += a_ <= a_; // 1 -- ctxt comparison
   print(res_);      // 3
-  tstop();
 
-  tstart();
   res_ += a_ < b_;  // 1 -- ctxt comparison
   print(res_);      // 4
-  tstop();
 
-  tstart();
   res_ += a_ <= b_; // 1 -- ctxt comparison
   print(res_);      // 5
-  tstop();
 
-  tstart();
   res_ += a_ <= 10; // 1 -- ctxt comparison
   print(res_);      // 6
-  tstop();
 
-  tstart();
   res_ += a_ <= 5;  // 0 -- ctxt comparison
   res_ += b_ <= a_; // 0 -- ctxt comparison
   res_ += b_ < a_;  // 0 -- ctxt comparison
   print(res_);      // 6
-  tstop();
 
   res_ = 6;         // reset noise
-  tstart();
   res_ += b_ != a_; // 1 -- ctxt comparison
   print(res_);      // 7
-  tstop();
 
-  tstart();
   res_ += b_ != 8;  // 1 -- ctxt comparison
   print(res_);      // 8
-  tstop();
 
-  tstart();
   res_ += b_ != 15; // 0 -- ctxt comparison
   print(res_);      // 8
   tstop();

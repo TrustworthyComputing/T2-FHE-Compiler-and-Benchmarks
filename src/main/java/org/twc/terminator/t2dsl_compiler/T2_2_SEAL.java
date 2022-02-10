@@ -107,6 +107,7 @@ public class T2_2_SEAL extends T2_Compiler {
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
     this.indent_ = 2;
+    append_idx("size_t word_sz = " + this.word_sz_+ ";\n");
     if (!read_keygen_from_file()) {
       append_keygen();
     }
@@ -535,7 +536,8 @@ public class T2_2_SEAL extends T2_Compiler {
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
-            if (exp_type.equals("int")) {
+            String v_type = st_.findType(new Var_t(null, init));
+            if (v_type.equals("int") || v_type.equals("double") || isNumeric(init)) {
               String tmp_ = new_ctxt_tmp();
               encrypt(tmp_, new String[]{init});
               this.asm_.append(";\n");
@@ -859,18 +861,18 @@ public class T2_2_SEAL extends T2_Compiler {
         switch (op) {
           case "+":
             this.asm_.append("add_bin(evaluator, encryptor, batch_encoder, ");
-            this.asm_.append("relin_keys, tmp_, ");
-            this.asm_.append(rhs.getName()).append(", slots);\n");
+            this.asm_.append("relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_ , slots);\n");
             break;
           case "*":
             this.asm_.append("mult_bin(evaluator, encryptor, batch_encoder, ");
-            this.asm_.append("relin_keys, ").append(lhs.getName()).append(", ");
-            this.asm_.append(rhs.getName()).append(", slots);\n");
+            this.asm_.append("relin_keys, ").append(lhs.getName());
+            this.asm_.append(", tmp_, slots);\n");
             break;
           case "-":
             this.asm_.append("sub_bin(evaluator, encryptor, batch_encoder, ");
-            this.asm_.append("relin_keys, tmp_, ");
-            this.asm_.append(rhs.getName()).append(", slots);\n");
+            this.asm_.append("relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, slots);\n");
             break;
           case "^":
             this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, ");

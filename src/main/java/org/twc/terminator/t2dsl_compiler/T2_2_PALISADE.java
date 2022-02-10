@@ -31,7 +31,7 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("size_t plaintext_modulus = 65537;\n");
     append_idx("CryptoContext<DCRTPoly> cc = CryptoContextFactory<\n");
     append_idx("  DCRTPoly>::genCryptoContextBFVrns(plaintext_modulus,\n"); // BFV
-    append_idx("    securityLevel, sigma, 0, depth, 0, OPTIMIZED, depth);\n");
+    append_idx("    securityLevel, sigma, 0, depth, 0, OPTIMIZED, 2);\n");
     append_idx("cc->Enable(ENCRYPTION);\n");
     append_idx("cc->Enable(SHE);\n");
 //    append_idx("cc->Enable(LEVELEDSHE);\n"); // for BGV
@@ -41,9 +41,9 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("vector<int64_t> " + this.vec + "(slots);\n");
     append_idx("Plaintext tmp;\n");
     if (is_binary_) {
-      append_idx("vector<vector<int64_t>> " + this.bin_vec + "(");
-      this.asm_.append(this.word_sz_).append(", vector<int64_t>(slots, 0));\n");
-      append_idx("vector<Ciphertext<DCRTPoly>> tmp_(" + this.word_sz_ + ");\n\n");
+      append_idx("vector<vector<int64_t>> " + this.bin_vec);
+      this.asm_.append("(word_sz, vector<int64_t>(slots, 0));\n");
+      append_idx("vector<Ciphertext<DCRTPoly>> tmp_(word_sz);\n\n");
     } else {
       append_idx("Ciphertext<DCRTPoly> tmp_;\n\n");
     }
@@ -107,6 +107,9 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("using namespace std;\n\n");
     append_idx("int main(void) {\n");
     this.indent_ = 2;
+    if (this.is_binary_) {
+      append_idx("size_t word_sz = " + this.word_sz_ + ";\n");
+    }
     if (!read_keygen_from_file()) {
       append_keygen();
     }
@@ -142,7 +145,7 @@ public class T2_2_PALISADE extends T2_Compiler {
         this.asm_.append(rhs_name).append(".size(); ++").append(this.tmp_i);
         this.asm_.append(") {\n");
         this.indent_ += 2;
-        append_idx(lhs.getName() + "[" + this.tmp_i + "].resize(" + this.word_sz_ + ");\n");
+        append_idx(lhs.getName() + "[" + this.tmp_i + "].resize(word_sz);\n");
         this.indent_ -= 2;
         append_idx("}\n");
       }
@@ -163,7 +166,7 @@ public class T2_2_PALISADE extends T2_Compiler {
           rhs_new_size = Integer.parseInt(rhs_name.substring(7, rhs_name.length()-1));
           append_idx(lhs.getName() + ".resize(" + rhs_new_size + ");\n");
           for (int i = 0; i < rhs_new_size; i++) {
-            append_idx(lhs.getName() + "[" + i + "].resize(" + this.word_sz_ + ");\n");
+            append_idx(lhs.getName() + "[" + i + "].resize(word_sz);\n");
           }
         } else {
           append_idx(lhs.getName() + " = " + rhs_name);
@@ -525,7 +528,8 @@ public class T2_2_PALISADE extends T2_Compiler {
         if (n.f4.present()) {
           for (int i = 0; i < n.f4.size(); i++) {
             String init = (n.f4.nodes.get(i).accept(this)).getName();
-            if (exp_type.equals("int")) {
+            String v_type = st_.findType(new Var_t(null, init));
+            if (v_type.equals("int") || v_type.equals("double") || isNumeric(init)) {
               String tmp_ = new_ctxt_tmp();
               encrypt(tmp_, new String[]{init});
               this.asm_.append(";\n");
@@ -619,9 +623,9 @@ public class T2_2_PALISADE extends T2_Compiler {
             append_idx(bin_vec + "[" + i + "] = tmp->GetPackedValue();\n");
           }
           append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
-          append_idx("for (int " + this.tmp_i + " = 0; ");
-          this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
-          this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
+          append_idx("for (size_t " + this.tmp_i + " = 0; ");
+          this.asm_.append(this.tmp_i).append(" < word_sz; ++");
+          this.asm_.append(this.tmp_i).append(") {\n");
           append_idx("  cout << " + bin_vec + "[" + this.tmp_i + "][0];\n");
           append_idx("}\n");
           append_idx("cout << endl");
@@ -673,9 +677,9 @@ public class T2_2_PALISADE extends T2_Compiler {
       this.asm_.append(tmp_s).append(" < ").append(size.getName());
       this.asm_.append("; ++").append(tmp_s).append(") {\n");
       this.indent_ += 2;
-      append_idx("for (int " + this.tmp_i + " = 0; ");
-      this.asm_.append(this.tmp_i).append(" < ").append(this.word_sz_);
-      this.asm_.append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("for (size_t " + this.tmp_i + " = 0; ");
+      this.asm_.append(this.tmp_i).append(" < word_sz; ++");
+      this.asm_.append(this.tmp_i).append(") {\n");
       this.indent_ += 2;
       append_idx("cout << " + this.bin_vec + "[" + this.tmp_i + "][" + tmp_s + "];\n");
       this.indent_ -= 2;
@@ -771,8 +775,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             break;
           case "<":
             this.asm_.append(" = lt_bin(cc, tmp_, ").append(rhs.getName());
-            this.asm_.append(", ").append(this.word_sz_);
-            this.asm_.append(", keyPair.publicKey);\n");
+            this.asm_.append(", word_sz, keyPair.publicKey);\n");
             break;
           case "<=":
             this.asm_.append(" = leq_bin(cc, tmp_, ").append(rhs.getName());
@@ -866,8 +869,7 @@ public class T2_2_PALISADE extends T2_Compiler {
             break;
           case "<":
             this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
-            this.asm_.append(", tmp_, ").append(this.word_sz_);
-            this.asm_.append(", keyPair.publicKey);\n");
+            this.asm_.append(", tmp_, word_sz, keyPair.publicKey);\n");
             break;
           case "<=":
             this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
@@ -979,8 +981,7 @@ public class T2_2_PALISADE extends T2_Compiler {
           case "<":
             this.asm_.append(" = lt_bin(cc, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName());
-            this.asm_.append(", ").append(this.word_sz_);
-            this.asm_.append(", keyPair.publicKey);\n");
+            this.asm_.append(", word_sz, keyPair.publicKey);\n");
             break;
           case "<=":
             this.asm_.append(" = leq_bin(cc, ").append(lhs.getName());
