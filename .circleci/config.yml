@@ -45,7 +45,6 @@ jobs:
           paths:
             - ~/.m2
             - ~/project/HElib
-            - ~/project/lattigo
             - ~/project/palisade-release
             - ~/project/SEAL
             - ~/project/tfhe
@@ -57,12 +56,6 @@ jobs:
             sudo make install &&
             sudo ln -sf /usr/local/lib/libntl.so.44 /usr/lib/libntl.so.44
           working_directory: HElib/build
-
-      - run:
-          name: Install Lattigo v2.4.0
-          command: >
-            git reset --hard 55f9a0247e2092a53be7630d6b2ca79021700a62
-          working_directory: lattigo
 
       - run:
           name: Install PALISADE v1.11.6

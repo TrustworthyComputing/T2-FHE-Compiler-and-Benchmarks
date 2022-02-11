@@ -89,6 +89,14 @@ make
 diff <(head -n -1 ../test/resources/tests/arrays_w5_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays_w5.res
 cd ../..
 
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bitwise.t2 --HELIB --w 6
+cp ./src/test/resources/tests/bitwise.cpp ./src/HElib/compiled/test.cpp
+cd ./src/HElib
+make
+./bin/test.out > ../test/resources/tests/bitwise_HElib.log
+diff <(head -n -1 ../test/resources/tests/bitwise_HElib.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/bitwise_w6.res
+cd ../..
+
 # Floating Point Domain Tests
 
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ckks_test.t2 --HELIB

@@ -347,7 +347,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * |   "^="
    */
   public Var_t visit(CompoundOperator n) throws Exception {
-    String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "|=", "^="};
+    String[] _ret = {"+=", "-=", "*=", "/=", "%=", "<<=", ">>=", ">>>=", "&=", "|=", "^="};
     return new Var_t("int", _ret[n.f0.which]);
   }
 

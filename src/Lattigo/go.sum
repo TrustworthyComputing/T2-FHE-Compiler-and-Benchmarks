@@ -6,8 +6,8 @@ github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfn
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
-github.com/ldsec/lattigo/v2 v2.3.0 h1:5bG7CqH0dzkdnCf4bDGLkl+G3HrF4obV6flN7LMfrNc=
-github.com/ldsec/lattigo/v2 v2.3.0/go.mod h1:jYleMq+HJUUxe7s/FJLA5jGqlnOr42AOgqF8C5HGDD4=
+github.com/ldsec/lattigo/v2 v2.4.0 h1:XykF/7yDeO1ISc74fTamIm2EO0ye0NKRnkLwYdwpfQA=
+github.com/ldsec/lattigo/v2 v2.4.0/go.mod h1:jYleMq+HJUUxe7s/FJLA5jGqlnOr42AOgqF8C5HGDD4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

@@ -7,10 +7,7 @@ echo "Testing Lattigo"
 export PATH=$PATH:/usr/local/go/bin
 mkdir -p ./src/Lattigo/compiled
 cd ./src/Lattigo
-if [ ! -d "go.mod" ] ; then
-    go mod init Lattigo
-    go mod tidy
-fi
+go mod tidy
 cd ../..
 
 # Integer Domain Tests
@@ -93,6 +90,14 @@ cd ./src/Lattigo
 make
 ./bin/test.out > ../test/resources/tests/arrays_w5_Lattigo.log
 diff <(head -n -1 ../test/resources/tests/arrays_w5_Lattigo.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays_w5.res
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bitwise.t2 --LATTIGO --w 6
+cp ./src/test/resources/tests/bitwise.go ./src/Lattigo/compiled/test.go
+cd ./src/Lattigo
+make
+./bin/test.out > ../test/resources/tests/bitwise_Lattigo.log
+diff <(head -n -1 ../test/resources/tests/bitwise_Lattigo.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/bitwise_w6.res
 cd ../..
 
 # Floating Point Domain Tests

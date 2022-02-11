@@ -34,7 +34,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("var ptxt *ckks.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
-    append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n\n");
+    append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n\n");
   }
 
   /**
@@ -52,7 +52,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           (rhs_type.equals("double") || rhs_type.equals("int"))) {
       // if EncDouble <- int | double
       assign_to_all_slots("tmp", rhs_name, null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
       append_idx(lhs.getName());
       this.asm_.append(" = encryptorSk.EncryptNew(ptxt)");
       this.semicolon_ = true;
@@ -70,7 +70,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       this.asm_.append("++ {\n");
       this.indent_ += 2;
       assign_to_all_slots("tmp", rhs_name, tmp_i);
-      append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
       append_idx(lhs.getName());
       this.asm_.append("[").append(tmp_i).append("] = encryptorSk.EncryptNew(ptxt)\n");
       this.indent_ -= 2;
@@ -106,7 +106,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
       assign_to_all_slots(tmp_vec, "1", null);
-      append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
       declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.AddNew(");
@@ -129,7 +129,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
       assign_to_all_slots(tmp_vec, "1", null);
-      append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
       declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.SubNew(");
@@ -181,7 +181,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       assign_to_all_slots("tmp", rhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
       declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -294,7 +294,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
           assign_to_all_slots("tmp", rhs.getName(), null);
-          append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+          append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
           append_idx(id.getName() + "[" + idx.getName()+ "] = ");
           this.asm_.append("encryptorSk.EncryptNew(ptxt)");
           break;
@@ -339,14 +339,14 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           }
         }
         this.asm_.append("), 0) }\n");
-        append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
+        append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
         append_idx(id.getName() + " = encryptorSk.EncryptNew(ptxt)\n");
         break;
       case "EncDouble[]":
         String exp_var = "tmp_" + (++tmp_cnt_) + "_";
         if (exp_type.equals("int") || exp_type.equals("double")) {
           assign_to_all_slots("tmp", exp.getName(), null);
-          append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+          append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
           append_idx(exp_var + " := encryptorSk.EncryptNew(ptxt)\n");
         } else { // exp type is EncDouble
           exp_var = exp.getName();
@@ -358,7 +358,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
             String v_type = st_.findType(new Var_t(null, init));
             if (v_type.equals("int") || v_type.equals("double") || isNumeric(init)) {
               assign_to_all_slots("tmp", init, null);
-              append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+              append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
               String tmp_ = "tmp_" + (++tmp_cnt_) + "_";
               append_idx(tmp_ + " := encryptorSk.EncryptNew(ptxt)\n");
               inits.add(tmp_);
@@ -406,7 +406,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     }
     this.asm_.append("), 0) }\n");
-    append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", slots)\n");
+    append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
     append_idx(id.getName() + "[" + index.getName() + "] = encryptorSk.EncryptNew(ptxt)\n");
     return null;
   }
@@ -508,7 +508,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
                 rhs_type.equals("EncDouble")) {
       assign_to_all_slots("tmp", lhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
       declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {
@@ -538,7 +538,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
       assign_to_all_slots("tmp", rhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, slots)\n");
+      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
       declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       switch (op) {

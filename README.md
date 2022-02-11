@@ -23,6 +23,14 @@ D. Mouris, N. G. Tsoutsos and M. Maniatakos,
 IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
 ```
 
+## Supported Homomorphic Encryption Libraries
+* [Lattigo](https://github.com/ldsec/lattigo) v2.4.0 [55f9a02](https://github.com/ldsec/lattigo/commit/55f9a0247e2092a53be7630d6b2ca79021700a62)
+* [HElib](https://github.com/homenc/HElib) v2.2.1 [f0e3e01](https://github.com/homenc/HElib/commit/f0e3e010009c592cd411ba96baa8376eb485247a)
+* [PALISADE](https://gitlab.com/palisade/palisade-release/) v1.11.6 [08601274](https://gitlab.com/palisade/palisade-release/-/commit/0860127401ab794591f931fa2c61426c7b56ee2d)
+* [Microsoft SEAL](https://github.com/microsoft/SEAL) v3.7.2 [7923472](https://github.com/microsoft/SEAL/commit/79234726053c45eede688400aa219fdec0810bd8)
+* [TFHE](https://github.com/tfhe/tfhe) v1.0.1 [6297bc7](https://github.com/tfhe/tfhe/commit/6297bc72d9294e6e635738deb2e8dc7e4ff8bc61)
+
+
 ## Build and Run Instructions
 ### Dependencies
 ```powershell

@@ -70,3 +70,11 @@ make
 ./bin/test.out > ../test/resources/tests/arrays_TFHE.log
 diff <(head -n -1 ../test/resources/tests/arrays_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays.res
 cd ../..
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bitwise.t2 --TFHE --w 6 --printbin
+cp ./src/test/resources/tests/bitwise.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/tests/bitwise_TFHE.log
+diff <(head -n -1 ../test/resources/tests/bitwise_TFHE.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/bitwise_w6.res
+cd ../..
