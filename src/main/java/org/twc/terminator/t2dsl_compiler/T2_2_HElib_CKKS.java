@@ -350,8 +350,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         append_idx("ptxt.decryptComplex(");
         this.asm_.append(expr.getName()).append(", secret_key);\n");
         append_idx("ptxt.store(tmp);\n");
-        append_idx("cout << \"dec(");
-        this.asm_.append(expr.getName()).append(") = \" << real(tmp[0]) << endl");
+        append_idx("cout << \"dec(" + expr.getName());
+        this.asm_.append(") = \" << fixed << setprecision(1) << real(tmp[0]) << endl");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -384,7 +384,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
     append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
     append_idx("for (int " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i).append(") {\n");
-    append_idx("  cout << real(tmp[" + this.tmp_i + "]) << \" \";\n");
+    append_idx("  cout << fixed << setprecision(1) << real(tmp[" + this.tmp_i + "]) << \" \";\n");
     append_idx("}\n");
     append_idx("cout << endl");
     this.semicolon_ = true;

@@ -1,5 +1,6 @@
 package org.twc.terminator.t2dsl_compiler;
 
+import org.twc.terminator.Main;
 import org.twc.terminator.SymbolTable;
 import org.twc.terminator.Var_t;
 import org.twc.terminator.t2dsl_compiler.T2DSLsyntaxtree.*;
@@ -101,6 +102,9 @@ public class T2_2_PALISADE extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n");
     append_idx("#include <chrono>\n\n");
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_DOUBLE) {
+      append_idx("#include <iomanip>\n\n");
+    }
     append_idx("#include \"palisade.h\"\n");
     append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
     append_idx("using namespace lbcrypto;\n");

@@ -417,7 +417,8 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
         this.asm_.append(expr.getName()).append(", &tmp);\n");
         append_idx("tmp->SetLength(1);\n");
         append_idx(this.vec + " = tmp->GetCKKSPackedValue();\n");
-        append_idx("cout << \"dec(" + expr.getName() + ") = \" << real(");
+        append_idx("cout << \"dec(" + expr.getName() + ") = \" << fixed << ");
+        this.asm_.append("setprecision(1) << real(");
         this.asm_.append(this.vec).append("[0]) << endl");
         break;
       default:
@@ -455,7 +456,8 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i);
     this.asm_.append(") {\n");
-    append_idx("  cout << real(" + this.vec + "[" + this.tmp_i + "]) << \" \";\n");
+    append_idx("  cout << fixed << setprecision(1) << real(" + this.vec + "[");
+    this.asm_.append(this.tmp_i).append("]) << \" \";\n");
     append_idx("}\n");
     append_idx("cout << endl");
     this.semicolon_ = true;

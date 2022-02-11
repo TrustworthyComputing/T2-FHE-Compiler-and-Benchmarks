@@ -16,15 +16,6 @@ else
     echo "Found in cache"
 fi
 
-echo "Build Lattigo v2.4.0"
-if [ ! -d "lattigo" ] ; then
-    cd ./lattigo
-    git reset --hard 55f9a0247e2092a53be7630d6b2ca79021700a62
-    cd ..
-else
-    echo "Found in cache"
-fi
-
 echo "Build PALISADE v1.11.6"
 if [ ! -d "palisade-release/build" ] ; then
     cd ./palisade-release
@@ -33,6 +24,7 @@ if [ ! -d "palisade-release/build" ] ; then
     cmake ..
     make -j2
     sudo make install
+    sudo ln -s /usr/local/lib/libPALISADEcore.so.1 /usr/lib/libPALISADEcore.so.1
     cd ../..
 else
     echo "Found in cache"

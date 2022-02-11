@@ -142,6 +142,9 @@ public class T2_2_HElib extends T2_Compiler {
   public Var_t visit(MainClass n) throws Exception {
     append_idx("#include <iostream>\n");
     append_idx("#include <chrono>\n\n");
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_DOUBLE) {
+      append_idx("#include <iomanip>\n\n");
+    }
     append_idx("#include <helib/helib.h>\n");
     append_idx("#include <helib/intraSlot.h>\n");
     append_idx("#include \"../functional_units/functional_units.hpp\"\n\n");
