@@ -428,7 +428,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       case "EncDouble":
         append_idx("ptxt = decryptor.DecryptNew(" + expr.getName() + ")\n");
         append_idx("fmt.Print(\"dec(" + expr.getName() + ") = \")\n");
-        append_idx("fmt.Println(funits.Round(real(encoder.Decode(ptxt, slots)[0]), 2))\n");
+        append_idx("fmt.Printf(\"%.1f\\n\", funits.Round(real(encoder.Decode(ptxt, slots)[0]), 2))\n");
         break;
       default:
         throw new Exception("Bad type for print statement");
@@ -462,8 +462,8 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < " + size.getName());
     this.asm_.append("; ").append(this.tmp_i).append("++ {\n");
     this.indent_ += 2;
-    append_idx("fmt.Print(funits.Round(real(" + tmp_vec + "[" + this.tmp_i +
-                "]), 2), \" \")\n");
+    append_idx("fmt.Printf(\"%.1f \", funits.Round(real(" + tmp_vec + "[" + this.tmp_i +
+                "]), 2))\n");
     this.indent_ -= 2;
     append_idx("}\n");
     append_idx("fmt.Println()\n");

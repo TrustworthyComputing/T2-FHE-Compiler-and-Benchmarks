@@ -60,7 +60,8 @@ jobs:
       - run:
           name: Install PALISADE v1.11.6
           command: >
-            sudo make install
+            sudo make install &&
+            sudo ln -sf /usr/local/lib/libPALISADEcore.so.1 /usr/lib/libPALISADEcore.so.1
           working_directory: palisade-release/build
 
       - run:
