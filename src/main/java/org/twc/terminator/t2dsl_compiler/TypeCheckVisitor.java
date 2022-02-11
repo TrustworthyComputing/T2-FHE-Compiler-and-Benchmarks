@@ -410,6 +410,25 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
       throw new Exception("Error in batching assignment between different " +
                           "types: " + id_type + " {" + exp_type_first + "}");
     }
+    if (n.f4.present()) {
+      for (int i = 0; i < n.f4.size(); i++) {
+        exp = (n.f4.nodes.get(i).accept(this));
+        String exp_type = st_.findType(exp);
+        if (id_type.equals("EncInt") || id_type.equals("EncDouble")) {
+          if (!(exp_type.equals("int") || exp_type.equals("double"))) {
+            throw new Exception("Error in batching assignment types mismatch: " +
+                id.getName() + ": " + id_type + ", " + exp.getName() + ": " + exp_type);
+          }
+        } else if (id_type.equals("EncInt[]") || id_type.equals("EncDouble[]")) {
+          if (!(exp_type.equals("int") || exp_type.equals("double") ||
+                exp_type.equals("EncInt") || exp_type.equals("EncDouble")
+          )) {
+            throw new Exception("Error in batching assignment types mismatch: " +
+                id.getName() + ": " + id_type + ", " + exp.getName() + ": " + exp_type);
+          }
+        }
+      }
+    }
     return null;
   }
 
