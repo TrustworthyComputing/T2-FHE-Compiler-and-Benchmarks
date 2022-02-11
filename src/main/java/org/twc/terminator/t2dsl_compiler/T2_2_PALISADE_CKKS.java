@@ -445,7 +445,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     if (size_type == null) size_type = st_.findType(expr);
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
-    String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx("cc->Decrypt(keyPair.secretKey, ");
     this.asm_.append(expr.getName()).append(", ").append("&tmp);\n");
     append_idx("tmp->SetLength(");
@@ -456,10 +455,9 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i);
     this.asm_.append(") {\n");
-    append_idx("  cout << real(" + this.vec + "[i]) << \" \";\n");
+    append_idx("  cout << real(" + this.vec + "[" + this.tmp_i + "]) << \" \";\n");
     append_idx("}\n");
     append_idx("cout << endl");
-
     this.semicolon_ = true;
     return null;
   }

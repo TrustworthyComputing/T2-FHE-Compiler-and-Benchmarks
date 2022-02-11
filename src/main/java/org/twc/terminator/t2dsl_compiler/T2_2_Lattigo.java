@@ -180,7 +180,9 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx(")\n\n");
     append_idx("func main() {\n");
     this.indent_ = 2;
-    this.append_idx("word_sz := " + this.word_sz_ + "\n");
+    if (this.st_.getScheme() == Main.ENC_TYPE.ENC_INT) {
+      this.append_idx("word_sz := " + this.word_sz_ + "\n");
+    }
     if (!read_keygen_from_file()) {
       append_keygen();
     }

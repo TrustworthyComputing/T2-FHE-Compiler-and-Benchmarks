@@ -94,3 +94,13 @@ make
 ./bin/test.out > ../test/resources/tests/arrays_w5_Lattigo.log
 diff <(head -n -1 ../test/resources/tests/arrays_w5_Lattigo.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays_w5.res
 cd ../..
+
+# Floating Point Domain Tests
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ckks_test.t2 --LATTIGO
+cp ./src/test/resources/tests/ckks_test.go ./src/Lattigo/compiled/test.go
+cd ./src/Lattigo
+make
+./bin/test.out > ../test/resources/tests/ckks_test_Lattigo.log
+diff <(head -n -1 ../test/resources/tests/ckks_test_Lattigo.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ckks_test.res
+cd ../..

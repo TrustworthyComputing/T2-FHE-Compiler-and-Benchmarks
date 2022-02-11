@@ -15,20 +15,20 @@ int main(void) {
   tstart();
 
   ctxt1++;
-  print_batched(ctxt1, 3);
+  print_batched(ctxt1, 3);  // 2.2 2.3 2.4
 
-  ctxt1 = ctxt1 - x;
-  ctxt1 = y + ctxt1;
-  ctxt2 = ctxt1 + ctxt1;
-  ctxt2 -= x;
+  ctxt1 = ctxt1 - x;        // 1.7  1.8  1.9
+  ctxt1 = y + ctxt1;        // 6.2  6.3  6.4
+  ctxt2 = ctxt1 + ctxt1;    // 12.4 12.6 12.8
+  ctxt2 -= x;               // 11.9 12.1 12.3
 
-  ctxt_arr2[0] = 10.5;
-  ctxt_arr2[1] = (ctxt_arr2[0]) * 2;
-  print(ctxt1);
-  print(ctxt2);
-  print((ctxt_arr1[0]));
-  print((ctxt_arr2[1]));
-  print_batched((ctxt_arr2[0]), 3);
+  ctxt_arr2[0] = 10.5;                // 10.5
+  ctxt_arr2[1] = (ctxt_arr2[0]) * 2;  // 21
+  print_batched(ctxt1, 3);            // 6.2  6.3  6.4
+  print_batched(ctxt2, 3);            // 11.9 12.1 12.3
+  print((ctxt_arr1[0]));              // 0.5
+  print((ctxt_arr2[1]));              // 21
+  print_batched((ctxt_arr2[0]), 3);   // 10.5 10.5 10.5
   tstop();
   return 0;
 }

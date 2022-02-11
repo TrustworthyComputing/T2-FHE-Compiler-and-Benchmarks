@@ -88,3 +88,13 @@ make
 ./bin/test.out > ../test/resources/tests/arrays_w5_SEAL.log
 diff <(head -n -1 ../test/resources/tests/arrays_w5_SEAL.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/arrays_w5.res
 cd ../..
+
+# Floating Point Domain Tests
+
+java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ckks_test.t2 --SEAL
+cp ./src/test/resources/tests/ckks_test.cpp ./src/SEAL/compiled/test.cpp
+cd ./src/SEAL
+make
+./bin/test.out > ../test/resources/tests/ckks_test_SEAL.log
+diff <(head -n -1 ../test/resources/tests/ckks_test_SEAL.log | awk '{$1=$1};1' | cut -d ' ' -f 3-) ../test/resources/tests/ckks_test.res
+cd ../..

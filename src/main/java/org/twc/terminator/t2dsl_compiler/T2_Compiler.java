@@ -85,7 +85,11 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     try {
       Integer.parseInt(str);
       return true;
-    } catch (NumberFormatException ignored) { }
+    } catch (NumberFormatException ignored) {}
+    try {
+      Float.parseFloat(str);
+      return true;
+    } catch (NumberFormatException ignored) {}
     return false;
   }
 
