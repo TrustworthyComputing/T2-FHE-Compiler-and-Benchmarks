@@ -1,0 +1,27 @@
+// Binary domain benchmark
+// dist = Σ( | v_i - u_i | )
+
+int main(void) {
+  EncInt dist, d, sign, inv_d;
+  EncInt[] v, u;
+  int i;
+  v = { 10, 15, 3, 8,  15, 7, 4, 10 };
+  u = { 11, 13, 3, 11, 14, 4, 7, 10 };
+  dist = 0;
+
+  tstart();
+  for (i = 0; i < (v.size); i++) {
+    d = (v[i]) - (u[i]);
+    print(d);
+    sign = 9 < d; // due to modulo arithmetic
+    print(sign);
+    inv_d = 0 - d;
+    print(inv_d);
+    dist += (sign) ? inv_d : d;
+    print(dist);
+  }
+  tstop();
+
+  print(dist); // 13
+  return 0;
+}

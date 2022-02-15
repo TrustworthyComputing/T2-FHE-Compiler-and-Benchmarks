@@ -1,3 +1,6 @@
+// Binary domain benchmark with w = 4
+// dist = Σ( v_i != u_i )
+
 int main(void) { 
   int i;
   EncInt sum;
@@ -11,7 +14,8 @@ int main(void) {
   for (i = 0; i < 4; i++) {
     sum += ((v1[i]) != (v2[i]));
   }
-  print(sum);
   tstop();
+
+  print(sum); // 2
   return 0;
 }

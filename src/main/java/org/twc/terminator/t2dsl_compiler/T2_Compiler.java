@@ -670,6 +670,24 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> PrimaryExpression()
+   * f1 -> "."
+   * f2 -> <ARRAY_SIZE>
+   */
+  public Var_t visit(ArrayLength n) throws Exception {
+    Var_t arr = n.f0.accept(this);
+    String arr_type = st_.findType(arr);
+    switch (arr_type) {
+      case "int[]":
+      case "double[]":
+      case "EncInt[]":
+      case "EncDouble[]":
+        break;
+    }
+    return new Var_t("int", "static_cast<int>(" + arr.getName() + ".size())");
+  }
+
+  /**
    * f0 -> "("
    * f1 -> Expression()
    * f2 -> ")"

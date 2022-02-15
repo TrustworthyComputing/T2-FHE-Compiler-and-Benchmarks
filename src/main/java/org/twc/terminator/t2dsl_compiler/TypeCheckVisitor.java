@@ -853,6 +853,24 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> PrimaryExpression()
+   * f1 -> "."
+   * f2 -> <ARRAY_SIZE>
+   */
+  public Var_t visit(ArrayLength n) throws Exception {
+    Var_t arr = n.f0.accept(this);
+    String arr_type = st_.findType(arr);
+    switch (arr_type) {
+      case "int[]":
+      case "double[]":
+      case "EncInt[]":
+      case "EncDouble[]":
+        return new Var_t("int", null);
+    }
+    throw new Exception("ArrayLength in wrong type: " + arr_type);
+  }
+
+  /**
    * f0 -> "("
    * f1 -> Expression()
    * f2 -> ")"

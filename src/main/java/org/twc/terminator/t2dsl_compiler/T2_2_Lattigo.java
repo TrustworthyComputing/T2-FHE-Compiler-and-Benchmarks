@@ -673,7 +673,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         String exp_var = "tmp_" + (++tmp_cnt_) + "_";
         if (exp_type.equals("int")) {
           if (this.is_binary_) {
-            append_idx(exp_var + " := make([]*bfv.Ciphertext, slots)\n");
+            append_idx(exp_var + " := make([]*bfv.Ciphertext, word_sz)\n");
           } else {
             append_idx("var " + exp_var + " *bfv.Ciphertext\n");
           }
@@ -695,7 +695,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             if (v_type.equals("int") || isNumeric(init)) {
               String tmp_ = "tmp_" + (++tmp_cnt_) + "_";
               if (this.is_binary_) {
-                append_idx(tmp_ + " := make([]*bfv.Ciphertext, slots)\n");
+                append_idx(tmp_ + " := make([]*bfv.Ciphertext, word_sz)\n");
               } else {
                 append_idx("var " + tmp_ + " *bfv.Ciphertext\n");
               }
@@ -1449,6 +1449,24 @@ public class T2_2_Lattigo extends T2_Compiler {
             cond.getName() + " type: " + cond_t +
             e1.getName() + " type: " + e1_t +
             e2.getName() + " type: " + e2_t);
+  }
+
+  /**
+   * f0 -> PrimaryExpression()
+   * f1 -> "."
+   * f2 -> <ARRAY_SIZE>
+   */
+  public Var_t visit(ArrayLength n) throws Exception {
+    Var_t arr = n.f0.accept(this);
+    String arr_type = st_.findType(arr);
+    switch (arr_type) {
+      case "int[]":
+      case "double[]":
+      case "EncInt[]":
+      case "EncDouble[]":
+        break;
+    }
+    return new Var_t("int", "int64(len(" + arr.getName() + "))");
   }
 
 }

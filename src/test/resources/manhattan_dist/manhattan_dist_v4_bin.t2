@@ -1,0 +1,26 @@
+// Binary domain benchmark with w = 4
+// dist = Σ( | v_i - u_i | )
+
+int main(void) {
+  EncInt dist, d, sign, inv_d;
+  EncInt[] v, u;
+  int i;
+  v = { 10, 15, 3, 8 };
+  u = { 11, 13, 3, 11 };
+  dist = 0;
+
+  tstart();
+  for (i = 0; i < (v.size); i++) {
+    print(v[i]);
+    print(u[i]);
+    d = (v[i]) - (u[i]);
+    sign = d >>> 3;
+    inv_d = ~d;
+    inv_d++;
+    dist += (sign) ? inv_d : d;
+  }
+  tstop();
+
+  print(dist); // 6
+  return 0;
+}

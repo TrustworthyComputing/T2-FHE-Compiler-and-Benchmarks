@@ -1,0 +1,22 @@
+// Integer domain benchmark
+// dist = Σ( (v_i - u_i)^2 )
+
+int main(void) {
+  EncInt dist, d;
+  EncInt[] v, u;
+  int i;
+  v = { 10, 15, 3 };
+  u = { 11, 13, 3 };
+  dist = 0;
+
+  tstart();
+  for (i = 0; i < (v.size); i++) {
+    d = (v[i]) - (u[i]);
+    dist += (d * d);
+    print(dist);
+  }
+  tstop();
+
+  print(dist);
+  return 0;
+}

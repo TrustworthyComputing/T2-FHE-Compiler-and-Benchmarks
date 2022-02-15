@@ -70,6 +70,7 @@ TOKEN :
   | < ENCRYPTED_DOUBLE: "EncDouble" >
   | < MAIN: "main" >
   | < NEW: "new" >
+  | < ARRAY_SIZE: "size" >
   | < PUBLIC: "public" >
   | < RETURN: "return" >
   | < STATIC: "static" >
@@ -359,6 +360,8 @@ void Expression() : {} {
   BinNotExpression()
 |  LOOKAHEAD( PrimaryExpression() "[" )
   ArrayLookup()
+|  LOOKAHEAD( PrimaryExpression() "." <ARRAY_SIZE> )
+  ArrayLength()
 |  LOOKAHEAD( "(" Expression() ")" "?" )
   TernaryExpression()
 |   Clause()
@@ -402,6 +405,10 @@ void BinNotExpression() : {} {
 
 void ArrayLookup() : {} {
   PrimaryExpression() "[" PrimaryExpression() "]"
+}
+
+void ArrayLength() : {} {
+  PrimaryExpression() "." <ARRAY_SIZE>
 }
 
 void TernaryExpression() : {} {

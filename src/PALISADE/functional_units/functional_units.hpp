@@ -24,18 +24,25 @@ typedef enum scheme_t {
   BFV, BGV, CKKS, TFHE, NONE
 } scheme_t;
 
-using namespace lbcrypto; 
+using namespace lbcrypto;
 
 /// XOR between two batched binary ciphertexts
 template <typename T>
-Ciphertext<T> exor(CryptoContext<T>& cc, Ciphertext<T>& c1, 
+Ciphertext<T> exor(CryptoContext<T>& cc, Ciphertext<T>& c1,
                         Ciphertext<T>& c2) {
-  Ciphertext<T> res_ = cc->EvalSub(c1, c2);
+  auto modulus = cc->GetCryptoParameters()->GetPlaintextModulus();
+  Ciphertext<T> res_;
+  if (modulus == 2) {
+    res_ = cc->EvalAdd(c1, c2);
+  }
+  else {
+    res_ = cc->EvalSub(c1, c2);
+  }
   return cc->EvalMultAndRelinearize(res_, res_);;
 }
 
 template <typename T>
-Ciphertext<T> mux(CryptoContext<T>& cc, Ciphertext<T>& sel, 
+Ciphertext<T> mux(CryptoContext<T>& cc, Ciphertext<T>& sel,
                   Ciphertext<T>& c1, Ciphertext<T>& c2) {
   Ciphertext<T> not_sel = cc->EvalNegate(sel);
   size_t slots(cc->GetRingDimension());
@@ -80,7 +87,7 @@ Ciphertext<T> neq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> shift_right_logical_bin(CryptoContext<T>& cc, 
+std::vector<Ciphertext<T>> shift_right_logical_bin(CryptoContext<T>& cc,
                                            std::vector<Ciphertext<T>>& ct,
                                            size_t amt, LPPublicKey<T>& pub_key) {
   assert(amt < ct.size());
@@ -116,8 +123,8 @@ std::vector<Ciphertext<T>> shift_right_bin(std::vector<Ciphertext<T>>& ct,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> shift_left_bin(CryptoContext<T>& cc, 
-                                          std::vector<Ciphertext<T>>& ct, 
+std::vector<Ciphertext<T>> shift_left_bin(CryptoContext<T>& cc,
+                                          std::vector<Ciphertext<T>>& ct,
                                           size_t amt, LPPublicKey<T>& pub_key) {
   assert(amt < ct.size());
   // Initialize with zeros
@@ -136,9 +143,9 @@ std::vector<Ciphertext<T>> shift_left_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> mux_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& sel, 
-                                   std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> mux_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& sel,
+                                   std::vector<Ciphertext<T>>& c1,
                                    std::vector<Ciphertext<T>>& c2) {
   std::vector<Ciphertext<T>> res_(c1.size());
   Ciphertext<T> not_sel = cc->EvalNegate(sel[sel.size()-1]);
@@ -155,9 +162,9 @@ std::vector<Ciphertext<T>> mux_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
-                                   std::vector<Ciphertext<T>>& c2, 
+std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
                                    size_t ptxt_mod) {
   assert(c1.size() == c2.size());
   std::vector<Ciphertext<T>> res_(c1.size());
@@ -215,8 +222,8 @@ Ciphertext<T> leq(CryptoContext<T>& cc, Ciphertext<T>& c1, Ciphertext<T>& c2,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> eq_bin(CryptoContext<T>& cc, 
-                                  std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> eq_bin(CryptoContext<T>& cc,
+                                  std::vector<Ciphertext<T>>& c1,
                                   std::vector<Ciphertext<T>>& c2,
                                   LPPublicKey<T>& pub_key) {
   size_t slots(cc->GetRingDimension());
@@ -242,8 +249,8 @@ std::vector<Ciphertext<T>> eq_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> neq_bin(CryptoContext<T>& cc, 
-                                  std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> neq_bin(CryptoContext<T>& cc,
+                                  std::vector<Ciphertext<T>>& c1,
                                   std::vector<Ciphertext<T>>& c2,
                                   LPPublicKey<T>& pub_key) {
   size_t slots(cc->GetRingDimension());
@@ -266,8 +273,8 @@ std::vector<Ciphertext<T>> slice(
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> lt_bin(CryptoContext<T>& cc, 
-                                  std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> lt_bin(CryptoContext<T>& cc,
+                                  std::vector<Ciphertext<T>>& c1,
                                   std::vector<Ciphertext<T>>& c2,
                                   size_t word_sz,
                                   LPPublicKey<T>& pub_key) {
@@ -301,9 +308,9 @@ std::vector<Ciphertext<T>> lt_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> leq_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
-                                   std::vector<Ciphertext<T>>& c2, 
+std::vector<Ciphertext<T>> leq_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
                                    LPPublicKey<T>& pub_key) {
   std::vector<Ciphertext<T>> res_ = lt_bin(cc, c2, c1, c1.size(), pub_key);
   size_t slots(cc->GetRingDimension());
@@ -314,8 +321,8 @@ std::vector<Ciphertext<T>> leq_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> dec_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> dec_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
                                    LPPublicKey<T>& pub_key) {
   size_t slots(cc->GetRingDimension());
   size_t word_sz = c1.size();
@@ -335,8 +342,8 @@ std::vector<Ciphertext<T>> dec_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> inc_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
+std::vector<Ciphertext<T>> inc_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
                                    LPPublicKey<T>& pub_key) {
   size_t slots(cc->GetRingDimension());
   size_t word_sz = c1.size();
@@ -354,9 +361,9 @@ std::vector<Ciphertext<T>> inc_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> add_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
-                                   std::vector<Ciphertext<T>>& c2, 
+std::vector<Ciphertext<T>> add_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
                                    LPPublicKey<T>& pub_key) {
   size_t slots(cc->GetRingDimension());
   std::vector<int64_t> zero(slots, 0);
@@ -382,9 +389,9 @@ std::vector<Ciphertext<T>> add_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc, 
-                                   std::vector<Ciphertext<T>>& c1, 
-                                   std::vector<Ciphertext<T>>& c2, 
+std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
                                    LPPublicKey<T>& pub_key) {
   assert(c1.size() == c2.size());
   size_t slots(cc->GetRingDimension());
@@ -399,7 +406,7 @@ std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
   std::vector<Ciphertext<T>> neg_c2(c2.size());
   for (int i = c2.size()-1; i > -1; --i) {
     neg_c2[i] = cc->EvalNegate(c2[i]);
-    neg_c2[i] = cc->EvalAdd(neg_c2[i], one);
+    neg_c2[i] = cc->EvalAdd(neg_c2[i], pt_one);
   }
   neg_c2 = inc_bin(cc, neg_c2, pub_key);
   for (int i = c1.size()-1; i >= 0; --i) {
@@ -417,9 +424,9 @@ std::vector<Ciphertext<T>> sub_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> mult_bin(CryptoContext<T>& cc, 
-                                    std::vector<Ciphertext<T>>& c1, 
-                                    std::vector<Ciphertext<T>>& c2, 
+std::vector<Ciphertext<T>> mult_bin(CryptoContext<T>& cc,
+                                    std::vector<Ciphertext<T>>& c1,
+                                    std::vector<Ciphertext<T>>& c2,
                                     LPPublicKey<T>& pub_key) {
   assert(c1.size() == c2.size());
   std::vector<Ciphertext<T>> tmp_(c1.size());
@@ -444,7 +451,7 @@ std::vector<Ciphertext<T>> mult_bin(CryptoContext<T>& cc,
 }
 
 template <typename T>
-std::vector<Ciphertext<T>> not_bin(CryptoContext<T>& cc, 
+std::vector<Ciphertext<T>> not_bin(CryptoContext<T>& cc,
                                     std::vector<Ciphertext<T>>& ct) {
   std::vector<Ciphertext<T>> res_(ct.size());
   size_t slots(cc->GetRingDimension());
