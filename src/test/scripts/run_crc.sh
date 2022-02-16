@@ -41,9 +41,17 @@ make
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
-  src/test/resources/crc/crc8.t2 --TFHE --w 8 \
+  src/test/resources/crc/crc8.t2 --TFHE --w 8
 cp ./src/test/resources/crc/crc8.cpp ./src/TFHE/compiled/test.cpp
 cd ./src/TFHE
 make
-./bin/test.out > ../test/resources/crc/crc_TFHE.log
+./bin/test.out > ../test/resources/crc/crc8_TFHE.log
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/crc/crc32.t2 --TFHE --w 32
+cp ./src/test/resources/crc/crc32.cpp ./src/TFHE/compiled/test.cpp
+cd ./src/TFHE
+make
+./bin/test.out > ../test/resources/crc/crc32_TFHE.log
 cd ../..
