@@ -5,7 +5,7 @@ from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 3)
+pltsize = (6, 2.3)
 
 # Milliseconds
 data = {
@@ -64,7 +64,7 @@ ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-          fontsize=9, ncol=1, loc='upper left')
+          fontsize=9, ncol=2, loc='upper right')
 
 def autolabel_above(rects):
   for rect in rects:
