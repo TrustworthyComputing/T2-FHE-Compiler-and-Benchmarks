@@ -106,10 +106,10 @@ cd ../..
 java -jar target/terminator-compiler-1.0.jar \
 src/test/resources/manhattan_dist/manhattan_dist_v8_int.t2 --SEAL \
 --config src/test/resources/manhattan_dist/configs/seal-bfv-nonbatched-int-128.config
-cp ./src/test/resources/manhattan_dist/manhattan_dist_v4_int.cpp ./src/SEAL/compiled/test.cpp
+cp ./src/test/resources/manhattan_dist/manhattan_dist_v8_int.cpp ./src/SEAL/compiled/test.cpp
 cd ./src/SEAL
 make
-./bin/test.out > ../test/resources/manhattan_dist/manhattan_dist_v4_int_SEAL.log
+./bin/test.out > ../test/resources/manhattan_dist/manhattan_dist_v8_int_SEAL.log
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
