@@ -40,23 +40,41 @@
   ```
   
 ### Lattigo
-* `4x4`
+* `4x4 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_4x4.t2 --LATTIGO \
   --config src/test/resources/mmult/configs/lattigo-bfv-int-128.config
   ```
-* `8x8`
+* `4x4 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_4x4_ckks.t2 --LATTIGO \
+  --config src/test/resources/mmult/configs/lattigo-ckks-128.config
+  ```
+* `8x8 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_8x8.t2 --LATTIGO \
   --config src/test/resources/mmult/configs/lattigo-bfv-int-128.config
   ```
-* `16x16`
+* `8x8 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_8x8_ckks.t2 --LATTIGO \
+  --config src/test/resources/mmult/configs/lattigo-ckks-128.config
+  ```
+* `16x16 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_16x16.t2 --LATTIGO \
   --config src/test/resources/mmult/configs/lattigo-bfv-int-128.config
+  ```
+* `16x16 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_16x16_ckks.t2 --LATTIGO \
+  --config src/test/resources/mmult/configs/lattigo-ckks-128.config
   ```
 
 ### PALISADE
@@ -98,23 +116,41 @@
   ```
 
 ### SEAL
-* `4x4`
+* `4x4 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_4x4.t2 --SEAL \
   --config src/test/resources/mmult/configs/seal-bfv-int-128.config
   ```
-* `8x8`
+* `4x4 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_4x4_ckks.t2 --SEAL \
+  --config src/test/resources/mmult/configs/seal-ckks-128.config
+  ```
+* `8x8 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_8x8.t2 --SEAL \
   --config src/test/resources/mmult/configs/seal-bfv-int-128.config
   ```
-* `16x16`
+* `8x8 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_8x8_ckks.t2 --SEAL \
+  --config src/test/resources/mmult/configs/seal-ckks-128.config
+  ```
+* `16x16 Integer`
   ```powershell
   java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/mmult/mmult_16x16.t2 --SEAL \
   --config src/test/resources/mmult/configs/seal-bfv-int-128.config
+  ```
+* `16x16 Floating Point`
+  ```powershell
+  java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/mmult/mmult_16x16_ckks.t2 --SEAL \
+  --config src/test/resources/mmult/configs/seal-ckks-128.config
   ```
 
 ### TFHE
