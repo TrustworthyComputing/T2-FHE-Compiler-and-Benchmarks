@@ -1278,38 +1278,6 @@ public class T2_2_Lattigo extends T2_Compiler {
   }
 
   /**
-   * f0 -> PrimaryExpression()
-   * f1 -> "["
-   * f2 -> PrimaryExpression()
-   * f3 -> "]"
-   */
-  public Var_t visit(ArrayLookup n) throws Exception {
-    Var_t arr = n.f0.accept(this);
-    Var_t idx = n.f2.accept(this);
-    String arr_type = st_.findType(arr);
-    tmp_cnt_++;
-    Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
-    switch (arr_type) {
-      case "int[]":
-        ret.setType("int");
-        break;
-      case "double[]":
-        ret.setType("double");
-        break;
-      case "EncInt[]":
-        ret.setType("EncInt");
-        break;
-      case "EncDouble[]":
-        ret.setType("EncDouble");
-        break;
-    }
-    append_idx(ret.getName());
-    this.asm_.append(" := ").append(arr.getName()).append("[");
-    this.asm_.append(idx.getName()).append("]\n");
-    return ret;
-  }
-
-  /**
    * f0 -> "("
    * f1 -> Expression()
    * f2 -> ")"

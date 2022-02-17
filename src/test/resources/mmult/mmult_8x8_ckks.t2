@@ -1,6 +1,7 @@
 int main(void) {
   // Initializations
   EncDouble[] m1_, m2_, res_;
+  EncDouble t3mp_;
   int r1, r2, c2, i, j, k, i_r1, k_c2, i_c1;
   m1_ = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3,
          4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7,
@@ -22,7 +23,10 @@ int main(void) {
     for (j = 0; j < c2; j++) {
       for (k = 0; k < r2; k++) {
         k_c2 = k * c2;
-        res_[(i_r1 + j)] += ((m1_[(i_c1 + k)]) * (m2_[(k_c2 + j)]));
+        t3mp_ = ((m1_[(i_c1 + k)]) * (m2_[(k_c2 + j)]));
+        reduce_noise(t3mp_);
+        match_params(res_[(i_r1 + j)], t3mp_);
+        res_[(i_r1 + j)] += t3mp_;
       }
     }
   }

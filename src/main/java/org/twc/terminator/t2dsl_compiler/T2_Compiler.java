@@ -643,30 +643,17 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     Var_t arr = n.f0.accept(this);
     Var_t idx = n.f2.accept(this);
     String arr_type = st_.findType(arr);
-    tmp_cnt_++;
-    Var_t ret = new Var_t("", "ret_" + tmp_cnt_);
     switch (arr_type) {
       case "int[]":
-        append_idx(this.st_.backend_types.get("int"));
-        ret.setType("int");
-        break;
+        return new Var_t("int", arr.getName() + "[" + idx.getName() + "]");
       case "double[]":
-        append_idx(this.st_.backend_types.get("double"));
-        ret.setType("double");
-        break;
+        return new Var_t("double", arr.getName() + "[" + idx.getName() + "]");
       case "EncInt[]":
-        append_idx(this.st_.backend_types.get("EncInt"));
-        ret.setType("EncInt");
-        break;
+        return new Var_t("EncInt", arr.getName() + "[" + idx.getName() + "]");
       case "EncDouble[]":
-        append_idx(this.st_.backend_types.get("EncDouble"));
-        ret.setType("EncDouble");
-        break;
+        return new Var_t("EncDouble", arr.getName() + "[" + idx.getName() + "]");
     }
-    this.asm_.append(" ").append(ret.getName());
-    this.asm_.append(" = ").append(arr.getName()).append("[");
-    this.asm_.append(idx.getName()).append("];\n");
-    return ret;
+    return null;
   }
 
   /**
