@@ -9,14 +9,6 @@ int main(void) {
 
   tstart();
   for (i = 0; i < N; i++) {
-    res_ = (a_ == b_);
-  }
-  tstop();
-
-  print(res_);
-
-  tstart();
-  for (i = 0; i < N; i++) {
     res_ = (a_ < b_);
   }
   tstop();
