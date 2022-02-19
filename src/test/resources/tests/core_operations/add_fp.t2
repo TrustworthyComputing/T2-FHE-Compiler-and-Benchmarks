@@ -1,0 +1,17 @@
+int main(void) {
+  int i;
+  EncDouble a_, b_, res_, dummy_;
+  i = 0;
+  a_ = 0.0; // encrypted
+  b_ = 8.0; // encrypted
+  res_ = 0.0;
+  dummy_ = 0.0;
+  dummy_ += 3.0; // Needed for Lattigo
+  tstart();
+  for (i = 0; i < 10; i++) {
+    res_ = a_ + b_;
+  }
+  tstop();
+  print(res_);
+  return 0;
+}

@@ -1,0 +1,16 @@
+int main(void) {
+  int i;
+  EncInt a_, b_, res_;
+  i = 0;
+  a_ = 0; // encrypted
+  res_ = 0;
+  b_ = 8; // encrypted
+
+  tstart();
+  for (i = 0; i < 10; i++) {
+    res_ = (a_ == b_);
+  }
+  tstop();
+  print(res_);
+  return 0;
+}

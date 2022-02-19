@@ -1,0 +1,16 @@
+int main(void) {
+  int i;
+  EncDouble a_, b_, res_;
+  i = 0;
+  a_ = 7.0; // encrypted
+  b_ = 8.0; // encrypted
+  res_ = 0.0;
+
+  tstart();
+  for (i = 0; i < 10; i++) {
+    res_ = a_ * b_;
+  }
+  tstop();
+  print(res_);
+  return 0;
+}
