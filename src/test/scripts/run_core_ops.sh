@@ -42,7 +42,7 @@ cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/tests/core_operations/comp.t2 --HELIB \
-  --config src/test/resources/tests/core_operations/configs/helib-16k-128-int.config
+  --config src/test/resources/tests/core_operations/configs/helib-64k-128-int.config
 cp ./src/test/resources/tests/core_operations/comp.cpp ./src/HElib/compiled/test.cpp
 cd ./src/HElib
 make
@@ -50,30 +50,30 @@ make
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
-  src/test/resources/tests/core_operations/comp.t2 --SEAL \
+  src/test/resources/tests/core_operations/eq.t2 --SEAL \
   --config src/test/resources/tests/core_operations/configs/seal-16k-128-int.config
-cp ./src/test/resources/tests/core_operations/comp.cpp ./src/SEAL/compiled/test.cpp
+cp ./src/test/resources/tests/core_operations/eq.cpp ./src/SEAL/compiled/test.cpp
 cd ./src/SEAL
 make
-./bin/test.out > ../test/resources/tests/core_operations/logs/comp_int_SEAL.log
+./bin/test.out > ../test/resources/tests/core_operations/logs/eq_int_SEAL.log
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
-  src/test/resources/tests/core_operations/comp.t2 --PALISADE \
+  src/test/resources/tests/core_operations/eq.t2 --PALISADE \
   --config src/test/resources/tests/core_operations/configs/palisade-16k-128-int.config
-cp ./src/test/resources/tests/core_operations/comp.cpp ./src/PALISADE/compiled/test.cpp
+cp ./src/test/resources/tests/core_operations/eq.cpp ./src/PALISADE/compiled/test.cpp
 cd ./src/PALISADE
 make
-./bin/test.out > ../test/resources/tests/core_operations/logs/comp_int_PALISADE.log
+./bin/test.out > ../test/resources/tests/core_operations/logs/eq_int_PALISADE.log
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
-  src/test/resources/tests/core_operations/comp.t2 --LATTIGO \
+  src/test/resources/tests/core_operations/eq.t2 --LATTIGO \
   --config src/test/resources/tests/core_operations/configs/lattigo-16k-128-int.config
-cp ./src/test/resources/tests/core_operations/comp.go ./src/Lattigo/compiled/test.go
+cp ./src/test/resources/tests/core_operations/eq.go ./src/Lattigo/compiled/test.go
 cd ./src/Lattigo
 make
-./bin/test.out > ../test/resources/tests/core_operations/logs/comp_int_Lattigo.log
+./bin/test.out > ../test/resources/tests/core_operations/logs/eq_int_Lattigo.log
 cd ../..
 
 # Binary Domain
