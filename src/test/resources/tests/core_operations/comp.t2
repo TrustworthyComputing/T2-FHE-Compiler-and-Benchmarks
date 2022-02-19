@@ -1,0 +1,34 @@
+int main(void) {
+  int i, N;
+  EncInt a_, b_, res_;
+  i = 0;
+  N = 10;
+  a_ = 0; // encrypted
+  res_ = 0;
+  b_ = 8; // encrypted
+
+  tstart();
+  for (i = 0; i < N; i++) {
+    res_ = (a_ == b_);
+  }
+  tstop();
+
+  print(res_);
+
+  tstart();
+  for (i = 0; i < N; i++) {
+    res_ = (a_ < b_);
+  }
+  tstop();
+
+  print(res_);
+
+  tstart();
+  for (i = 0; i < N; i++) {
+    res_ = (a_ <= b_);
+  }
+  tstop();
+  print(res_);
+
+  return 0;
+}
