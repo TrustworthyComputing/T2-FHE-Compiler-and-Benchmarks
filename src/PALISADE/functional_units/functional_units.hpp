@@ -434,11 +434,11 @@ std::vector<Ciphertext<T>> mult_bin(CryptoContext<T>& cc,
   size_t slots(cc->GetRingDimension());
   std::vector<int64_t> zero(slots, 0);
   Plaintext pt_zero = cc->MakePackedPlaintext(zero);
-  for (int i = 0; i < prod_.size(); i++) {
+  for (int i = 0; i < (int)prod_.size(); i++) {
     prod_[i] = cc->Encrypt(pub_key, pt_zero);
   }
-  for (int i = c1.size()-1; i >= 0; i--) {
-    for (int j = c2.size()-1; j >= (int)c2.size()-1-i; --j) {
+  for (int i = (int)c1.size()-1; i >= 0; i--) {
+    for (int j = (int)c2.size()-1; j >= (int)c2.size()-1-i; --j) {
       tmp_[j] = cc->EvalMultAndRelinearize(c1[i], c2[j]);
     }
     std::vector<Ciphertext<T>> tmp_slice_ = slice(prod_, 0, i+1);
