@@ -1,0 +1,19 @@
+int main(void) {
+  EncInt enc_sum_;
+  int x;
+  x = 5;
+
+  tstart();
+  enc_sum_ = 0; // encrypt
+  enc_sum_ = enc_sum_ + 10;
+  enc_sum_ = x + enc_sum_;
+  enc_sum_ *= 2;
+  enc_sum_ = enc_sum_ * 2;
+  x = 2;
+  enc_sum_ = x * enc_sum_;
+  tstop();
+
+  print(enc_sum_);
+
+  return 0;
+}
