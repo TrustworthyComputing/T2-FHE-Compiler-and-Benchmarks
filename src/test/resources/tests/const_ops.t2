@@ -1,11 +1,11 @@
 int main(void) {
   EncInt enc_sum_;
+  EncInt[] enc_array;
+  int[] int_array;
   int x;
-  EncInt[] foo;
-  int[] bar;
   x = 5;
-  foo = { 1, 2 };
-  bar = { 2, 3 };
+  enc_array = { 1, 2 };
+  int_array = { 2, 3 };
 
   tstart();
   enc_sum_ = 0; // encrypt
@@ -19,8 +19,10 @@ int main(void) {
   
   print(enc_sum_);
 
-  enc_sum_ = (foo[0]) * (bar[0]);
-  print(enc_sum_);
+  enc_array[0] += 2;
+  enc_array[0] += 1;
+  enc_sum_ = (enc_array[0]) * (int_array[0]);
+  print(enc_array[0]);
 
   return 0;
 }

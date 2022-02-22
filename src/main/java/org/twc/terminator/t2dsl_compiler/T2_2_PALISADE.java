@@ -360,70 +360,97 @@ public class T2_2_PALISADE extends T2_Compiler {
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
-    switch (id_type) {
-      case "int[]":
-        append_idx(id.getName());
-        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
-        this.asm_.append(" ").append(rhs.getName());
-        break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
-          if (this.is_binary_) {
-           append_idx(id.getName() + "[" + idx.getName() + "] = ");
-           switch (op) {
-             case "+=":
-               this.asm_.append("add_bin(cc, ");
-               break;
-             case "*=":
-               this.asm_.append("mult_bin(cc, ");
-               break;
-             case "-=":
-               this.asm_.append("sub_bin(cc, ");
-               break;
-             default:
-               throw new Exception("Error in compound array assignment");
-           }
-           this.asm_.append(id.getName()).append("[").append(idx.getName());
-           this.asm_.append("], ").append(rhs.getName()).append(", keyPair.publicKey)");
-          } else {
-            append_idx(id.getName());
-            this.asm_.append("[").append(idx.getName()).append("]");
-            if (op.equals("+=")) {
-              this.asm_.append(" = cc->EvalAdd(");
-            } else if (op.equals("*=")) {
-              this.asm_.append(" = cc->EvalMultAndRelinearize(");
-            } else if (op.equals("-=")) {
-              this.asm_.append(" = cc->EvalSub(");
-            } else {
-              throw new Exception("Error in compound array assignment");
-            }
-            this.asm_.append(id.getName()).append("[").append(idx.getName());
-            this.asm_.append("], ").append(rhs.getName()).append(")");
-          }
-          break;
-        } else if (rhs_type.equals("int")) {
+    if (id_type.equals("int[]")) {
+      append_idx(id.getName());
+      this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+      this.asm_.append(" ").append(rhs.getName());
+    } else if (id_type.equals("EncInt[]")) {
+      if (rhs_type.equals("EncInt")) {
+        if (this.is_binary_) {
+          append_idx(id.getName() + "[" + idx.getName() + "] = ");
           switch (op) {
-            case "<<=":
-              this.asm_.append(" = shift_left_bin(cc, ").append(id.getName());
-              this.asm_.append("[").append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+            case "+=":
+              this.asm_.append("add_bin(cc, ");
               break;
-            case ">>=":
-              this.asm_.append(" = shift_right_bin(").append(id.getName());
-              this.asm_.append("[").append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(")");
+            case "*=":
+              this.asm_.append("mult_bin(cc, ");
               break;
-            case ">>>=":
-              this.asm_.append(" = shift_right_logical_bin(cc, ").append(id.getName());
-              this.asm_.append("[").append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+            case "-=":
+              this.asm_.append("sub_bin(cc, ");
               break;
             default:
-              throw new Exception("Encrypt and move to temporary var.");
+              throw new Exception("Error in compound array assignment");
           }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName()).append(", keyPair.publicKey)");
+        } else {
+          append_idx(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("]");
+          if (op.equals("+=")) {
+            this.asm_.append(" = cc->EvalAdd(");
+          } else if (op.equals("*=")) {
+            this.asm_.append(" = cc->EvalMultAndRelinearize(");
+          } else if (op.equals("-=")) {
+            this.asm_.append(" = cc->EvalSub(");
+          } else {
+            throw new Exception("Error in compound array assignment");
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName()).append(")");
         }
-      default:
-        throw new Exception("error in array assignment");
+      } else if (rhs_type.equals("int")) {
+        if (this.is_binary_) {
+          if ("<<=".equals(op)) {
+            this.asm_.append(" = shift_left_bin(cc, ").append(id.getName());
+            this.asm_.append("[").append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+          } else if (">>=".equals(op)) {
+            this.asm_.append(" = shift_right_bin(").append(id.getName());
+            this.asm_.append("[").append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(")");
+          } else if (">>>=".equals(op)) {
+            this.asm_.append(" = shift_right_logical_bin(cc, ").append(id.getName());
+            this.asm_.append("[").append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(", keyPair.publicKey)");
+          } else {
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(id.getName() + "[" + idx.getName() + "]");
+            if ("+=".equals(op)) {
+              this.asm_.append(" = add_bin(cc, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("]");
+              this.asm_.append(", tmp_, keyPair.publicKey)");
+            } else if ("*=".equals(op)) {
+              this.asm_.append(" = mult_bin(cc, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("]");
+              this.asm_.append(", tmp_, keyPair.publicKey)");
+            } else if ("-=".equals(op)) {
+              this.asm_.append(" = sub_bin(cc, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("]");
+              this.asm_.append(", tmp_, keyPair.publicKey)");
+            } else {
+              throw new Exception("Encrypt and move to temporary var.");
+            }
+          }
+        } else {
+          append_idx("fill(" + this.vec + ".begin(), " + this.vec);
+          this.asm_.append(".end(), ").append(rhs.getName()).append(");\n");
+          append_idx("tmp = cc->MakePackedPlaintext(");
+          this.asm_.append(this.vec).append(");\n");
+          append_idx(id.getName() + "[" + idx.getName() + "]");
+          switch (op) {
+            case "+=": this.asm_.append(" = cc->EvalAdd("); break;
+            case "*=": this.asm_.append(" = cc->EvalMult("); break;
+            case "-=": this.asm_.append(" = cc->EvalSub("); break;
+            default:
+              throw new Exception("Compound array assignment:" + op + " " + rhs_type);
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("]").append(", tmp)");
+        }
+      }
+    } else {
+      throw new Exception("error in array assignment");
     }
     this.semicolon_ = true;
     return null;

@@ -421,67 +421,94 @@ public class T2_2_HElib extends T2_Compiler {
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
-    switch (id_type) {
-      case "int[]":
-        append_idx(id.getName());
-        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
-        this.asm_.append(" ").append(rhs.getName());
-        break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
-          if (this.is_binary_) {
-            append_idx(id.getName() + "[" + idx.getName() + "] = ");
-            switch (op) {
-              case "+=":
-                this.asm_.append("add_bin(public_key, ");
-                break;
-              case "*=":
-                this.asm_.append("mult_bin(public_key, ");
-                break;
-              case "-=":
-                this.asm_.append("sub_bin(public_key, ");
-                break;
-              default:
-                throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
-            }
-            this.asm_.append(id.getName()).append("[").append(idx.getName());
-            this.asm_.append("], ").append(rhs.getName());
-            this.asm_.append(", unpackSlotEncoding, slots)");
+    if (id_type.equals("int[]")) {
+      append_idx(id.getName());
+      this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+      this.asm_.append(" ").append(rhs.getName());
+    } else if (id_type.equals("EncInt[]")) {
+      if (rhs_type.equals("EncInt")) {
+        if (this.is_binary_) {
+          append_idx(id.getName() + "[" + idx.getName() + "] = ");
+          switch (op) {
+            case "+=":
+              this.asm_.append("add_bin(public_key, ");
+              break;
+            case "*=":
+              this.asm_.append("mult_bin(public_key, ");
+              break;
+            case "-=":
+              this.asm_.append("sub_bin(public_key, ");
+              break;
+            default:
+              throw new Exception("Bad operand types: EncInt " + op + " " + rhs_type);
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName());
+          this.asm_.append(", unpackSlotEncoding, slots)");
+        } else {
+          append_idx(id.getName() + "[" + idx.getName() + "] ");
+          if (op.equals("+=") || op.equals("-=")) {
+            this.asm_.append(op).append(" ").append(rhs.getName());
+          } else if (op.equals("*=")) {
+            this.asm_.append(".multiplyBy(");
+            this.asm_.append(rhs.getName()).append(")");
           } else {
-            append_idx(id.getName() + "[" + idx.getName() + "] ");
-            if (op.equals("+=") || op.equals("-=")) {
-              this.asm_.append(op).append(" ").append(rhs.getName());
-            } else if (op.equals("*=")) {
-              this.asm_.append(".multiplyBy(");
-              this.asm_.append(rhs.getName()).append(")");
+            throw new Exception("Error in compound array assignment");
+          }
+        }
+      } else if (rhs_type.equals("int")) {
+        if (this.is_binary_) {
+          if ("<<=".equals(op)) {
+            this.asm_.append("shift_left_bin(public_key, ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs.getName()).append(")");
+          } else if (">>=".equals(op)) {
+            this.asm_.append("shift_right_bin(public_key, ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs.getName()).append(")");
+          } else if (">>>=".equals(op)) {
+            this.asm_.append("shift_right_logical_bin(public_key, ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs.getName()).append(")");
+          } else {
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(id.getName() + "[" + idx.getName() + "] = ");
+            if ("+=".equals(op)) {
+              this.asm_.append("add_bin(public_key, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], tmp_, unpackSlotEncoding, slots)");
+            } else if ("*=".equals(op)) {
+              this.asm_.append("mult_bin(public_key, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], tmp_, unpackSlotEncoding, slots)");
+            } else if ("-=".equals(op)) {
+              this.asm_.append("sub_bin(public_key, ").append(id.getName());
+              this.asm_.append("[").append(idx.getName());
+              this.asm_.append("], tmp_, unpackSlotEncoding, slots)");
             } else {
-              throw new Exception("Error in compound array assignment");
+              throw new Exception("Encrypt and move to temporary var.");
             }
           }
-          break;
-        } else if (rhs_type.equals("int")) {
+        } else {
           switch (op) {
-            case "<<=":
-              this.asm_.append("shift_left_bin(public_key, ");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName()).append(")");
+            case "*=":
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("].multByConstant(NTL::ZZX(");
+              this.asm_.append(rhs.getName()).append("))");
               break;
-            case ">>=":
-              this.asm_.append("shift_right_bin(public_key, ");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName()).append(")");
-              break;
-            case ">>>=":
-              this.asm_.append("shift_right_logical_bin(public_key, ");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName()).append(")");
+            case "+=":
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("].addConstant(NTL::ZZX(");
+              this.asm_.append(rhs.getName()).append("))");
               break;
             default:
               throw new Exception("Encrypt and move to temporary var.");
           }
         }
-      default:
-        throw new Exception("error in array assignment");
+      }
+    } else {
+      throw new Exception("error in array assignment");
     }
     this.semicolon_ = true;
     return null;

@@ -255,60 +255,74 @@ public class T2_2_TFHE extends T2_Compiler {
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
-    switch (id_type) {
-      case "int[]":
-        append_idx(id.getName());
-        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
-        this.asm_.append(" ").append(rhs.getName());
-        break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
-          if (op.equals("+=")) {
-            append_idx("add(");
-          } else if (op.equals("*=")) {
-            append_idx("mult(");
-          } else if (op.equals("-=")) {
-            append_idx("sub(");
-          } else {
-            throw new Exception("Error in compound array assignment");
-          }
+    if (id_type.equals("int[]")) {
+      append_idx(id.getName());
+      this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+      this.asm_.append(" ").append(rhs.getName());
+    } else if (id_type.equals("EncInt[]")) {
+      if (rhs_type.equals("EncInt")) {
+        if (op.equals("+=")) {
+          append_idx("add(");
+        } else if (op.equals("*=")) {
+          append_idx("mult(");
+        } else if (op.equals("-=")) {
+          append_idx("sub(");
+        } else {
+          throw new Exception("Error in compound array assignment");
+        }
+        this.asm_.append(id.getName()).append("[").append(idx.getName());
+        this.asm_.append("], ").append(id.getName()).append("[");
+        this.asm_.append(idx.getName()).append("], ").append(rhs.getName());
+        this.asm_.append(", word_sz, &key->cloud)");
+      } else if (rhs_type.equals("int")) {
+        if ("<<=".equals(op)) {
+          append_idx("shift_left_bin(");
           this.asm_.append(id.getName()).append("[").append(idx.getName());
-          this.asm_.append("], ").append(id.getName()).append("[");
-          this.asm_.append(idx.getName()).append("], ").append(rhs.getName());
+          this.asm_.append("], ").append(id.getName());
+          this.asm_.append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName());
           this.asm_.append(", word_sz, &key->cloud)");
-          break;
-        } else if (rhs_type.equals("int")) {
-          switch (op) {
-            case "<<=":
-              append_idx("shift_left_bin(");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(id.getName());
-              this.asm_.append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName());
-              this.asm_.append(", word_sz, &key->cloud)");
-              break;
-            case ">>=":
-              append_idx("shift_right_bin(");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(id.getName());
-              this.asm_.append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName());
-              this.asm_.append(", word_sz, &key->cloud)");
-              break;
-            case ">>>=":
-              append_idx("shift_right_logical_bin(");
-              this.asm_.append(id.getName()).append("[").append(idx.getName());
-              this.asm_.append("], ").append(id.getName());
-              this.asm_.append("[").append(idx.getName());
-              this.asm_.append("], ").append(rhs.getName());
-              this.asm_.append(", word_sz, &key->cloud)");
-              break;
-            default:
-              throw new Exception("Encrypt and move to temporary var.");
+        } else if (">>=".equals(op)) {
+          append_idx("shift_right_bin(");
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(id.getName());
+          this.asm_.append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud)");
+        } else if (">>>=".equals(op)) {
+          append_idx("shift_right_logical_bin(");
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append(id.getName());
+          this.asm_.append("[").append(idx.getName());
+          this.asm_.append("], ").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud)");
+        } else {
+          String rhs_enc = new_ctxt_tmp();
+          append_idx(rhs_enc);
+          this.asm_.append(" = e_cloud(").append(rhs.getName());
+          this.asm_.append(", word_sz, &key->cloud);\n");
+          if (op.equals("+=")){
+            append_idx("add(" + id.getName() + "[" + idx.getName() + "], ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs_enc);
+            this.asm_.append(", word_sz, &key->cloud)");
+          } else if ("*=".equals(op)) {
+            append_idx("mult(" + id.getName() + "[" + idx.getName() + "], ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs_enc);
+            this.asm_.append(", word_sz, &key->cloud)");
+          } else if ("-=".equals(op)) {
+            append_idx("sub(" + id.getName() + "[" + idx.getName() + "], ");
+            this.asm_.append(id.getName()).append("[").append(idx.getName());
+            this.asm_.append("], ").append(rhs_enc);
+            this.asm_.append(", word_sz, &key->cloud)");
+          } else {
+            throw new Exception("Encrypt and move to temporary var.");
           }
         }
-      default:
-        throw new Exception("error in array assignment");
+      }
+    } else {
+      throw new Exception("error in array assignment");
     }
     this.semicolon_ = true;
     return null;

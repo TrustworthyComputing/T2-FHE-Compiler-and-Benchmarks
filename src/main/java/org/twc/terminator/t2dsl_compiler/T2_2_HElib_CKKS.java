@@ -154,7 +154,8 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
         this.asm_.append(" ").append(rhs.getName());
         break;
       case "EncDouble[]":
-        if (rhs_type.equals("EncDouble")) {
+        if (rhs_type.equals("EncDouble") ||
+            rhs_type.equals("int") || rhs_type.equals("double")) {
           append_idx(id.getName());
           this.asm_.append("[").append(idx.getName()).append("] ");
           if (op.equals("+=") || op.equals("-=") || op.equals("*=")) {
@@ -162,12 +163,10 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
           } else {
             throw new Exception("Error in compound array assignment");
           }
-          break;
-        } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          throw new Exception("Encrypt and move to temporary var.");
         }
+        break;
       default:
-        throw new Exception("error in array assignment");
+        throw new Exception("error in compound array assignment");
     }
     this.semicolon_ = true;
     return null;

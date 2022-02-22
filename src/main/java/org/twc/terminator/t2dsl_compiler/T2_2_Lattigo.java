@@ -545,24 +545,36 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       } else if (rhs_type.equals("int")) {
         if (this.is_binary_) {
-          switch (op) {
-            case "<<=":
-              append_idx("funits.BinShiftLeft(" + id.getName() + "[");
-              this.asm_.append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(")");
-              break;
-            case ">>=":
-              append_idx("funits.BinShiftRight(" + id.getName() + "[");
-              this.asm_.append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(")");
-              break;
-            case ">>>=":
-              append_idx("funits.BinShiftRightLogical(" + id.getName() + "[");
-              this.asm_.append(idx.getName()).append("], ");
-              this.asm_.append(rhs.getName()).append(")");
-              break;
-            default:
+          if ("<<=".equals(op)) {
+            append_idx("funits.BinShiftLeft(" + id.getName() + "[");
+            this.asm_.append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(")");
+          } else if (">>=".equals(op)) {
+            append_idx("funits.BinShiftRight(" + id.getName() + "[");
+            this.asm_.append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(")");
+          } else if (">>>=".equals(op)) {
+            append_idx("funits.BinShiftRightLogical(" + id.getName() + "[");
+            this.asm_.append(idx.getName()).append("], ");
+            this.asm_.append(rhs.getName()).append(")");
+          } else {
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append("\n");
+            if ("+=".equals(op)) {
+              append_idx(id.getName() + "[" + idx.getName() + "] = funits.BinAdd(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], tmp_)");
+            } else if ("*=".equals(op)) {
+              append_idx(id.getName() + "[" + idx.getName() + "] = funits.BinMult(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], tmp_)");
+            } else if ("-=".equals(op)) {
+              append_idx(id.getName() + "[" + idx.getName() + "] = funits.BinSub(");
+              this.asm_.append(id.getName()).append("[").append(idx.getName());
+              this.asm_.append("], tmp_)");
+            } else {
               throw new Exception("Encrypt and move to temporary var.");
+            }
           }
         } else {
           switch (op) {
@@ -577,6 +589,13 @@ public class T2_2_Lattigo extends T2_Compiler {
               this.asm_.append("\n");
               append_idx(id.getName() + "[" + idx.getName());
               this.asm_.append("] = evaluator.AddNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], tmp_)");
+              break;
+            case "-=":
+              encrypt("tmp_", new String[]{rhs.getName()});
+              this.asm_.append("\n");
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("] = evaluator.SubNew(").append(id.getName());
               this.asm_.append("[").append(idx.getName()).append("], tmp_)");
               break;
             default:

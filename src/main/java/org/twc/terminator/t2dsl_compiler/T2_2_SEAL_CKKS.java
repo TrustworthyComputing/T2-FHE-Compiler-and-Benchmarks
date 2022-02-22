@@ -231,7 +231,21 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
           }
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          append_idx("encoder.encode(");
+          this.asm_.append(rhs.getName()).append(", scale, tmp);\n");
+          append_idx("evaluator.mod_switch_to_inplace(tmp, " + id.getName());
+          this.asm_.append("[").append(idx.getName()).append("].parms_id());\n");
+          append_idx("evaluator.");
+          switch (op) {
+            case "+=": this.asm_.append("add_plain("); break;
+            case "*=": this.asm_.append("multiply_plain("); break;
+            case "-=": this.asm_.append("sub_plain("); break;
+            default:
+              throw new Exception("Compound array: " + op + " " + rhs_type);
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], ").append("tmp, ").append(id.getName());
+          this.asm_.append("[").append(idx.getName()).append("])");
         }
       default:
         throw new Exception("error in array assignment");

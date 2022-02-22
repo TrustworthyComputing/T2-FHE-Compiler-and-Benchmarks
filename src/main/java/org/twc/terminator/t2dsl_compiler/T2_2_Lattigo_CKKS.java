@@ -261,10 +261,17 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
               this.asm_.append("[").append(idx.getName()).append("], ");
               this.asm_.append(rhs.getName()).append(")");
               break;
+            case "-=":
+              append_idx(id.getName() + "[" + idx.getName() + "]");
+              this.asm_.append(" = evaluator.AddConstNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], -1*");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
             default:
               throw new Exception("Encrypt and move to temporary var.");
           }
         }
+        break;
       default:
         throw new Exception("error in array assignment");
     }

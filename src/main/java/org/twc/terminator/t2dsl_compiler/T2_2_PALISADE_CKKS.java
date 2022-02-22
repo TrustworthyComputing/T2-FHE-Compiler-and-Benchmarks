@@ -213,7 +213,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
             this.asm_.append(" = cc->EvalAdd(");
           } else if (op.equals("*=")) {
             this.asm_.append(" = cc->EvalMultAndRelinearize(");
-//            auto c2_depth1 = cc->Rescale(c2_depth2);
           } else if (op.equals("-=")) {
             this.asm_.append(" = cc->EvalSub(");
           } else {
@@ -223,7 +222,20 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
           this.asm_.append("], ").append(rhs.getName()).append(")");
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
+          append_idx("vector<double> " + tmp_vec + "(slots, " + rhs.getName() + ");\n");
+          append_idx("tmp = cc->MakeCKKSPackedPlaintext(");
+          this.asm_.append(tmp_vec).append(");\n");
+          append_idx(id.getName() + "[" + idx.getName() + "]");
+          switch (op) {
+            case "+=": this.asm_.append(" = cc->EvalAdd("); break;
+            case "*=": this.asm_.append(" = cc->EvalMult("); break;
+            case "-=": this.asm_.append(" = cc->EvalSub("); break;
+            default:
+              throw new Exception("Compound array: " + op + " " + rhs_type);
+          }
+          this.asm_.append(id.getName()).append("[").append(idx.getName());
+          this.asm_.append("], tmp)");
         }
       default:
         throw new Exception("error in array assignment");
