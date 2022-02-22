@@ -76,18 +76,14 @@ public class T2_2_Lattigo extends T2_Compiler {
                    "&params, int(paramDef.T), slots, word_sz)\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
     append_idx("tmp := make([]int64, slots)\n");
-    append_idx("encoder.EncodeInt(tmp, ptxt)\n\n");
-  }
-
-  protected void declare_tmp_if_not_declared() {
-    if (this.is_tmp_declared_) return;
-    this.is_tmp_declared_ = true;
+    append_idx("encoder.EncodeInt(tmp, ptxt)\n");
     if (this.is_binary_) {
       append_idx("tmp_ := make(" + this.st_.backend_types.get("EncInt"));
       this.asm_.append(", word_sz)").append("\n");
     } else {
       append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n");
     }
+    append_idx("_ = tmp_\n\n");
   }
 
   /**
@@ -339,7 +335,6 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (this.is_binary_) {
         append_idx(id.getName() + " = funits.BinInc(" + id.getName() + ")");
       } else {
-        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{"1"});
         this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.AddNew(");
@@ -363,7 +358,6 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (this.is_binary_) {
         append_idx(id.getName() + " = funits.BinDec(" + id.getName() + ")");
       } else {
-        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{"1"});
         this.asm_.append("\n");
         append_idx(id.getName() + " = evaluator.SubNew(");
@@ -416,7 +410,6 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(rhs.getName()).append(")");
             break;
           case "*=":
-            declare_tmp_if_not_declared();
             append_idx("tmp_ = evaluator.");
             this.asm_.append("MulNew(").append(lhs.getName()).append(", ");
             this.asm_.append(rhs.getName()).append(")\n");
@@ -433,7 +426,6 @@ public class T2_2_Lattigo extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       if (this.is_binary_) {
-        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{rhs.getName()});
         this.asm_.append("\n");
         switch (op) {
@@ -466,7 +458,6 @@ public class T2_2_Lattigo extends T2_Compiler {
           this.asm_.append(lhs.getName()).append(", uint64(");
           this.asm_.append(rhs.getName()).append("))");
         } else {
-          declare_tmp_if_not_declared();
           encrypt("tmp_", new String[]{rhs.getName()});
           this.asm_.append("\n");
           if ("+=".equals(op)) {
@@ -500,93 +491,101 @@ public class T2_2_Lattigo extends T2_Compiler {
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
-    switch (id_type) {
-      case "int[]":
-        append_idx(id.getName());
-        this.asm_.append("[").append(idx.getName()).append("] ").append(op);
-        this.asm_.append(" ").append(rhs.getName());
-        break;
-      case "EncInt[]":
-        if (rhs_type.equals("EncInt")) {
-          if (this.is_binary_) {
-            append_idx(id.getName() + "[" + idx.getName() + "] = ");
-            switch (op) {
-              case "+=":
-                this.asm_.append("funits.BinAdd(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              case "*=":
-                this.asm_.append("funits.BinMult(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              case "-=":
-                this.asm_.append("funits.BinSub(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              default:
-                throw new Exception("Error in compound array assignment");
-            }
-          } else {
-            switch (op) {
-              case "+=":
-                append_idx(id.getName() + "[" + idx.getName() + "]");
-                this.asm_.append(" = evaluator.AddNew(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              case "*=":
-                declare_tmp_if_not_declared();
-                this.asm_.append("tmp_ = evaluator.MulNew(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")\n");
-                append_idx(id.getName() + "[" + idx.getName());
-                this.asm_.append("] = evaluator.RelinearizeNew(tmp_)");
-                break;
-              case "-=":
-                append_idx(id.getName() + "[" + idx.getName() + "]");
-                this.asm_.append(" = evaluator.SubNew(").append(id.getName());
-                this.asm_.append("[").append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              default:
-                throw new Exception("Error in compound array assignment");
-            }
+    if (id_type.equals("int[]")) {
+      append_idx(id.getName());
+      this.asm_.append("[").append(idx.getName()).append("] ").append(op);
+      this.asm_.append(" ").append(rhs.getName());
+    } else if (id_type.equals("EncInt[]")) {
+      if (rhs_type.equals("EncInt")) {
+        if (this.is_binary_) {
+          append_idx(id.getName() + "[" + idx.getName() + "] = ");
+          switch (op) {
+            case "+=":
+              this.asm_.append("funits.BinAdd(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case "*=":
+              this.asm_.append("funits.BinMult(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case "-=":
+              this.asm_.append("funits.BinSub(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            default:
+              throw new Exception("Error in compound array assignment");
           }
-          break;
-        } else if (rhs_type.equals("int")) {
-          if (this.is_binary_) {
-            switch (op) {
-              case "<<=":
-                append_idx("funits.BinShiftLeft(" + id.getName() + "[");
-                this.asm_.append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              case ">>=":
-                append_idx("funits.BinShiftRight(" + id.getName() + "[");
-                this.asm_.append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              case ">>>=":
-                append_idx("funits.BinShiftRightLogical(" + id.getName() + "[");
-                this.asm_.append(idx.getName()).append("], ");
-                this.asm_.append(rhs.getName()).append(")");
-                break;
-              default:
-                throw new Exception("Encrypt and move to temporary var.");
-            }
-          } else if (op.equals("*=")) {
-            append_idx(id.getName() + "[" + idx.getName());
-            this.asm_.append("] = evaluator.MulScalarNew(").append(id.getName());
-            this.asm_.append("[").append(idx.getName()).append("], uint64(");
-            this.asm_.append(rhs.getName()).append("))\n");
-            break;
+        } else {
+          switch (op) {
+            case "+=":
+              append_idx(id.getName() + "[" + idx.getName() + "]");
+              this.asm_.append(" = evaluator.AddNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case "*=":
+              this.asm_.append("tmp_ = evaluator.MulNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")\n");
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("] = evaluator.RelinearizeNew(tmp_)");
+              break;
+            case "-=":
+              append_idx(id.getName() + "[" + idx.getName() + "]");
+              this.asm_.append(" = evaluator.SubNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            default:
+              throw new Exception("Error in compound array assignment");
           }
         }
-      default:
-        throw new Exception("error in array assignment");
+      } else if (rhs_type.equals("int")) {
+        if (this.is_binary_) {
+          switch (op) {
+            case "<<=":
+              append_idx("funits.BinShiftLeft(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case ">>=":
+              append_idx("funits.BinShiftRight(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case ">>>=":
+              append_idx("funits.BinShiftRightLogical(" + id.getName() + "[");
+              this.asm_.append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
+        } else {
+          switch (op) {
+            case "*=":
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("] = evaluator.MulScalarNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], uint64(");
+              this.asm_.append(rhs.getName()).append("))");
+              break;
+            case "+=":
+              encrypt("tmp_", new String[]{rhs.getName()});
+              this.asm_.append("\n");
+              append_idx(id.getName() + "[" + idx.getName());
+              this.asm_.append("] = evaluator.AddNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], tmp_)");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
+        }
+      }
+    } else {
+      throw new Exception("error in array assignment");
     }
     this.semicolon_ = true;
     return null;
@@ -997,7 +996,6 @@ public class T2_2_Lattigo extends T2_Compiler {
         return new Var_t("bool", lhs.getName() + op + rhs.getName());
       }
     } else if (lhs_type.equals("int") && rhs_type.equals("EncInt")) {
-      declare_tmp_if_not_declared();
       encrypt("tmp_", new String[]{lhs.getName()});
       this.asm_.append("\n");
       if (this.is_binary_) {
@@ -1078,7 +1076,6 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
-      declare_tmp_if_not_declared();
       encrypt("tmp_", new String[]{rhs.getName()});
       this.asm_.append("\n");
       if (this.is_binary_) {
@@ -1215,7 +1212,6 @@ public class T2_2_Lattigo extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             break;
           case "*":
-            declare_tmp_if_not_declared();
             append_idx("tmp_ = evaluator.MulNew(");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
             append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
@@ -1271,7 +1267,6 @@ public class T2_2_Lattigo extends T2_Compiler {
         append_idx(res_ + " := funits.BinNot(" + exp.getName() + ")\n");
       } else {
         append_idx(res_ + " := evaluator.NegNew(" + exp.getName() + ")\n");
-        declare_tmp_if_not_declared();
         encrypt("tmp_", new String[]{"1"});
         this.asm_.append("\n");
         append_idx(res_ + " = evaluator.SubNew(" + res_ + ", tmp_)\n");

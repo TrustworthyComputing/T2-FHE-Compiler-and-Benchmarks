@@ -35,7 +35,9 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
     append_idx("var ptxt *ckks.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
-    append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n\n");
+    append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
+    append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n");
+    append_idx("_ = tmp_\n\n");
   }
 
   /**
@@ -108,7 +110,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
       assign_to_all_slots(tmp_vec, "1", null);
       append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
-      declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.AddNew(");
       this.asm_.append(id.getName()).append(", tmp_)\n");
@@ -131,7 +132,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       append_idx(tmp_vec + " := make([]complex128, slots)\n");
       assign_to_all_slots(tmp_vec, "1", null);
       append_idx("ptxt = encoder.EncodeNew(" + tmp_vec + ", params.MaxLevel(), params.DefaultScale(), slots)\n");
-      declare_tmp_if_not_declared();
       append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
       append_idx(id.getName() + " = evaluator.SubNew(");
       this.asm_.append(id.getName()).append(", tmp_)\n");
@@ -165,7 +165,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(rhs.getName()).append(")");
           break;
         case "*=":
-          declare_tmp_if_not_declared();
           append_idx("tmp_ = evaluator.");
           this.asm_.append("MulNew(").append(lhs.getName()).append(", ");
           this.asm_.append(rhs.getName()).append(")\n");
@@ -190,7 +189,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       } else if ("-=".equals(op)) {
         assign_to_all_slots("tmp", rhs.getName(), null);
         append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-        declare_tmp_if_not_declared();
         append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
         append_idx(lhs.getName() + " = evaluator.");
         this.asm_.append("SubNew(").append(lhs.getName()).append(", tmp_)");
@@ -234,7 +232,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
               this.asm_.append(rhs.getName()).append(")");
               break;
             case "*=":
-              declare_tmp_if_not_declared();
               this.asm_.append("tmp_ = evaluator.MulNew(").append(id.getName());
               this.asm_.append("[").append(idx.getName()).append("], ");
               this.asm_.append(rhs.getName()).append(")\n");
@@ -527,7 +524,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       } else if ("-".equals(op)) {
         assign_to_all_slots("tmp", lhs.getName(), null);
         append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-        declare_tmp_if_not_declared();
         append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
         append_idx(res_ + " := evaluator.SubNew(tmp_, ");
         this.asm_.append(rhs.getName()).append(")\n");
@@ -549,7 +545,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       } else if ("-".equals(op)) {
         assign_to_all_slots("tmp", rhs.getName(), null);
         append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-        declare_tmp_if_not_declared();
         append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
         append_idx(res_ + " := evaluator.SubNew(");
         this.asm_.append(lhs.getName()).append(", tmp_)\n");
@@ -567,7 +562,6 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
           break;
         case "*":
-          declare_tmp_if_not_declared();
           append_idx("tmp_ = evaluator.MulNew(");
           this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");
           append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");

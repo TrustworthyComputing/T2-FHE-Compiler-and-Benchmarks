@@ -1,7 +1,11 @@
 int main(void) {
   EncInt enc_sum_;
   int x;
+  EncInt[] foo;
+  int[] bar;
   x = 5;
+  foo = { 1, 2 };
+  bar = { 2, 3 };
 
   tstart();
   enc_sum_ = 0; // encrypt
@@ -12,7 +16,10 @@ int main(void) {
   x = 2;
   enc_sum_ = x * enc_sum_;
   tstop();
+  
+  print(enc_sum_);
 
+  enc_sum_ = (foo[0]) * (bar[0]);
   print(enc_sum_);
 
   return 0;
