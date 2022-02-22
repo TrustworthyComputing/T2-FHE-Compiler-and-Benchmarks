@@ -375,7 +375,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
       throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
     String size_type = size.getType();
-    if (size_type == null) size_type = st_.findType(expr);
+    if (size_type == null) size_type = st_.findType(size);
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
     append_idx("ptxt.decryptComplex(");

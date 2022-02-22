@@ -611,7 +611,7 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
    * f4 -> Expression()
    * f5 -> ")"
    */
-  public Var_t visit(PrintBatchedStatement n) throws Exception { //is int
+  public Var_t visit(PrintBatchedStatement n) throws Exception {
     n.f0.accept(this);
     n.f1.accept(this);
     Var_t expr = n.f2.accept(this);
@@ -619,9 +619,11 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
     String expr_type = st_.findType(expr);
     Var_t size = n.f4.accept(this);
     String size_type = size.getType();
-    if (size_type == null) size_type = st_.findType(expr);
+    if (size_type == null || size_type.equals("")) {
+      size_type = st_.findType(size);
+    }
     if (!size_type.equals("int"))
-      throw new RuntimeException("PrintBatchedStatement: size type");
+      throw new RuntimeException("PrintBatchedStatement: size type " + size_type);
     if (expr_type.equals("EncInt") || expr_type.equals("EncDouble")) {
       return null;
     }

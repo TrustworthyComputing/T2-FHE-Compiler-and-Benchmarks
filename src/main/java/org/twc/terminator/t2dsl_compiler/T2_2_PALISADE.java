@@ -665,7 +665,7 @@ public class T2_2_PALISADE extends T2_Compiler {
       throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
     String size_type = size.getType();
-    if (size_type == null) size_type = st_.findType(expr);
+    if (size_type == null) size_type = st_.findType(size);
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
     if (this.is_binary_) {

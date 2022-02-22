@@ -671,7 +671,7 @@ public class T2_2_SEAL extends T2_Compiler {
       throw new RuntimeException("PrintBatchedStatement: expression type");
     Var_t size = n.f4.accept(this);
     String size_type = size.getType();
-    if (size_type == null) size_type = st_.findType(expr);
+    if (size_type == null) size_type = st_.findType(size);
     if (!size_type.equals("int"))
       throw new RuntimeException("PrintBatchedStatement: size type");
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
