@@ -28,6 +28,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("kgen := ckks.NewKeyGenerator(params)\n");
     append_idx("clientSk, clientPk := kgen.GenKeyPair()\n");
     append_idx("encryptorPk := ckks.NewEncryptor(params, clientPk)\n");
+    append_idx("_ = encryptorPk\n");
     append_idx("encryptorSk := ckks.NewEncryptor(params, clientSk)\n");
     append_idx("decryptor := ckks.NewDecryptor(params, clientSk)\n");
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
@@ -180,26 +181,21 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      assign_to_all_slots("tmp", rhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-      declare_tmp_if_not_declared();
-      append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
-      switch (op) {
-        case "+=":
-          append_idx(lhs.getName() + " = evaluator.");
-          this.asm_.append("AddNew(").append(lhs.getName()).append(", tmp_)");
-          break;
-        case "*=":
-          declare_tmp_if_not_declared();
-          append_idx("tmp_ = evaluator.MulNew(" + lhs.getName() + ", tmp_)\n");
-          append_idx(lhs.getName() + " = evaluator.RelinearizeNew(tmp_)");
-          break;
-        case "-=":
-          append_idx(lhs.getName() + " = evaluator.");
-          this.asm_.append("SubNew(").append(lhs.getName()).append(", tmp_)");
-          break;
-        default:
-          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      if ("+=".equals(op)) {
+        append_idx(lhs.getName() + " = evaluator.AddConstNew(");
+        this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
+      } else if ("*=".equals(op)) {
+        append_idx(lhs.getName() + " = evaluator.MultByConstNew(");
+        this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")");
+      } else if ("-=".equals(op)) {
+        assign_to_all_slots("tmp", rhs.getName(), null);
+        append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
+        declare_tmp_if_not_declared();
+        append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
+        append_idx(lhs.getName() + " = evaluator.");
+        this.asm_.append("SubNew(").append(lhs.getName()).append(", tmp_)");
+      } else {
+        throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
     }
     this.semicolon_ = true;
@@ -255,7 +251,22 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           }
           break;
         } else if (rhs_type.equals("int") || rhs_type.equals("double")) {
-          throw new Exception("Encrypt and move to temporary var.");
+          switch (op) {
+            case "+=":
+              append_idx(id.getName() + "[" + idx.getName() + "]");
+              this.asm_.append(" = evaluator.AddConstNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            case "*=":
+              append_idx(id.getName() + "[" + idx.getName() + "]");
+              this.asm_.append(" = evaluator.MultByConstNew(").append(id.getName());
+              this.asm_.append("[").append(idx.getName()).append("], ");
+              this.asm_.append(rhs.getName()).append(")");
+              break;
+            default:
+              throw new Exception("Encrypt and move to temporary var.");
+          }
         }
       default:
         throw new Exception("error in array assignment");
@@ -507,63 +518,47 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       }
     } else if ((lhs_type.equals("int") || lhs_type.equals("double")) &&
                 rhs_type.equals("EncDouble")) {
-      assign_to_all_slots("tmp", lhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-      declare_tmp_if_not_declared();
-      append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
-      switch (op) {
-        case "+":
-          append_idx(res_ + " := evaluator.AddNew(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          break;
-        case "*":
-          declare_tmp_if_not_declared();
-          append_idx("tmp_ = evaluator.MulNew(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
-          break;
-        case "-":
-          append_idx(res_ + " := evaluator.SubNew(tmp_, ");
-          this.asm_.append(rhs.getName()).append(")\n");
-          break;
-        case "^":
-          throw new Exception("XOR over encrypted doubles is not possible");
-        case "==":
-        case "<":
-        case "<=":
-          throw new RuntimeException("Comparisons not possible in CKKS");
-        default:
-          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      if ("+".equals(op)) {
+        append_idx(res_ + " := evaluator.AddConstNew(" + rhs.getName());
+        this.asm_.append(", ").append(lhs.getName()).append(")\n");
+      } else if ("*".equals(op)) {
+        append_idx(res_ + " := evaluator.MultByConstNew(" + rhs.getName());
+        this.asm_.append(", ").append(lhs.getName()).append(")\n");
+      } else if ("-".equals(op)) {
+        assign_to_all_slots("tmp", lhs.getName(), null);
+        append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
+        declare_tmp_if_not_declared();
+        append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
+        append_idx(res_ + " := evaluator.SubNew(tmp_, ");
+        this.asm_.append(rhs.getName()).append(")\n");
+      } else if ("^".equals(op)) {
+        throw new Exception("XOR over encrypted doubles is not possible");
+      } else if ("==".equals(op) || "<".equals(op) || "<=".equals(op)) {
+        throw new RuntimeException("Comparisons not possible in CKKS");
+      } else {
+        throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
     } else if (lhs_type.equals("EncDouble") &&
                 (rhs_type.equals("int") || rhs_type.equals("double"))) {
-      assign_to_all_slots("tmp", rhs.getName(), null);
-      append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
-      declare_tmp_if_not_declared();
-      append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
-      switch (op) {
-        case "+":
-          append_idx(res_ + " := evaluator.AddNew(");
-          this.asm_.append(lhs.getName()).append(", tmp_)\n");
-          break;
-        case "*":
-          declare_tmp_if_not_declared();
-          append_idx("tmp_ = evaluator.MulNew(");
-          this.asm_.append(lhs.getName()).append(", tmp_)\n");
-          append_idx(res_ + " := evaluator.RelinearizeNew(tmp_)\n");
-          break;
-        case "-":
-          append_idx(res_ + " := evaluator.SubNew(");
-          this.asm_.append(lhs.getName()).append(", tmp_)\n");
-          break;
-        case "^":
-          throw new Exception("XOR over encrypted doubles is not possible");
-        case "==":
-        case "<":
-        case "<=":
-          throw new RuntimeException("Comparisons not possible in CKKS");
-        default:
-          throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
+      if ("+".equals(op)) {
+        append_idx(res_ + " := evaluator.AddConstNew(" + lhs.getName());
+        this.asm_.append(", ").append(rhs.getName()).append(")\n");
+      } else if ("*".equals(op)) {
+        append_idx(res_ + " := evaluator.MultByConstNew(" + lhs.getName());
+        this.asm_.append(", ").append(rhs.getName()).append(")\n");
+      } else if ("-".equals(op)) {
+        assign_to_all_slots("tmp", rhs.getName(), null);
+        append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
+        declare_tmp_if_not_declared();
+        append_idx("tmp_ = encryptorPk.EncryptNew(ptxt)\n");
+        append_idx(res_ + " := evaluator.SubNew(");
+        this.asm_.append(lhs.getName()).append(", tmp_)\n");
+      } else if ("^".equals(op)) {
+        throw new Exception("XOR over encrypted doubles is not possible");
+      } else if ("==".equals(op) || "<".equals(op) || "<=".equals(op)) {
+        throw new RuntimeException("Comparisons not possible in CKKS");
+      } else {
+        throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
       }
     } else if (lhs_type.equals("EncDouble") && rhs_type.equals("EncDouble")) {
       switch (op) {
