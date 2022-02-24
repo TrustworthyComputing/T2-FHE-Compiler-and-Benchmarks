@@ -486,6 +486,23 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
   }
 
   /**
+   * f0 -> <REDUCE_NOISE>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   */
+  public Var_t visit(ReduceNoiseStatement n) throws Exception {
+    Var_t expr = n.f2.accept(this);
+    String expr_type = st_.findType(expr);
+    if (!expr_type.equals("EncDouble"))
+      throw new RuntimeException("ReduceNoiseStatement");
+    append_idx("evaluator.Rescale(");
+    this.asm_.append(expr.getName()).append(", params.DefaultScale(), ");
+    this.asm_.append(expr.getName()).append(")\n");
+    return null;
+  }
+
+  /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()
    * f2 -> PrimaryExpression()
@@ -514,7 +531,13 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
               ">>".equals(op) || "+".equals(op) || "-".equals(op) || "*".equals(op) ||
               "/".equals(op) || "%".equals(op)
       ) {
-        return new Var_t("double", lhs.getName() + op + rhs.getName());
+        if (lhs_type.equals("int") && rhs_type.equals("double")) {
+          return new Var_t("double", "float64(" + lhs.getName() + ")" + op + rhs.getName());
+        } else if (rhs_type.equals("int") && lhs_type.equals("double")) {
+          return new Var_t("double", lhs.getName() + op + "float64(" + rhs.getName() + ")");
+        } else {
+          return new Var_t("double", lhs.getName() + op + rhs.getName());
+        }
       } else if ("==".equals(op) || "!=".equals(op) || "<".equals(op) ||
               "<=".equals(op) || ">".equals(op) || ">=".equals(op) ||
               "&&".equals(op) || "||".equals(op)) {

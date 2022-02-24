@@ -1,13 +1,11 @@
 int main(void) {
   int i, N;
-  EncDouble a_, b_, res_, dummy_;
+  EncDouble a_, b_, res_;
   i = 0;
-  N = 10;
-  a_ = 0.0; // encrypted
+  N = 100;
+  a_ = 1.0; // encrypted
   b_ = 8.0; // encrypted
   res_ = 0.0;
-  dummy_ = 0.0;
-  dummy_ += 3.0; // Needed for Lattigo
 
   tstart();
   for (i = 0; i < N; i++) {
@@ -19,6 +17,9 @@ int main(void) {
   tstart();
   for (i = 0; i < N; i++) {
     res_ = a_ * b_;
+    reduce_noise(res_);
+    res_ *= 1.0;
+    reduce_noise(res_);
   }
   tstop();
   print(res_);
