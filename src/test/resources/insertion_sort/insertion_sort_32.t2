@@ -1,0 +1,28 @@
+int main(void) {
+  EncInt[] arr;
+  EncInt x, y, cond; 
+  int i, j;
+  int isort_size; 
+
+  isort_size = 32;
+  arr = { 5, 6, 2, 8, 1, 4, 2, 3,
+          5, 6, 2, 8, 1, 4, 2, 3,
+          5, 6, 2, 8, 1, 4, 2, 3,
+          5, 6, 2, 8, 1, 4, 2, 3};
+  tstart();  
+  for (i = 1; i < isort_size; i++) {
+    for (j = i; j != 0; j--) {
+      x = arr[(j - 1)];
+      y = arr[j];
+      cond = y < x;
+      arr[(j-1)] = (cond) ? y : x; 
+      arr[j] = (cond) ? x : y;
+    }
+  }
+  tstop();
+  for (i = 0; i < isort_size; i++) {
+    print(arr[i]);
+  }
+  return 0;
+}
+
