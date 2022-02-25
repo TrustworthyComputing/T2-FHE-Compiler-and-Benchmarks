@@ -5,25 +5,40 @@ from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 2.0)
 
-# Milliseconds
+# Seconds
 data = {
-'4x4 x 4x4'  : {
-  'helib': 10735,
-  'lattigo': 146.342248,
-  'palisade': 271,
-  'seal': 170 },
-'8x8 x 8x8' : {
-  'helib': 15438,
-  'lattigo': 1156.690684,
-  'palisade': 2315,
-  'seal': 1364 },
-'16x16 x 16x16' : {
-  'helib': 122990,
-  'lattigo': 9182.076787,
-  'palisade': 18515,
-  'seal': 10735 }
+'Int $n = 50$': {
+  'helib': 12,
+  'lattigo': 37.7,
+  'palisade': 19.9,
+  'seal': 11.6 },
+'FP $n = 50$': {
+  'helib': 16,
+  'lattigo': 251,
+  'palisade': 175,
+  'seal': 193 },
+'Int $n = 100$': {
+  'helib': 24,
+  'lattigo': 75.3,
+  'palisade': 40.4,
+  'seal': 21.6 },
+'FP $n = 100$': {
+  'helib': 26.8,
+  'lattigo': 502,
+  'palisade': 372,
+  'seal': 386 },
+'Int $n = 150$': {
+  'helib': 38.314,
+  'lattigo': 107.401,
+  'palisade': 56.891,
+  'seal': 30.484 },
+'FP $n = 150$': {
+  'helib': 44.568,
+  'lattigo': 756.000,
+  'palisade': 578.062,
+  'seal': 598.460 }
 }
 
 helib = []
@@ -34,14 +49,14 @@ seal = []
 x_axis_label = []
 for k,val in data.items():
   x_axis_label.append(k)
-  helib.append(val['helib'] / 1000)
-  lattigo.append(val['lattigo'] / 1000)
-  palisade.append(val['palisade'] / 1000)
-  seal.append(val['seal'] / 1000)
+  helib.append(val['helib'])
+  lattigo.append(val['lattigo'])
+  palisade.append(val['palisade'])
+  seal.append(val['seal'])
 
 N = len(palisade)
 index = np.arange(N) # the x locations for the groups
-width = 0.22 # the width of the bars
+width = 0.23 # the width of the bars
 
 fig, ax = plt.subplots(figsize=pltsize)
 ax.margins(0.02, 0.02)
@@ -56,24 +71,21 @@ rects4 = ax.bar(index + 2*width, seal, width,
                 color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
 
 ax.set_yscale('log')
-ax.set_ylim([0.1, 1000])
+ax.set_ylim([10, 1300])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Matrices Size")
+ax.set_xlabel("Max Hidden Neurons")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]),
 #           ("HElib", "Lattigo", "PALISADE", "SEAL"),
-#           fontsize=9, ncol=2, loc='upper left')
+#           fontsize=9, ncol=4, loc='upper center')
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 0.01:
-      ax.text(rect.get_x() + rect.get_width()/2., 0.11, 'N/A', ha='center', va='bottom', fontsize=7)
+    if height <= 1:
       continue
     elif height < 10:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
-    elif height < 1000:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
@@ -86,4 +98,4 @@ autolabel_above(rects4)
 # plt.show()
 
 plt.tight_layout()
-plt.savefig("./mmult_ckks.png", dpi=mydpi, bbox_inches="tight", pad_inches=0.03)
+plt.savefig("./nn.png", dpi=mydpi, bbox_inches="tight", pad_inches=0.03)

@@ -4,33 +4,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2.3)
+pltsize = (6, 2)
 
 # Milliseconds
 data = {
 'Integer $|v| = 4$' : {
   'helib': 7440,
-  'lattigo': 10,
-  'palisade': 10,
+  'lattigo': 1400,
+  'palisade': 1400,
   'seal': 41174,
   'tfhe': 5533 },
 'Binary $|v| = 4$' : {
   'helib': 27821,
   'lattigo': 300617.807603,
   'palisade': 96382,
-  'seal': 10,
+  'seal': 1400,
   'tfhe': 3618 },
 'Integer $|v| = 8$' : {
   'helib': 14882,
-  'lattigo': 10,
-  'palisade': 10,
+  'lattigo': 1400,
+  'palisade': 1400,
   'seal': 82346,
   'tfhe': 11073 },
 'Binary $|v| = 8$' : {
   'helib': 51405,
   'lattigo': 805777.32338,
   'palisade': 190134,
-  'seal': 10,
+  'seal': 1400,
   'tfhe': 7259 },
 }
 
@@ -51,43 +51,43 @@ for k,val in data.items():
 
 N = len(palisade)
 index = np.arange(N) # the x locations for the groups
-width = 0.16 # the width of the bars
+width = 0.18 # the width of the bars
 
 fig, ax = plt.subplots(figsize=pltsize)
 ax.margins(0.02, 0.02)
 
-rects1 = ax.bar(index - 3*width/2 - 2*width/8, helib, width,
+rects1 = ax.bar(index - 3*width/2, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
-rects2 = ax.bar(index - width/2 - width/8, lattigo, width,
+rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
 rects3 = ax.bar(index + width/2, palisade, width,
                 color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
-rects4 = ax.bar(index + 3*width/2 + width/8, seal, width,
+rects4 = ax.bar(index + 3*width/2, seal, width,
                 color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
-rects5 = ax.bar(index + 5*width/2 + 2*width/8, tfhe, width,
+rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
 ax.set_yscale('log')
-ax.set_ylim([1, 10000])
+ax.set_ylim([1, 2000])
 ax.set_ylabel("Time (sec.)")
 ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-          fontsize=9, ncol=3, loc='upper left')
+# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+#           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
+#           fontsize=9, ncol=3, loc='upper left')
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 0.01:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.2, 'N/A', ha='center', va='bottom', fontsize=8)
+    if height <= 1.4:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
     elif height < 10:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=8)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     elif height < 100:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=8)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=8)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
 
 autolabel_above(rects1)
 autolabel_above(rects2)

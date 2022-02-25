@@ -5,7 +5,7 @@ from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2.3)
+pltsize = (6, 2.0)
 
 # Milliseconds
 data = {
@@ -20,7 +20,7 @@ data = {
   'lattigo': 171.37,
   'palisade': 167,
   'seal': 101,
-  'tfhe': 10 }
+  'tfhe': 14 }
 }
 
 helib = []
@@ -45,19 +45,19 @@ width = 0.16 # the width of the bars
 fig, ax = plt.subplots(figsize=pltsize)
 ax.margins(0.02, 0.02)
 
-rects1 = ax.bar(index - 3*width/2 - 2*width/8, helib, width,
+rects1 = ax.bar(index - 3*width/2, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
-rects2 = ax.bar(index - width/2 - width/8, lattigo, width,
+rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
 rects3 = ax.bar(index + width/2, palisade, width,
                 color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
-rects4 = ax.bar(index + 3*width/2 + width/8, seal, width,
+rects4 = ax.bar(index + 3*width/2, seal, width,
                 color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
-rects5 = ax.bar(index + 5*width/2 + 2*width/8, tfhe, width,
+rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
 ax.set_yscale('log')
-ax.set_ylim([0.01, 100])
+ax.set_ylim([0.01, 130])
 ax.set_ylabel("Time (sec.)")
 ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
@@ -69,13 +69,13 @@ ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 0.01:
-      ax.text(rect.get_x() + rect.get_width()/2., 0.012, 'N/A', ha='center', va='bottom', fontsize=8)
+    if height <= 0.014:
+      ax.text(rect.get_x() + rect.get_width()/2., 0.016, 'N/A', ha='center', va='bottom', fontsize=7)
       continue
     if height > 10:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=8)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=8)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
 
 autolabel_above(rects1)
 autolabel_above(rects2)
