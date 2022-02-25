@@ -928,7 +928,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       append_idx("fmt.Print(\"dec(");
       this.asm_.append(expr.getName()).append(") = \")\n");
       append_idx("for " + this.tmp_i + " := 0; ");
-      this.asm_.append(this.tmp_i).append(" < int64(").append(size.getName());
+      this.asm_.append(this.tmp_i).append(" < int(").append(size.getName());
       this.asm_.append("); ").append(this.tmp_i).append("++ {\n");
       this.indent_ += 2;
       for (int i = 0; i < this.word_sz_; i++) {
@@ -945,7 +945,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       append_idx("fmt.Print(\"dec(");
       this.asm_.append(expr.getName()).append(") = \")\n");
       append_idx("for " + this.tmp_i + " := 0; ");
-      this.asm_.append(this.tmp_i).append(" < int64(").append(size.getName());
+      this.asm_.append(this.tmp_i).append(" < int(").append(size.getName());
       this.asm_.append("); ").append(this.tmp_i).append("++ {\n");
       append_idx("  fmt.Print(encoder.DecodeIntNew(ptxt)[" + this.tmp_i + "])\n");
       append_idx("  fmt.Print(\" \")\n");

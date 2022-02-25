@@ -474,8 +474,8 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     this.asm_.append(expr.getName()).append(") = \")\n");
     String tmp_vec = "tmp_vec_" + (++tmp_cnt_);
     append_idx(tmp_vec + " := encoder.Decode(ptxt, slots)\n");
-    append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < " + size.getName());
-    this.asm_.append("; ").append(this.tmp_i).append("++ {\n");
+    append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < int(" + size.getName());
+    this.asm_.append("); ").append(this.tmp_i).append("++ {\n");
     this.indent_ += 2;
     append_idx("fmt.Printf(\"%.1f \", funits.Round(real(" + tmp_vec + "[" + this.tmp_i +
                 "]), 2))\n");
