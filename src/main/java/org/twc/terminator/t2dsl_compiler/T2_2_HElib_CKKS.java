@@ -10,7 +10,7 @@ import java.util.List;
 public class T2_2_HElib_CKKS extends T2_2_HElib {
 
   public T2_2_HElib_CKKS(SymbolTable st, String config_file_path) {
-    super(st, config_file_path, 0);
+    super(st, config_file_path, 0, false);
     this.st_.backend_types.put("EncDouble", "Ctxt");
     this.st_.backend_types.put("EncDouble[]", "vector<Ctxt>");
   }

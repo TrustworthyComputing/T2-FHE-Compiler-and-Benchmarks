@@ -24,7 +24,7 @@ public class Main {
     }
     String input_file = null;
     HE_BACKEND backend_ = HE_BACKEND.NONE;
-    boolean debug_ = false, print_bin_ = false;
+    boolean debug_ = false, print_bin_ = false, bootstrapping_ = false;
     int word_sz_ = 0;
     String config = "path to config";
     for (int i = 0; i < args.length; i++) {
@@ -51,6 +51,9 @@ public class Main {
       } else if (arg.equalsIgnoreCase("-PRINTBIN") ||
               arg.equalsIgnoreCase("--PRINTBIN")) {
         print_bin_ = true;
+      } else if (arg.equalsIgnoreCase("-BOOTSTRAP") ||
+              arg.equalsIgnoreCase("--BOOTSTRAP")) {
+        bootstrapping_ = true;
       } else if (arg.equalsIgnoreCase("-CONFIG") ||
                  arg.equalsIgnoreCase("--CONFIG")) {
         if (++i >= args.length) {
@@ -88,6 +91,16 @@ public class Main {
       if (debug_) {
         System.out.println();
         symtable_visit.printSymbolTable();
+      }
+      if (bootstrapping_) {
+        if (!(backend_.equals(HE_BACKEND.HELIB) || backend_.equals(HE_BACKEND.TFHE))) {
+          throw new RuntimeException("Bootstrapping option is only valid for " +
+                                     "HElib and TFHE.");
+        }
+        if (word_sz_ <= 0) {
+          throw new RuntimeException("Bootstrapping option is only valid for " +
+                  "HElib and TFHE in the binary domain.");
+        }
       }
       System.out.println("[ 1/2 ] Class members and methods info collection" +
                           " phase completed");
@@ -143,7 +156,7 @@ public class Main {
           break;
         case HELIB:
           if (scheme_ == ENC_TYPE.ENC_INT) {
-            dsl_compiler = new T2_2_HElib(symbol_table, config, word_sz_);
+            dsl_compiler = new T2_2_HElib(symbol_table, config, word_sz_, bootstrapping_);
           } else if (scheme_ == ENC_TYPE.ENC_DOUBLE) {
             dsl_compiler = new T2_2_HElib_CKKS(symbol_table, config);
           }
