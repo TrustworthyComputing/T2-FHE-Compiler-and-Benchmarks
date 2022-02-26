@@ -1,0 +1,24 @@
+int main(void) {
+  EncInt[] db_;
+  EncInt key_input_, val_, result_, zero_, t3mp_;
+  int i, n;
+  n = 32;
+  key_input_ = 3;
+  zero_ = 0;
+  db_ = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+
+  // Server side encrypted computation. //
+  result_ = 0;
+  tstart();
+  for (i = 0 ; i < n ; i++) {
+    val_ = db_[(i)];
+    t3mp_ = (key_input_ == i) ? val_ : zero_;
+    result_ = result_ ^ t3mp_;
+  }
+  tstop();
+
+  // Decrypt
+  print(result_);
+  return 0;
+}

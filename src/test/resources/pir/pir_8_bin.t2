@@ -2,10 +2,10 @@ int main(void) {
   EncInt[] db_;
   EncInt key_input_, val_, result_, zero_, t3mp_;
   int i, n;
-  n = 5;
+  n = 16;
   key_input_ = 3;
   zero_ = 0;
-  db_ = { 1, 2, 3, 4, 5 };
+  db_ = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
   // Server side encrypted computation. //
   result_ = 0;
