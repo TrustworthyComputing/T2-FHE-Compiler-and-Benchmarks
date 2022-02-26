@@ -16,7 +16,7 @@ cd ../..
 java -jar target/terminator-compiler-1.0.jar \
 src/test/resources/pir/pir_int.t2 --Lattigo \
 --config src/test/resources/pir/configs/lattigo-bfv-128-int.config
-cp ./src/test/resources/pir/pir_int.cpp ./src/Lattigo/compiled/test.cpp
+cp ./src/test/resources/pir/pir_int.go ./src/Lattigo/compiled/test.go
 cd ./src/Lattigo
 make
 ./bin/test.out > ../test/resources/pir/pir_int_Lattigo.log
@@ -62,7 +62,7 @@ cd ../..
 java -jar target/terminator-compiler-1.0.jar \
 src/test/resources/pir/pir_fp.t2 --Lattigo \
 --config src/test/resources/pir/configs/lattigo-ckks-128-fp.config
-cp ./src/test/resources/pir/pir_fp.cpp ./src/Lattigo/compiled/test.cpp
+cp ./src/test/resources/pir/pir_fp.go ./src/Lattigo/compiled/test.go
 cd ./src/Lattigo
 make
 ./bin/test.out > ../test/resources/pir/pir_fp_Lattigo.log
@@ -100,7 +100,7 @@ cd ../..
 java -jar target/terminator-compiler-1.0.jar \
 src/test/resources/pir/pir_bin.t2 --Lattigo --w 8 \
 --config src/test/resources/pir/configs/lattigo-bfv-128-bin.config
-cp ./src/test/resources/pir/pir_bin.cpp ./src/Lattigo/compiled/test.cpp
+cp ./src/test/resources/pir/pir_bin.go ./src/Lattigo/compiled/test.go
 cd ./src/Lattigo
 make
 ./bin/test.out > ../test/resources/pir/pir_bin_Lattigo.log
