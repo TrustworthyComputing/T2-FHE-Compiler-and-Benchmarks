@@ -464,7 +464,7 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     this.asm_.append(size.getName()).append(");\n");
     append_idx(this.vec + " = tmp->GetCKKSPackedValue();\n");
     append_idx("cout << \"dec(" + expr.getName() + ") = \";\n");
-    append_idx("for (size_t ");
+    append_idx("for (int64_t ");
     this.asm_.append(this.tmp_i).append(" = 0; ").append(this.tmp_i).append(" < ");
     this.asm_.append(size.getName()).append("; ++").append(this.tmp_i);
     this.asm_.append(") {\n");
