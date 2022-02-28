@@ -805,6 +805,54 @@ public class T2_2_HElib extends T2_Compiler {
   }
 
   /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("ea.rotate(" + ctxt.getName() + "[" + this.tmp_i + "], -");
+      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("}\n");
+    } else {
+      append_idx("ea.rotate(" + ctxt.getName() + ", -");
+      this.asm_.append(amnt.getName()).append(");\n");
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("ea.rotate(" + ctxt.getName() + "[" + this.tmp_i + "], ");
+      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("}\n");
+    } else {
+      append_idx("ea.rotate(" + ctxt.getName() + ", ");
+      this.asm_.append(amnt.getName()).append(");\n");
+    }
+    return null;
+  }
+
+  /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()
    * f2 -> PrimaryExpression()

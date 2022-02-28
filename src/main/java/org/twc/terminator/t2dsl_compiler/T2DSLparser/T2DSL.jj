@@ -81,6 +81,8 @@ TOKEN :
   | < VOID: "void" >
   | < REDUCE_NOISE: "reduce_noise" >
   | < MATCH_PARAMS: "match_params" >
+  | < ROTATE_LEFT: "rotate_left" >
+  | < ROTATE_RIGHT: "rotate_right" >
   | < START_TIMER: "tstart" >
   | < STOP_TIMER: "tstop" >
 }
@@ -236,6 +238,8 @@ void Statement() : {} {
 |   PrintBatchedStatement() ";"
 |   ReduceNoiseStatement() ";"
 |   MatchParamsStatement() ";"
+|   RotateLeftStatement() ";"
+|   RotateRightStatement() ";"
 |   StartTimerStatement() ";"
 |   StopTimerStatement() ";"
 }
@@ -339,6 +343,14 @@ void ReduceNoiseStatement() : {} {
 
 void MatchParamsStatement() : {} {
   <MATCH_PARAMS> "(" Expression() "," Expression() ")"
+}
+
+void RotateLeftStatement() : {} {
+  <ROTATE_LEFT> "(" Expression() "," Expression() ")"
+}
+
+void RotateRightStatement() : {} {
+  <ROTATE_RIGHT> "(" Expression() "," Expression() ")"
 }
 
 void StartTimerStatement() : {} {

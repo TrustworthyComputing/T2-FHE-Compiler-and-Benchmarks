@@ -71,7 +71,16 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("encryptorSk := bfv.NewEncryptor(params, clientSk)\n");
     append_idx("decryptor := bfv.NewDecryptor(params, clientSk)\n");
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
-    append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
+    append_idx("rots_num := 20\n");
+    append_idx("rots := make([]int, rots_num)\n");
+    append_idx("for " + this.tmp_i + " := 2; " + this.tmp_i + " < int" +
+                  "(rots_num+2); " + this.tmp_i + " += 2 {\n");
+    append_idx("  rots[tmp_i - 2] = tmp_i / 2\n");
+    append_idx("  rots[tmp_i - 1] = -(tmp_i / 2)\n");
+    append_idx("}\n");
+    append_idx("_ = rots\n");
+    append_idx("rotkey := kgen.GenRotationKeysForRotations(rots, true, clientSk)\n");
+    append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk, Rtks: rotkey})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
                    "&params, int(paramDef.T), slots, word_sz)\n");
     append_idx("ptxt := bfv.NewPlaintext(params)\n");
@@ -974,6 +983,40 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx(this.tstart_ + " ");
     if (!this.timer_used_) this.asm_.append(":");
     this.asm_.append("= time.Now()\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    append_idx("evaluator.RotateColumns(" + ctxt.getName() +  ", ");
+    this.asm_.append(amnt.getName()).append(", ");
+    this.asm_.append(ctxt.getName()).append(")\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    append_idx("evaluator.RotateColumns(" + ctxt.getName() +  ", -");
+    this.asm_.append(amnt.getName()).append(", ");
+    this.asm_.append(ctxt.getName()).append(")\n");
     return null;
   }
 

@@ -671,6 +671,54 @@ public class TypeCheckVisitor extends GJNoArguDepthFirst<Var_t> {
   }
 
   /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    String ctxt_t = st_.findType(ctxt);
+    String amnt_t = amnt.getType();
+    if (amnt_t == null || amnt_t.equals("")) {
+      amnt_t = st_.findType(amnt);
+    }
+    if (!amnt_t.equals("int"))
+      throw new RuntimeException("RotateLeft: amount type " + amnt_t);
+    if (ctxt_t.equals("EncInt") || ctxt_t.equals("EncDouble")) {
+      return null;
+    }
+    throw new Exception("Rotate Left statement not EncInt or EncDouble.");
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    Var_t amnt = n.f4.accept(this);
+    String ctxt_t = st_.findType(ctxt);
+    String amnt_t = amnt.getType();
+    if (amnt_t == null || amnt_t.equals("")) {
+      amnt_t = st_.findType(amnt);
+    }
+    if (!amnt_t.equals("int"))
+      throw new RuntimeException("RotateRight: amount type " + amnt_t);
+    if (ctxt_t.equals("EncInt") || ctxt_t.equals("EncDouble")) {
+      return null;
+    }
+    throw new Exception("Rotate Right statement not EncInt or EncDouble.");
+  }
+
+  /**
    * f0 -> LogicalAndExpression()
    * | LogicalOrExpression()
    * | BinaryExpression()

@@ -36,6 +36,8 @@ public class T2_2_SEAL extends T2_Compiler {
     append_idx("RelinKeys relin_keys;\n");
     append_idx("keygen.create_public_key(public_key);\n");
     append_idx("keygen.create_relin_keys(relin_keys);\n");
+    append_idx("GaloisKeys galois_keys;\n");
+    append_idx("keygen.create_galois_keys(galois_keys);\n");
     append_idx("Encryptor encryptor(context, public_key);\n");
     append_idx("Evaluator evaluator(context);\n");
     append_idx("Decryptor decryptor(context, secret_key);\n");
@@ -761,6 +763,54 @@ public class T2_2_SEAL extends T2_Compiler {
       throw new RuntimeException("ReduceNoiseStatement: expr type");
     append_idx("evaluator.mod_switch_to_next_inplace(");
     this.asm_.append(expr.getName()).append(");\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("  evaluator.rotate_rows_inplace(" + ctxt.getName() + "[");
+      this.asm_.append(this.tmp_i).append("], ").append(amnt).append(", galois_keys);\n");
+      append_idx("}\n");
+    } else {
+      append_idx("evaluator.rotate_rows_inplace(" + ctxt.getName() + ", ");
+      this.asm_.append(amnt).append(", galois_keys);\n");
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    Var_t ctxt = n.f2.accept(this);
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("  evaluator.rotate_rows_inplace(" + ctxt.getName() + "[");
+      this.asm_.append(this.tmp_i).append("], -").append(amnt).append(", galois_keys);\n");
+      append_idx("}\n");
+    } else {
+      append_idx("evaluator.rotate_rows_inplace(" + ctxt.getName() + ", -");
+      this.asm_.append(amnt).append(", galois_keys);\n");
+    }
     return null;
   }
 
