@@ -813,17 +813,17 @@ public class T2_2_HElib extends T2_Compiler {
    * f5 -> ")"
    */
   public Var_t visit(RotateLeftStatement n) throws Exception {
-    Var_t ctxt = n.f2.accept(this);
-    Var_t amnt = n.f4.accept(this);
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
     if (this.is_binary_) {
       append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
-      append_idx("ea.rotate(" + ctxt.getName() + "[" + this.tmp_i + "], -");
-      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("  ea.rotate(" + ctxt + "[" + this.tmp_i + "], -");
+      this.asm_.append(amnt).append(");\n");
       append_idx("}\n");
     } else {
-      append_idx("ea.rotate(" + ctxt.getName() + ", -");
-      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("ea.rotate(" + ctxt + ", -");
+      this.asm_.append(amnt).append(");\n");
     }
     return null;
   }
@@ -837,17 +837,17 @@ public class T2_2_HElib extends T2_Compiler {
    * f5 -> ")"
    */
   public Var_t visit(RotateRightStatement n) throws Exception {
-    Var_t ctxt = n.f2.accept(this);
-    Var_t amnt = n.f4.accept(this);
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
     if (this.is_binary_) {
       append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
       this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
-      append_idx("ea.rotate(" + ctxt.getName() + "[" + this.tmp_i + "], ");
-      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("  ea.rotate(" + ctxt + "[" + this.tmp_i + "], ");
+      this.asm_.append(amnt).append(");\n");
       append_idx("}\n");
     } else {
-      append_idx("ea.rotate(" + ctxt.getName() + ", ");
-      this.asm_.append(amnt.getName()).append(");\n");
+      append_idx("ea.rotate(" + ctxt + ", ");
+      this.asm_.append(amnt).append(");\n");
     }
     return null;
   }

@@ -23,13 +23,21 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     append_idx("uint32_t ringDimension = 0;\n");
 
     append_idx("CryptoContext<DCRTPoly> cc = CryptoContextFactory<\n");
-    append_idx("  DCRTPoly>::genCryptoContextCKKS(multDepth,\n"); // BFV
+    append_idx("  DCRTPoly>::genCryptoContextCKKS(multDepth,\n");
     append_idx("    scaleFactorBits, slots, securityLevel, ringDimension, EXACTRESCALE);\n");
     append_idx("cc->Enable(ENCRYPTION);\n");
     append_idx("cc->Enable(SHE);\n");
     append_idx("cc->Enable(LEVELEDSHE);\n");
 
     append_idx("auto keyPair = cc->KeyGen();\n");
+    append_idx("int rots_num = 20;\n");
+    append_idx("vector<int> rots(rots_num);\n");
+    append_idx("for (int " + this.tmp_i + " = 2; " + this.tmp_i + "< rots_num+2; ");
+    this.asm_.append(this.tmp_i).append(" += 2) {\n");
+    append_idx("   rots[" + this.tmp_i + " - 2] = " + this.tmp_i + " / 2;\n");
+    append_idx("   rots[" + this.tmp_i + " - 1] = -(" + this.tmp_i + " / 2);\n");
+    append_idx("}\n");
+    append_idx("cc->EvalAtIndexKeyGen(keyPair.secretKey, rots);\n");
     append_idx("cc->EvalMultKeyGen(keyPair.secretKey);\n");
     append_idx("vector<complex<double>> " + this.vec + "(slots);\n");
     append_idx("Plaintext tmp;\n");
@@ -194,7 +202,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     String op = n.f4.accept(this).getName();
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
@@ -256,7 +263,6 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
     Var_t id = n.f0.accept(this);
     String id_type = st_.findType(id);
     Var_t idx = n.f2.accept(this);
-    String idx_type = st_.findType(idx);
     Var_t rhs = n.f5.accept(this);
     String rhs_type = st_.findType(rhs);
     switch (id_type) {
@@ -489,6 +495,38 @@ public class T2_2_PALISADE_CKKS extends T2_2_PALISADE {
       throw new RuntimeException("ReduceNoiseStatement");
     append_idx("cc->Rescale(");
     this.asm_.append(expr.getName()).append(");\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx(ctxt + " = cc->EvalAtIndex(" + ctxt + ", ");
+    this.asm_.append(amnt).append(");\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx(ctxt + " = cc->EvalAtIndex(" + ctxt + ", -");
+    this.asm_.append(amnt).append(");\n");
     return null;
   }
 

@@ -1,0 +1,19 @@
+int main(void) {
+  EncDouble num;
+
+  tstart();
+  num = {1.1, 2.2, 3.3, 4.4, 5.5};
+  print_batched(num, 5);  // {1,2,3,4,5}
+
+  rotate_left(num, 3);
+  print_batched(num, 5);  // {4,5,1,2,3}
+
+  rotate_right(num, 1);
+  print_batched(num, 5);  // {3,4,5,1,2}
+
+  rotate_left(num, 3);
+  print_batched(num, 5);  // {1,2,3,4,5}
+  tstop();
+
+  return 0;
+}

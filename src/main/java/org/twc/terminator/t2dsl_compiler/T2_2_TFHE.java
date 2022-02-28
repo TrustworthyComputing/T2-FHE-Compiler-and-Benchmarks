@@ -570,6 +570,40 @@ public class T2_2_TFHE extends T2_Compiler {
   }
 
   /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("rotate(" + ctxt + ".begin(), " + ctxt);
+    this.asm_.append(".begin() + ").append(amnt).append(", ");
+    this.asm_.append(ctxt).append(".end());\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("rotate(" + ctxt + ".rbegin(), " + ctxt);
+    this.asm_.append(".rbegin() + ").append(amnt).append(", ");
+    this.asm_.append(ctxt).append(".rend());\n");
+    return null;
+  }
+
+  /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()
    * f2 -> PrimaryExpression()

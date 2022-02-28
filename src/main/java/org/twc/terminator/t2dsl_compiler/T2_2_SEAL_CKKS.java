@@ -510,6 +510,38 @@ public class T2_2_SEAL_CKKS extends T2_2_SEAL {
     return null;
   }
 
+    /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("evaluator.rotate_vector_inplace(" + ctxt + ", ");
+    this.asm_.append(amnt).append(", gal_keys);\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("evaluator.rotate_vector_inplace(" + ctxt + ", -");
+    this.asm_.append(amnt).append(", gal_keys);\n");
+    return null;
+  }
+
   /**
    * f0 -> PrimaryExpression()
    * f1 -> BinOperator()

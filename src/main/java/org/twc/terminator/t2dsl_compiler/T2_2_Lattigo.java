@@ -995,11 +995,21 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f5 -> ")"
    */
   public Var_t visit(RotateLeftStatement n) throws Exception {
-    Var_t ctxt = n.f2.accept(this);
-    Var_t amnt = n.f4.accept(this);
-    append_idx("evaluator.RotateColumns(" + ctxt.getName() +  ", ");
-    this.asm_.append(amnt.getName()).append(", ");
-    this.asm_.append(ctxt.getName()).append(")\n");
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < int(");
+      this.asm_.append(this.word_sz_).append("); ");
+      this.asm_.append(this.tmp_i).append(" ++ {\n");
+      append_idx("  evaluator.RotateColumns(" + ctxt +  "[");
+      this.asm_.append(this.tmp_i).append("], ").append(amnt);
+      this.asm_.append(", ").append(ctxt).append("[");
+      this.asm_.append(this.tmp_i).append("])\n");
+      append_idx("}\n");
+    } else {
+      append_idx("evaluator.RotateColumns(" + ctxt +  ", " + amnt + ", ");
+      this.asm_.append(ctxt).append(")\n");
+    }
     return null;
   }
 
@@ -1012,11 +1022,21 @@ public class T2_2_Lattigo extends T2_Compiler {
    * f5 -> ")"
    */
   public Var_t visit(RotateRightStatement n) throws Exception {
-    Var_t ctxt = n.f2.accept(this);
-    Var_t amnt = n.f4.accept(this);
-    append_idx("evaluator.RotateColumns(" + ctxt.getName() +  ", -");
-    this.asm_.append(amnt.getName()).append(", ");
-    this.asm_.append(ctxt.getName()).append(")\n");
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for " + this.tmp_i + " := 0; " + this.tmp_i + " < int(");
+      this.asm_.append(this.word_sz_).append("); ");
+      this.asm_.append(this.tmp_i).append(" ++ {\n");
+      append_idx("  evaluator.RotateColumns(" + ctxt +  "[");
+      this.asm_.append(this.tmp_i).append("], -").append(amnt);
+      this.asm_.append(", ").append(ctxt).append("[");
+      this.asm_.append(this.tmp_i).append("])\n");
+      append_idx("}\n");
+    } else {
+      append_idx("evaluator.RotateColumns(" + ctxt +  ", -" + amnt + ", ");
+      this.asm_.append(ctxt).append(")\n");
+    }
     return null;
   }
 

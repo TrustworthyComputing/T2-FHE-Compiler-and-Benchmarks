@@ -41,6 +41,14 @@ public class T2_2_PALISADE extends T2_Compiler {
     append_idx("size_t slots(cc->GetRingDimension());\n");
     append_idx("vector<int64_t> " + this.vec + "(slots);\n");
     append_idx("Plaintext tmp;\n");
+    append_idx("int rots_num = 20;\n");
+    append_idx("vector<int> rots(rots_num);\n");
+    append_idx("for (int " + this.tmp_i + " = 2; " + this.tmp_i + "< rots_num+2; ");
+    this.asm_.append(this.tmp_i).append(" += 2) {\n");
+    append_idx("   rots[" + this.tmp_i + " - 2] = " + this.tmp_i + " / 2;\n");
+    append_idx("   rots[" + this.tmp_i + " - 1] = -(" + this.tmp_i + " / 2);\n");
+    append_idx("}\n");
+    append_idx("cc->EvalAtIndexKeyGen(keyPair.secretKey, rots);\n");
     if (is_binary_) {
       append_idx("vector<vector<int64_t>> " + this.bin_vec);
       this.asm_.append("(word_sz, vector<int64_t>(slots, 0));\n");
@@ -748,6 +756,56 @@ public class T2_2_PALISADE extends T2_Compiler {
       throw new RuntimeException("ReduceNoiseStatement");
     append_idx("cc->ModReduceInPlace(");
     this.asm_.append(expr.getName()).append(");\n");
+    return null;
+  }
+  
+  /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("  " + ctxt + "[" + this.tmp_i + "] = cc->EvalAtIndex(" + ctxt);
+      this.asm_.append("[").append(tmp_i).append("], ");
+      this.asm_.append(amnt).append(");\n");
+      append_idx("}\n");
+    } else {
+      append_idx(ctxt + " = cc->EvalAtIndex(" + ctxt + ", ");
+      this.asm_.append(amnt).append(");\n");
+    }
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    if (this.is_binary_) {
+      append_idx("for (size_t " + this.tmp_i + " = 0; " + this.tmp_i + " < ");
+      this.asm_.append(this.word_sz_).append("; ++").append(this.tmp_i).append(") {\n");
+      append_idx("  " + ctxt + "[" + this.tmp_i + "] = cc->EvalAtIndex(" + ctxt);
+      this.asm_.append("[").append(tmp_i).append("], -");
+      this.asm_.append(amnt).append(");\n");
+      append_idx("}\n");
+    } else {
+      append_idx(ctxt + " = cc->EvalAtIndex(" + ctxt + ", -");
+      this.asm_.append(amnt).append(");\n");
+    }
     return null;
   }
 

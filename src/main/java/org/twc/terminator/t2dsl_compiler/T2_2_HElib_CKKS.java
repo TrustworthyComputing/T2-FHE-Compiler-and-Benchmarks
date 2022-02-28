@@ -18,6 +18,7 @@ public class T2_2_HElib_CKKS extends T2_2_HElib {
   protected void append_keygen() {
     append_idx("Context context = helib::ContextBuilder<helib::CKKS>()\n");
     append_idx("  .m(128).precision(20).bits(30).c(3).build();\n");
+    append_idx("const EncryptedArray& ea = context.getEA();\n");
     append_idx("SecKey secret_key(context);\n");
     append_idx("secret_key.GenSecKey();\n");
     append_idx("addSome1DMatrices(secret_key);\n");

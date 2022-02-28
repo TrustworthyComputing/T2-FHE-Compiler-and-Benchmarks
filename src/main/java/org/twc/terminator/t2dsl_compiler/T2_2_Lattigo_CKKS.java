@@ -32,7 +32,16 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("encryptorSk := ckks.NewEncryptor(params, clientSk)\n");
     append_idx("decryptor := ckks.NewDecryptor(params, clientSk)\n");
     append_idx("rlk := kgen.GenRelinearizationKey(clientSk, 1)\n");
-    append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk})\n");
+    append_idx("rots_num := 20\n");
+    append_idx("rots := make([]int, rots_num)\n");
+    append_idx("for " + this.tmp_i + " := 2; " + this.tmp_i + " < int" +
+                  "(rots_num+2); " + this.tmp_i + " += 2 {\n");
+    append_idx("  rots[tmp_i - 2] = tmp_i / 2\n");
+    append_idx("  rots[tmp_i - 1] = -(tmp_i / 2)\n");
+    append_idx("}\n");
+    append_idx("_ = rots\n");
+    append_idx("rotkey := kgen.GenRotationKeysForRotations(rots, true, clientSk)\n");
+    append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk, Rtks: rotkey})\n");
     append_idx("var ptxt *ckks.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
     append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
@@ -499,6 +508,38 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("evaluator.Rescale(");
     this.asm_.append(expr.getName()).append(", params.DefaultScale(), ");
     this.asm_.append(expr.getName()).append(")\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_LEFT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateLeftStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("evaluator.Rotate(" + ctxt +  ", " + amnt + ", ");
+    this.asm_.append(ctxt).append(")\n");
+    return null;
+  }
+
+  /**
+   * f0 -> <ROTATE_RIGHT>
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ","
+   * f4 -> Expression()
+   * f5 -> ")"
+   */
+  public Var_t visit(RotateRightStatement n) throws Exception {
+    String ctxt = n.f2.accept(this).getName();
+    String amnt = n.f4.accept(this).getName();
+    append_idx("evaluator.Rotate(" + ctxt +  ", -" + amnt + ", ");
+    this.asm_.append(ctxt).append(")\n");
     return null;
   }
 
