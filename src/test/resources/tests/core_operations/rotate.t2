@@ -1,0 +1,13 @@
+int main(void) {
+  EncInt num;
+  int rounds, i;
+  rounds = 10;
+  num = {1, 2, 3};
+  tstart();
+  for (i = 0; i < rounds; i++) {
+    rotate_left(num, 1);
+  }
+  tstop();
+  print(num);
+  return 0;
+}
