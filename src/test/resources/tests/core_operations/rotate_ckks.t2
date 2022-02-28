@@ -1,0 +1,12 @@
+int main(void) {
+  EncDouble num;
+  int rounds, i;
+  rounds = 1000;
+  tstart();
+  for (i = 0; i < rounds; i++) {
+    rotate_left(num, 1);
+  }
+  tstop();
+  print(num);
+  return 0;
+}
