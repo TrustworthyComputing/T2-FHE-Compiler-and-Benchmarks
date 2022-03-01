@@ -10,8 +10,6 @@ import java.util.List;
 
 public class T2_2_Lattigo extends T2_Compiler {
 
-  protected boolean is_tmp_declared_ = false;
-
   public T2_2_Lattigo(SymbolTable st, String config_file_path,
                       int word_sz) {
     super(st, config_file_path, word_sz);
@@ -179,8 +177,8 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("import (\n");
     append_idx("  \"fmt\"\n");
     append_idx("  \"time\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/rlwe\"\n");
-    append_idx("  \"github.com/ldsec/lattigo/v2/" + this.st_.backend_types.get("scheme")+ "\"\n");
+    append_idx("  \"github.com/tuneinsight/lattigo/v3/rlwe\"\n");
+    append_idx("  \"github.com/tuneinsight/lattigo/v3/" + this.st_.backend_types.get("scheme")+ "\"\n");
     append_idx("  funits \"Lattigo/functional_units\"\n");
     append_idx(")\n\n");
     append_idx("func main() {\n");

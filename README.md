@@ -24,7 +24,7 @@ IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
 ```
 
 ## Supported Homomorphic Encryption Libraries
-* [Lattigo](https://github.com/ldsec/lattigo) v2.4.0 [55f9a02](https://github.com/ldsec/lattigo/commit/55f9a0247e2092a53be7630d6b2ca79021700a62)
+* [Lattigo](https://github.com/tuneinsight/lattigo) v3.0.2 [27fee8b](https://github.com/tuneinsight/lattigo/commit/27fee8bebbb5ee600d69086f0b5a8ff9a6c8e24e)
 * [HElib](https://github.com/homenc/HElib) v2.2.1 [f0e3e01](https://github.com/homenc/HElib/commit/f0e3e010009c592cd411ba96baa8376eb485247a)
 * [PALISADE](https://gitlab.com/palisade/palisade-release/) v1.11.6 [08601274](https://gitlab.com/palisade/palisade-release/-/commit/0860127401ab794591f931fa2c61426c7b56ee2d)
 * [Microsoft SEAL](https://github.com/microsoft/SEAL) v3.7.2 [7923472](https://github.com/microsoft/SEAL/commit/79234726053c45eede688400aa219fdec0810bd8)
@@ -47,7 +47,7 @@ To skip running the test when compiling the T2 compiler run:
 mvn package -Dmaven.test.skip
 ```
 
-### Compile T2 programs 
+### Compile T2 programs
 To compile a T2 program type:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar <path_to_t2_file> [--debug] <LIB> [--w word_size]
@@ -60,9 +60,9 @@ will use `SEAL` as the back-end over the integers, whereas:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bin_test.t2 --lattigo --w 6
 ```
-will use `Lattigo` as the back-end in the binary domain. The T2 compiler 
-automatically detects the appropriate scheme (i.e., `BFV/BGV` or `CKKS`) based 
-on the type of the encrypted variables that the T2 program uses (i.e., 
+will use `Lattigo` as the back-end in the binary domain. The T2 compiler
+automatically detects the appropriate scheme (i.e., `BFV/BGV` or `CKKS`) based
+on the type of the encrypted variables that the T2 program uses (i.e.,
 `EncInt` or `EncDouble`).
 For example:
 ```powershell
