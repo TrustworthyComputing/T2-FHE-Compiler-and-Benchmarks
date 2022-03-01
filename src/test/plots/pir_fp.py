@@ -9,19 +9,19 @@ pltsize = (6, 2)
 
 # Milliseconds
 data = {
-'$|db| = 4$': {
+'$|db| = 64$': {
   'helib': 31,
   'lattigo': 1.3759,
   'palisade': 5,
   'seal': 2,
   'tfhe': 0.16 },
-'$|db| = 8$': {
+'$|db| = 128$': {
   'helib': 31,
   'lattigo': 1.434,
   'palisade': 5,
   'seal': 2,
   'tfhe': 0.16 },
-'$|db| = 16$': {
+'$|db| = 256$': {
   'helib': 31,
   'lattigo': 1.3944,
   'palisade': 5,
