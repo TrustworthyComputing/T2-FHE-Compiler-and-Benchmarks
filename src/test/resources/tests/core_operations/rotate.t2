@@ -1,13 +1,13 @@
 int main(void) {
   EncInt num;
   int rounds, i;
-  rounds = 10;
+  rounds = 30;
   num = {1, 2, 3};
   tstart();
   for (i = 0; i < rounds; i++) {
     rotate_left(num, 1);
   }
   tstop();
-  print(num);
+  print_batched(num, 3);
   return 0;
 }
