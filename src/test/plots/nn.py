@@ -76,9 +76,9 @@ ax.set_ylabel("Time (sec.)")
 ax.set_xlabel("Max Hidden Neurons")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]),
-#           ("HElib", "Lattigo", "PALISADE", "SEAL"),
-#           fontsize=9, ncol=4, loc='upper center')
+ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]),
+          ("HElib", "Lattigo", "PALISADE", "SEAL"),
+          fontsize=8, ncol=1, loc='upper left')
 
 def autolabel_above(rects):
   for rect in rects:
