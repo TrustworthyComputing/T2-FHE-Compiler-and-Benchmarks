@@ -2,7 +2,7 @@ package functional_units
 
 import (
 	"fmt"
-	"github.com/ldsec/lattigo/v2/bfv"
+	"github.com/tuneinsight/lattigo/v3/bfv"
 	"math"
 )
 
