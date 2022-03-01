@@ -37,7 +37,7 @@ public class T2_2_SEAL extends T2_Compiler {
     append_idx("keygen.create_public_key(public_key);\n");
     append_idx("keygen.create_relin_keys(relin_keys);\n");
     append_idx("GaloisKeys gal_keys;\n");
-    append_idx("keygen.create_gal_keys(gal_keys);\n");
+    append_idx("keygen.create_galois_keys(gal_keys);\n");
     append_idx("Encryptor encryptor(context, public_key);\n");
     append_idx("Evaluator evaluator(context);\n");
     append_idx("Decryptor decryptor(context, secret_key);\n");
