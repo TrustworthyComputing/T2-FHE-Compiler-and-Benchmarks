@@ -16,7 +16,7 @@ data = {
   'seal': 109441,
   'tfhe': 4018 },
 'CRC-32' : {
-  'helib': 1400,
+  'helib': 5187928,
   'lattigo': 1400,
   'palisade': 1400,
   'seal': 1400,
@@ -57,7 +57,7 @@ rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
 ax.set_yscale('log')
-ax.set_ylim([1, 1000])
+ax.set_ylim([1, 15000])
 ax.set_ylabel("Time (sec.)")
 ax.set_xlabel("Binary Domain")
 ax.set_xticks(index + width / 2)
@@ -70,7 +70,7 @@ def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height <= 1.4:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+      ax.text(rect.get_x() + rect.get_width()/2., 2, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
       continue
     if height > 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
