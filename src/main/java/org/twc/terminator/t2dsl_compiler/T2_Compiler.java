@@ -72,10 +72,10 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
     return ctxt_tmp_;
   }
 
-  protected int[] int_to_bin_array(int n) {
+  protected int[] int_to_bin_array(long n) {
     int[] b = new int[this.word_sz_];
     for (int i = 0; i < this.word_sz_; ++i) {
-      b[this.word_sz_ - i - 1] = (n >> i) & 1;
+      b[this.word_sz_ - i - 1] = (int) (n >> i) & 1;
     }
     return b;
   }
@@ -83,7 +83,7 @@ public abstract class T2_Compiler extends GJNoArguDepthFirst<Var_t> {
   public static boolean isNumeric(String str) {
     if (str == null || str.equals("")) return false;
     try {
-      Integer.parseInt(str);
+      Long.parseLong(str);
       return true;
     } catch (NumberFormatException ignored) {}
     try {

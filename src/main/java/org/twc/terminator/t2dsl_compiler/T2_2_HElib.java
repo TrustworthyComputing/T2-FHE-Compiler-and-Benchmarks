@@ -121,7 +121,7 @@ public class T2_2_HElib extends T2_Compiler {
         String src = src_lst[slot];
         boolean is_numeric = isNumeric(src);
         if (is_numeric) {
-          int[] bin_array = int_to_bin_array(Integer.parseInt(src));
+          int[] bin_array = int_to_bin_array(Long.parseLong(src));
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx(tmp_vec + "[" + (this.word_sz_ - i - 1) + "][" + slot);
             this.asm_.append("] = ").append(bin_array[i]).append(";\n");
@@ -377,31 +377,40 @@ public class T2_2_HElib extends T2_Compiler {
       }
     } else if (lhs_type.equals("EncInt") && rhs_type.equals("int")) {
       if (this.is_binary_) {
-        encrypt("tmp_", new String[]{rhs.getName()});
-        this.asm_.append(";\n");
-        append_idx(lhs.getName() + " = ");
         switch (op) {
           case "+=":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("add_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots)");
             break;
           case "*=":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("mult_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots)");
             break;
           case "-=":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("sub_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots)");
             break;
           case "<<=":
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("shift_left_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(")");
             break;
           case ">>=":
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("shift_right_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(")");
             break;
           case ">>>=":
+            append_idx(lhs.getName() + " = ");
             this.asm_.append("shift_right_logical_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(")");
             break;
@@ -978,51 +987,75 @@ public class T2_2_HElib extends T2_Compiler {
       String res_ = new_ctxt_tmp();
       Var_t ret_var = new Var_t("EncInt", res_);
       if (this.is_binary_) {
-        encrypt("tmp_", new String[]{rhs.getName()});
-        this.asm_.append(";\n");
-        append_idx(res_ + " = ");
         switch (op) {
           case "+":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("add_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "*":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("mult_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "-":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("sub_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "^":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("xor_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, p);\n");
             break;
           case "==":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("eq_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "!=":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("neq_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("lt_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<=":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
             this.asm_.append("leq_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, unpackSlotEncoding, slots);\n");
             break;
           case "<<":
+            append_idx(res_ + " = ");
             this.asm_.append("shift_left_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(");\n");
             break;
           case ">>":
+            append_idx(res_ + " = ");
             this.asm_.append("shift_right_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(");\n");
             break;
           case ">>>":
+            append_idx(res_ + " = ");
             this.asm_.append("shift_right_logical_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(");\n");
             break;

@@ -132,7 +132,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         String src = src_lst[slot];
         boolean is_numeric = isNumeric(src);
         if (is_numeric) {
-          int[] bin_array = int_to_bin_array(Integer.parseInt(src));
+          int[] bin_array = int_to_bin_array(Long.parseLong(src));
           for (int i = 0; i < this.word_sz_; i++) {
             append_idx(tmp_vec + "[" + i + "][" + slot + "] = " + bin_array[i] + "\n");
           }
