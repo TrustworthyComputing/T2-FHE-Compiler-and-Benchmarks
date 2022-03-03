@@ -49,6 +49,15 @@ make
 cd ../..
 
 java -jar target/terminator-compiler-1.0.jar \
+  src/test/resources/crc/crc32.t2 --HElib --w 32 --bootstrap \
+  --config ./src/test/resources/crc/configs/helib-bgv-crc32-128.config
+cp ./src/test/resources/crc/crc32.cpp ./src/HElib/compiled/test.cpp
+cd ./src/HElib
+make
+./bin/test.out > ../test/resources/crc/crc32_HElib.log
+cd ../..
+
+java -jar target/terminator-compiler-1.0.jar \
   src/test/resources/crc/crc32.t2 --TFHE --w 32
 cp ./src/test/resources/crc/crc32.cpp ./src/TFHE/compiled/test.cpp
 cd ./src/TFHE

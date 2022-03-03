@@ -358,6 +358,9 @@ public class T2_2_HElib extends T2_Compiler {
         this.asm_.append(lhs.getName()).append(", ");
         this.asm_.append(rhs.getName()).append(", ");
         this.asm_.append("unpackSlotEncoding, slots)");
+        bootstrapBin(lhs, "", true);
+        this.semicolon_ = false;
+        return null;
       } else {
         append_idx(lhs.getName());
         switch (op) {
@@ -417,6 +420,9 @@ public class T2_2_HElib extends T2_Compiler {
           default:
             throw new Exception("Bad operand types: " + lhs_type + " " + op + " " + rhs_type);
         }
+        bootstrapBin(lhs, "", true);
+        this.semicolon_ = false;
+        return null;
       } else {
         append_idx(lhs.getName());
         switch (op) {
@@ -435,7 +441,6 @@ public class T2_2_HElib extends T2_Compiler {
         this.asm_.append(rhs.getName()).append("))");
       }
     }
-    bootstrapBin(lhs, "", true);
     this.semicolon_ = true;
     return null;
   }
@@ -479,6 +484,9 @@ public class T2_2_HElib extends T2_Compiler {
           this.asm_.append(id.getName()).append("[").append(idx.getName());
           this.asm_.append("], ").append(rhs.getName());
           this.asm_.append(", unpackSlotEncoding, slots)");
+          bootstrapBin(id, idx.getName(), true);
+          this.semicolon_ = false;
+          return null;
         } else {
           append_idx(id.getName() + "[" + idx.getName() + "] ");
           if (op.equals("+=") || op.equals("-=")) {
@@ -524,6 +532,9 @@ public class T2_2_HElib extends T2_Compiler {
               throw new Exception("Encrypt and move to temporary var.");
             }
           }
+          bootstrapBin(id, idx.getName(), true);
+          this.semicolon_ = false;
+          return null;
         } else {
           switch (op) {
             case "*=":
@@ -544,7 +555,6 @@ public class T2_2_HElib extends T2_Compiler {
     } else {
       throw new Exception("error in array assignment");
     }
-    bootstrapBin(id, idx.getName(), true);
     this.semicolon_ = true;
     return null;
   }
@@ -1350,8 +1360,8 @@ public class T2_2_HElib extends T2_Compiler {
   }
 
   private void bootstrapBin(Var_t res_var, String array, boolean newline) {
+    if (newline) this.asm_.append(";\n");
     if (this.is_binary_ && this.bootstrapping_) {
-      if (newline) this.asm_.append(";\n");
       append_idx("if (" + res_var.getName() + array + "[0].bitCapacity() <= 150) {\n");
       append_idx("  for (int " + this.tmp_i + " = 0; " + this.tmp_i);
       this.asm_.append("< ").append(this.word_sz_).append("; ");
