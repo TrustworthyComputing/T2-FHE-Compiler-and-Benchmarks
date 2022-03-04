@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
 
 mydpi = 300
@@ -9,18 +8,30 @@ pltsize = (6, 2)
 
 # Milliseconds
 data = {
-'|v| = 4'  : {
+'Integer |v| = 4': {
+  'helib': 27702,
+  'lattigo': 13782,
+  'palisade': 4811,
+  'seal': 25464,
+  'tfhe': 1390 },
+'Binary |v| = 4': {
   'helib': 7388,
   'lattigo': 96341.97564100001,
   'palisade': 12219,
   'seal': 49446,
   'tfhe': 2018 },
-'|v| = 8' : {
+'Integer |v| = 8': {
+  'helib': 54002,
+  'lattigo': 27395,
+  'palisade': 9639,
+  'seal': 50236,
+  'tfhe': 1390 },
+'Binary |v| = 8': {
   'helib': 15052,
   'lattigo': 246567.374508,
   'palisade': 28175,
   'seal': 1400,
-  'tfhe': 3940 },
+  'tfhe': 3940 }
 }
 
 helib = []
@@ -59,7 +70,7 @@ rects5 = ax.bar(index + 5*width/2, tfhe, width,
 ax.set_yscale('log')
 ax.set_ylim([1, 1000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Binary Domain")
+ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
@@ -69,13 +80,14 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 1.4:
+    if height <= 1.39:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'N/A', ha='center', va='bottom', fontsize=7)
+    elif height <= 1.4:
       ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
-      continue
-    if height > 10:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
+    elif height > 10:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
     else:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
 
 autolabel_above(rects1)
 autolabel_above(rects2)
