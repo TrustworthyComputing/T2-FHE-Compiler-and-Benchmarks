@@ -45,9 +45,9 @@ IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
 
 ## Supported Homomorphic Encryption Libraries
 
-<div style='background-color:#FFFF; color:#1A2067; border: solid #718096 4px; border-radius: 4px;'>
-<p style='padding:0.7em; margin-left:1em; margin-right:1em; display: inline-block;'>
-  <img src="./logos/t2-compiler.png" align="right" height="50%" width="50%" padding=10em>
+<div style="background-color:#FFFF; color:#1A2067; border: solid #718096 4px; border-radius: 4px;">
+<p>
+  <img src="./logos/t2-compiler.png" align="right" height="40%" width="40%" padding=10em>
   <a href="https://github.com/tuneinsight/lattigo">Lattigo</a> v3.0.2 <a href="https://github.com/tuneinsight/lattigo/commit/27fee8bebbb5ee600d69086f0b5a8ff9a6c8e24e">27fee8b</a>
   <br>
   <a href="https://github.com/homenc/HElib">HElib</a> v2.2.1 <a href="https://github.com/homenc/HElib/commit/f0e3e010009c592cd411ba96baa8376eb485247a">f0e3e01</a>
@@ -60,6 +60,7 @@ IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
   <br>
 </p>
 </div>
+<br>
 
 
 ## Build and Run Instructions
