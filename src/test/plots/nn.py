@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2.0)
+pltsize = (6, 1.5)
 
 # Seconds
 data = {
@@ -69,16 +68,18 @@ rects3 = ax.bar(index + width, palisade, width,
                 color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 2*width, seal, width,
                 color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
-
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([10, 1300])
+ax.set_ylim([10, 1500])
+ax.set_yticks([10, 100, 1000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Max Hidden Neurons")
+# ax.set_xlabel("Max Hidden Neurons")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]),
-          ("HElib", "Lattigo", "PALISADE", "SEAL"),
-          fontsize=8, ncol=1, loc='upper left')
+# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]),
+#           ("HElib", "Lattigo", "PALISADE", "SEAL"),
+#           fontsize=8, ncol=1, loc='upper left')
 
 def autolabel_above(rects):
   for rect in rects:

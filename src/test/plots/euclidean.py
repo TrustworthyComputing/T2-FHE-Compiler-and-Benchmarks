@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
@@ -19,7 +19,7 @@ data = {
   'lattigo': 153.466697,
   'palisade': 318,
   'seal': 289,
-  'tfhe': 140 },
+  'tfhe': 150 },
 'Int. $|v| = 128$' : {
   'helib': 1766,
   'lattigo': 519.89226,
@@ -31,7 +31,7 @@ data = {
   'lattigo': 308.13639,
   'palisade': 743,
   'seal': 584,
-  'tfhe': 140 },
+  'tfhe': 150 },
 }
 
 helib = []
@@ -67,10 +67,13 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([0.1, 2000])
+ax.set_ylim([0.1, 2500])
+ax.set_yticks([0.1, 1, 10, 100, 1000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Encrypted Domain")
+# ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
@@ -80,8 +83,8 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 0.14:
-      ax.text(rect.get_x() + rect.get_width()/2., 0.16, 'N/A', ha='center', va='bottom', fontsize=7)
+    if height <= 0.15:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'N/A', ha='center', va='bottom', fontsize=7)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:

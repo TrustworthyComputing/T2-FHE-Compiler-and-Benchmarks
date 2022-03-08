@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
@@ -62,22 +61,24 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([0.1, 100000])
+ax.set_ylim([0.01, 200000])
+ax.set_yticks([0.01, 1, 100, 10000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Matrices Size")
+# ax.set_xlabel("Matrices Size")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-          fontsize=8, ncol=1, loc='upper left')
+# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+#           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
+#           fontsize=8, ncol=1, loc='upper left')
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height <= 0.01:
-      ax.text(rect.get_x() + rect.get_width()/2., 0.012, 'N/A', ha='center', va='bottom', fontsize=7)
-      continue
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'N/A', ha='center', va='bottom', fontsize=7)
     elif height < 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     elif height < 1000:

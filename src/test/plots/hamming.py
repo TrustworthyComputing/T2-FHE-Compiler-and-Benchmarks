@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
@@ -13,7 +13,7 @@ data = {
   'lattigo': 13782,
   'palisade': 4811,
   'seal': 25464,
-  'tfhe': 1390 },
+  'tfhe': 1890 },
 'Binary |v| = 4': {
   'helib': 7388,
   'lattigo': 96341.97564100001,
@@ -25,12 +25,12 @@ data = {
   'lattigo': 27395,
   'palisade': 9639,
   'seal': 50236,
-  'tfhe': 1390 },
+  'tfhe': 1890 },
 'Binary |v| = 8': {
   'helib': 15052,
   'lattigo': 246567.374508,
   'palisade': 28175,
-  'seal': 1400,
+  'seal': 1900,
   'tfhe': 3940 }
 }
 
@@ -67,10 +67,13 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([1, 1000])
+ax.set_ylim([1, 700])
+ax.set_yticks([1, 10, 100])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Encrypted Domain")
+# ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
@@ -80,10 +83,10 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 1.39:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'N/A', ha='center', va='bottom', fontsize=7)
-    elif height <= 1.4:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+    if height <= 1.89:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'N/A', ha='center', va='bottom', fontsize=7)
+    elif height <= 1.9:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
     elif height > 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
     else:

@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
@@ -62,10 +61,13 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([0.001, 2000])
+ax.set_ylim([0.001, 3000])
+ax.set_yticks([0.001, 0.1, 10, 1000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Database Size")
+# ax.set_xlabel("Database Size")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),

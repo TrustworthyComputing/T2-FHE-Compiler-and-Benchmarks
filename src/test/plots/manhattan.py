@@ -4,33 +4,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
 'Integer $|v| = 4$' : {
   'helib': 7440,
-  'lattigo': 1400,
-  'palisade': 1400,
+  'lattigo': 3000,
+  'palisade': 3000,
   'seal': 41174,
   'tfhe': 5533 },
 'Binary $|v| = 4$' : {
   'helib': 27821,
   'lattigo': 300617.807603,
   'palisade': 96382,
-  'seal': 1400,
+  'seal': 3000,
   'tfhe': 3618 },
 'Integer $|v| = 8$' : {
   'helib': 14882,
-  'lattigo': 1400,
-  'palisade': 1400,
+  'lattigo': 3000,
+  'palisade': 3000,
   'seal': 82346,
   'tfhe': 11073 },
 'Binary $|v| = 8$' : {
   'helib': 51405,
   'lattigo': 805777.32338,
   'palisade': 190134,
-  'seal': 1400,
+  'seal': 3000,
   'tfhe': 7259 },
 }
 
@@ -67,10 +67,14 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
+
 ax.set_yscale('log')
-ax.set_ylim([1, 2000])
+ax.set_ylim([1, 3000])
+ax.set_yticks([1, 10, 100, 1000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Encrypted Domain")
+# ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
@@ -80,8 +84,8 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 1.4:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.7, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+    if height <= 3.0:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
     elif height < 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     elif height < 100:

@@ -5,7 +5,7 @@ from matplotlib import colors
 import numpy as np
 
 mydpi = 300
-pltsize = (6, 2)
+pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
@@ -17,9 +17,9 @@ data = {
   'tfhe': 4018 },
 'CRC-32' : {
   'helib': 5187928,
-  'lattigo': 1400,
-  'palisade': 1400,
-  'seal': 1400,
+  'lattigo': 3000,
+  'palisade': 3000,
+  'seal': 3000,
   'tfhe': 66637 },
 }
 
@@ -56,10 +56,14 @@ rects4 = ax.bar(index + 3*width/2, seal, width,
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
+ax.set_axisbelow(True)
+ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
+
 ax.set_yscale('log')
-ax.set_ylim([1, 15000])
+ax.set_ylim([1, 20000])
+ax.set_yticks([1, 10, 100, 1000, 10000])
 ax.set_ylabel("Time (sec.)")
-ax.set_xlabel("Binary Domain")
+# ax.set_xlabel("Binary Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
@@ -69,8 +73,8 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 1.4:
-      ax.text(rect.get_x() + rect.get_width()/2., 2, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+    if height <= 3.0:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
       continue
     if height > 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
