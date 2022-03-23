@@ -54,7 +54,7 @@ IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
   <br>
   <a href="https://gitlab.com/palisade/palisade-release/">PALISADE</a> v1.11.6 <a href="https://gitlab.com/palisade/palisade-release/-/commit/0860127401ab794591f931fa2c61426c7b56ee2d">08601274</a>
   <br>
-  <a href="https://github.com/microsoft/SEAL">Microsoft SEAL</a> v3.7.2 <a href="https://github.com/microsoft/SEAL/commit/79234726053c45eede688400aa219fdec0810bd8">7923472</a>
+  <a href="https://github.com/microsoft/SEAL">Microsoft SEAL</a> v4.0.0 <a href="https://github.com/microsoft/SEAL/commit/a0fc0b732f44fa5242593ab488c8b2b3076a5f76">a0fc0b7</a>
   <br>
   <a href="https://github.com/tfhe/tfhe">TFHE</a> v1.0.1 <a href="https://github.com/tfhe/tfhe/commit/6297bc72d9294e6e635738deb2e8dc7e4ff8bc61">6297bc7</a>
   <br>

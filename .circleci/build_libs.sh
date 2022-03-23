@@ -30,10 +30,10 @@ else
     echo "Found in cache"
 fi
 
-echo "Build SEAL v1.11.6"
+echo "Build SEAL v4.0.0"
 if [ ! -d "SEAL/build" ] ; then
     cd ./SEAL
-    git reset --hard 88bbc51
+    git reset --hard a0fc0b732f44fa5242593ab488c8b2b3076a5f76
     cmake -S . -B build
     cmake --build build
     sudo cmake --install build

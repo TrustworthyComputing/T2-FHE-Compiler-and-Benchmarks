@@ -65,7 +65,7 @@ jobs:
           working_directory: palisade-release/build
 
       - run:
-          name: Install SEAL 3.7.2
+          name: Install SEAL 4.0.0
           command: >
             sudo cmake --install build
           working_directory: SEAL
