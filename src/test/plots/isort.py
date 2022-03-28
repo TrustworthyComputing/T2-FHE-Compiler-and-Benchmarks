@@ -10,21 +10,21 @@ pltsize = (6, 1.5)
 data = {
 '$|v| = 4$': {
   'helib': 62765,
-  'lattigo': 3000,
-  'palisade': 3000,
-  'seal': 3000,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
   'tfhe': 4000 },
 '$|v| = 8$': {
   'helib': 2308615,
-  'lattigo': 3000,
-  'palisade': 3000,
-  'seal': 3000,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
   'tfhe': 18662 },
 '$|v| = 16$': {
   'helib': 11457458,
-  'lattigo': 3000,
-  'palisade': 3000,
-  'seal': 3000,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
   'tfhe': 76287 }
 }
 
@@ -77,8 +77,12 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 3.0:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+    if height*1000 == data['$|v| = 4$']['lattigo'] or height*1000 == data['$|v| = 8$']['lattigo'] or height*1000 == data['$|v| = 16$']['lattigo']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height*1000 == data['$|v| = 4$']['palisade'] or height*1000 == data['$|v| = 8$']['palisade'] or height*1000 == data['$|v| = 16$']['palisade']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height*1000 == data['$|v| = 4$']['seal'] or height*1000 == data['$|v| = 8$']['seal'] or height*1000 == data['$|v| = 16$']['seal']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     else:

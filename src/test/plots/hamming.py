@@ -13,7 +13,7 @@ data = {
   'lattigo': 13782,
   'palisade': 4811,
   'seal': 25464,
-  'tfhe': 1890 },
+  'tfhe': 104 },
 'Binary |v| = 4': {
   'helib': 7388,
   'lattigo': 96341.97564100001,
@@ -25,12 +25,12 @@ data = {
   'lattigo': 27395,
   'palisade': 9639,
   'seal': 50236,
-  'tfhe': 1890 },
+  'tfhe': 104 },
 'Binary |v| = 8': {
   'helib': 15052,
   'lattigo': 246567.374508,
   'palisade': 28175,
-  'seal': 1900,
+  'seal': 103,
   'tfhe': 3940 }
 }
 
@@ -83,10 +83,10 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 1.89:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'N/A', ha='center', va='bottom', fontsize=7)
-    elif height <= 1.9:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+    if height*1000 == data['Binary |v| = 8']['seal']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height*1000 == data['Integer |v| = 4']['tfhe'] or height*1000 == data['Integer |v| = 8']['tfhe']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'N/A', color='black', bbox=dict(facecolor='none', color='xkcd:very light blue', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     elif height > 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
     else:

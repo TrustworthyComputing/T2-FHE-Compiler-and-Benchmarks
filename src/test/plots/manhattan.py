@@ -10,27 +10,27 @@ pltsize = (6, 1.5)
 data = {
 'Integer $|v| = 4$' : {
   'helib': 7440,
-  'lattigo': 3000,
-  'palisade': 3000,
+  'lattigo': 101,
+  'palisade': 102,
   'seal': 41174,
   'tfhe': 5533 },
 'Binary $|v| = 4$' : {
   'helib': 27821,
   'lattigo': 300617.807603,
   'palisade': 96382,
-  'seal': 3000,
+  'seal': 103,
   'tfhe': 3618 },
 'Integer $|v| = 8$' : {
   'helib': 14882,
-  'lattigo': 3000,
-  'palisade': 3000,
+  'lattigo': 101,
+  'palisade': 102,
   'seal': 82346,
   'tfhe': 11073 },
 'Binary $|v| = 8$' : {
   'helib': 51405,
   'lattigo': 805777.32338,
   'palisade': 190134,
-  'seal': 3000,
+  'seal': 103,
   'tfhe': 7259 },
 }
 
@@ -85,7 +85,14 @@ def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height <= 3.0:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+      if height*1000 == data['Integer $|v| = 4$']['lattigo'] or height*1000 == data['Integer $|v| = 8$']['lattigo']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+      elif height*1000 == data['Integer $|v| = 4$']['palisade'] or height*1000 == data['Integer $|v| = 8$']['palisade']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+      elif height*1000 == data['Binary $|v| = 4$']['seal'] or height*1000 == data['Binary $|v| = 8$']['seal']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+
+      # ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
     elif height < 10:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     elif height < 100:

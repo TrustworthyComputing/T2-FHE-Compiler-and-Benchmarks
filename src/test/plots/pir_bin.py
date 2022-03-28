@@ -22,9 +22,9 @@ data = {
   'tfhe': 8212 },
 '$|db| = 16$': {
   'helib': 126621,
-  'lattigo': 3000,
-  'palisade': 3000,
-  'seal': 3000,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
   'tfhe': 16638 }
 }
 
@@ -78,7 +78,12 @@ def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height <= 3.0:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
+      if height*1000 == data['$|db| = 16$']['lattigo']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+      elif height*1000 == data['$|db| = 16$']['palisade']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+      elif height*1000 == data['$|db| = 16$']['seal']:
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     else:

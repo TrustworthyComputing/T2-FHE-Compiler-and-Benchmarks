@@ -13,19 +13,19 @@ data = {
   'lattigo': 1.3759,
   'palisade': 5,
   'seal': 2,
-  'tfhe': 0.19 },
+  'tfhe': 0.014 },
 '$|db| = 128$': {
   'helib': 31,
   'lattigo': 1.434,
   'palisade': 5,
   'seal': 2,
-  'tfhe': 0.19 },
+  'tfhe': 0.014 },
 '$|db| = 256$': {
   'helib': 31,
   'lattigo': 1.3944,
   'palisade': 5,
   'seal': 2,
-  'tfhe': 0.19 }
+  'tfhe': 0.014 }
 }
 
 helib = []
@@ -77,8 +77,8 @@ ax.set_xticklabels(x_axis_label)
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 0.00019:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'N/A', ha='center', va='bottom', fontsize=7)
+    if height*1000 == data['$|db| = 64$']['tfhe'] or height*1000 == data['$|db| = 128$']['tfhe'] or height*1000 == data['$|db| = 256$']['tfhe']:
+      ax.text(rect.get_x() + rect.get_width()/2., 0.0005, 'N/A', color='black', bbox=dict(facecolor='none', color='xkcd:very light blue', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     else:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%0.3f' % (height), ha='center', va='bottom', fontsize=7)
 
