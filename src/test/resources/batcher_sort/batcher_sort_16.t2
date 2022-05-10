@@ -1,0 +1,45 @@
+int main(void) {
+  EncInt[] arr;
+  EncInt x, y, cond; 
+  int p,k,j,i, t1mp, t2mp, t3mp, t4mp, t5mp, t6mp, t7mp;
+  int arr_size; 
+
+  arr_size = 16;
+  arr = { 5, 6, 2, 8, 1, 4, 2, 3,
+          5, 6, 2, 8, 1, 4, 2, 3 };
+  tstart();  
+  for (p = 1; p < arr_size; p = p * 2) {
+    for (k = p; k > 0; k = k / 2) {
+      t1mp = k % p;
+      t2mp = arr_size - 1;
+      t2mp -= k;
+      for (j = t1mp; j < t2mp; j = j + (2*k)) {
+        t3mp = k - 1;
+        t4mp = arr_size - j;
+        t4mp -= t3mp;
+        t3mp = (t3mp < t4mp) ? t3mp : t4mp;
+        for (i = 0; i <= t3mp; i++) {
+          t5mp = (i + j) / (p*2);
+          t6mp = i + j;
+          t6mp += k;
+          t6mp = t6mp / (p*2);
+          if (t5mp == t6mp) {
+            x = arr[(i+j)];
+            t7mp = i + j;
+            t7mp += k;
+            y = arr[t7mp];
+            cond = y < x;
+            arr[(i+j)] = (cond) ? y : x; 
+            arr[t7mp] = (cond) ? x : y;
+          }
+        }
+      }
+    }
+  }
+  tstop();
+  for (i = 0; i < arr_size; i++) {
+    print(arr[i]);
+  }
+  return 0;
+}
+
