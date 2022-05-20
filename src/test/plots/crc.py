@@ -16,7 +16,7 @@ data = {
   'seal': 109441,
   'tfhe': 4018 },
 'CRC-32' : {
-  'helib': 5187928,
+  'helib': 2433054,
   'lattigo': 101,
   'palisade': 102,
   'seal': 103,
@@ -60,7 +60,7 @@ ax.set_axisbelow(True)
 ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
 
 ax.set_yscale('log')
-ax.set_ylim([1, 20000])
+ax.set_ylim([1, 10000])
 ax.set_yticks([1, 10, 100, 1000, 10000])
 ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Binary Domain")
@@ -69,6 +69,10 @@ ax.set_xticklabels(x_axis_label)
 # ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
 #           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
 #           fontsize=9, ncol=3, loc='upper left')
+ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALIS.", "SEAL", "TFHE"),
+          fontsize=8, ncol=1, loc='center right', bbox_to_anchor=(1.21, 0.5))
+
 
 def autolabel_above(rects):
   for rect in rects:
