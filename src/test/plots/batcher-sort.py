@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-from matplotlib import colors
 import numpy as np
 
 mydpi = 300
@@ -9,18 +8,24 @@ pltsize = (6, 1.5)
 
 # Milliseconds
 data = {
-'CRC-8'  : {
-  'helib': 12053,
-  'lattigo': 58735.073422,
-  'palisade': 190228,
-  'seal': 109441,
-  'tfhe': 4018 },
-'CRC-32' : {
-  'helib': 2433054,
+'$|v| = 4$': {
+  'helib': 45448,
   'lattigo': 101,
   'palisade': 102,
   'seal': 103,
-  'tfhe': 66637 },
+  'tfhe': 2634 },
+'$|v| = 8$': {
+  'helib': 510191,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
+  'tfhe': 11897 },
+'$|v| = 16$': {
+  'helib': 1558638,
+  'lattigo': 101,
+  'palisade': 102,
+  'seal': 103,
+  'tfhe': 40841 }
 }
 
 helib = []
@@ -58,7 +63,6 @@ rects5 = ax.bar(index + 5*width/2, tfhe, width,
 
 ax.set_axisbelow(True)
 ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
-
 ax.set_yscale('log')
 ax.set_ylim([1, 10000])
 ax.set_yticks([1, 10, 100, 1000, 10000])
@@ -73,16 +77,14 @@ ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height <= 3.0:
-      if height*1000 == data['CRC-32']['lattigo']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
-      elif height*1000 == data['CRC-32']['palisade']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
-      elif height*1000 == data['CRC-32']['seal']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
-      continue
-    if height < 100:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
+    if height*1000 == data['$|v| = 4$']['lattigo'] or height*1000 == data['$|v| = 8$']['lattigo'] or height*1000 == data['$|v| = 16$']['lattigo']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height*1000 == data['$|v| = 4$']['palisade'] or height*1000 == data['$|v| = 8$']['palisade'] or height*1000 == data['$|v| = 16$']['palisade']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height*1000 == data['$|v| = 4$']['seal'] or height*1000 == data['$|v| = 8$']['seal'] or height*1000 == data['$|v| = 16$']['seal']:
+      ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height < 100:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     else:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
 
@@ -95,4 +97,4 @@ autolabel_above(rects5)
 # plt.show()
 
 plt.tight_layout()
-plt.savefig("./crc.png", dpi=mydpi, bbox_inches="tight", pad_inches=0.03)
+plt.savefig("./batcher-sort.png", dpi=mydpi, bbox_inches="tight", pad_inches=0.03)
