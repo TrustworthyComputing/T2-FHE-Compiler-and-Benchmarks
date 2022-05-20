@@ -70,22 +70,22 @@ ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Database Size")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-#           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-#           fontsize=9, ncol=3, loc='upper left')
+ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALIS.", "SEAL", "TFHE"),
+          fontsize=8, ncol=1, loc='center right', bbox_to_anchor=(1.21, 0.5))
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height <= 3.0:
       if height*1000 == data['$|db| = 16$']['lattigo']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='#ffddbf', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
       elif height*1000 == data['$|db| = 16$']['palisade']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:ecru', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
       elif height*1000 == data['$|db| = 16$']['seal']:
-        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=5, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+        ax.text(rect.get_x() + rect.get_width()/2., 5, 'Noisy', color='black', bbox=dict(facecolor='none', color='xkcd:very light green', linewidth=3, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     elif height < 100:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
 

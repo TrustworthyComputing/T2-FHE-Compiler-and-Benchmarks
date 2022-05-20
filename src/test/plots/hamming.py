@@ -51,7 +51,7 @@ for k,val in data.items():
 
 N = len(palisade)
 index = np.arange(N) # the x locations for the groups
-width = 0.16 # the width of the bars
+width = 0.18 # the width of the bars
 
 fig, ax = plt.subplots(figsize=pltsize)
 ax.margins(0.02, 0.02)
@@ -70,15 +70,15 @@ rects5 = ax.bar(index + 5*width/2, tfhe, width,
 ax.set_axisbelow(True)
 ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([1, 700])
-ax.set_yticks([1, 10, 100])
+ax.set_ylim([1, 8000])
+ax.set_yticks([1, 10, 100, 1000])
 ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-#           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-#           fontsize=9, ncol=5, loc='upper center')
+ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
+          fontsize=8, ncol=5, loc='upper left')
 
 def autolabel_above(rects):
   for rect in rects:

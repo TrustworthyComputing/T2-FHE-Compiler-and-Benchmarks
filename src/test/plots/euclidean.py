@@ -70,21 +70,21 @@ rects5 = ax.bar(index + 5*width/2, tfhe, width,
 ax.set_axisbelow(True)
 ax.grid(True, axis='y', which="both", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')
-ax.set_ylim([0.1, 2500])
+ax.set_ylim([0.1, 9000])
 ax.set_yticks([0.1, 1, 10, 100, 1000])
 ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-# ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-#           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-#           fontsize=9, ncol=1, loc='upper center')
+ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
+          fontsize=8, ncol=2, loc='upper center')
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
     if height*1000 == data['FP $|v| = 64$']['tfhe'] or height*1000 == data['FP $|v| = 128$']['tfhe']:
-      ax.text(rect.get_x() + rect.get_width()/2., 0.5, 'N/A', color='black', bbox=dict(facecolor='none', color='xkcd:very light blue', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+      ax.text(rect.get_x() + rect.get_width()/2., 0.4, 'N/A', color='black', bbox=dict(facecolor='none', color='xkcd:very light blue', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
