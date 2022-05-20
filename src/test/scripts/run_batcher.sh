@@ -6,7 +6,7 @@ set -exo pipefail
 
 java -jar target/terminator-compiler-1.0.jar \
 src/test/resources/batcher_sort/batcher_sort_4.t2 --HELIB --w 4 \
---config src/test/resources/batcher_sort/configs/helib-bgv-boot.config
+--config src/test/resources/batcher_sort/configs/helib-bgv.config
 cp ./src/test/resources/batcher_sort/batcher_sort_4.cpp ./src/HElib/compiled/test.cpp
 cd ./src/HElib
 make
