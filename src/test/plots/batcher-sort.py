@@ -9,7 +9,7 @@ pltsize = (6, 1.5)
 # Milliseconds
 data = {
 '$|v| = 4$': {
-  'helib': 112135,
+  'helib': 45448,
   'lattigo': 101,
   'palisade': 102,
   'seal': 103,
