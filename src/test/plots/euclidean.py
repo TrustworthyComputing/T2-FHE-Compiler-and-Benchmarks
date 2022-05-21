@@ -5,6 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
+transp = 0.5
 
 # Milliseconds
 data = {
@@ -12,24 +13,28 @@ data = {
   'helib': 872,
   'lattigo': 257.121658,
   'palisade': 181,
+  'palisade-1t': 333,
   'seal': 313,
   'tfhe': 328060 },
 'FP $|v| = 64$' : {
   'helib': 1620,
   'lattigo': 153.466697,
   'palisade': 318,
+  'palisade-1t': 379,
   'seal': 289,
   'tfhe': 14 },
 'Int. $|v| = 128$' : {
   'helib': 1766,
   'lattigo': 519.89226,
   'palisade': 415,
+  'palisade-1t': 629,
   'seal': 625,
   'tfhe': 647391 },
 'FP $|v| = 128$' : {
   'helib': 3338,
   'lattigo': 308.13639,
   'palisade': 743,
+  'palisade-1t': 899,
   'seal': 584,
   'tfhe': 14 },
 }
@@ -37,6 +42,7 @@ data = {
 helib = []
 lattigo = []
 palisade = []
+palisade_1t = []
 seal = []
 tfhe = []
 
@@ -46,6 +52,7 @@ for k,val in data.items():
   helib.append(val['helib'] / 1000)
   lattigo.append(val['lattigo'] / 1000)
   palisade.append(val['palisade'] / 1000)
+  palisade_1t.append(val['palisade-1t'] / 1000)
   seal.append(val['seal'] / 1000)
   tfhe.append(val['tfhe'] / 1000)
 
@@ -60,10 +67,12 @@ rects1 = ax.bar(index - 3*width/2, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
 rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
+rects3_1t = ax.bar(index + width/2, palisade_1t, width,
+                color='xkcd:ecru', edgecolor='black', linewidth=1, alpha=transp)
 rects3 = ax.bar(index + width/2, palisade, width,
-                color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
+                color='xkcd:ecru', hatch='..', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 3*width/2, seal, width,
-                color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
+                color='xkcd:very light green', hatch='--', edgecolor='black', linewidth=1)
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 

@@ -5,6 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
+transp = 0.5
 
 # Seconds
 data = {
@@ -12,37 +13,44 @@ data = {
   'helib': 12,
   'lattigo': 37.7,
   'palisade': 19.9,
+  'palisade-1t': 17.837,
   'seal': 11.6 },
 'FP $n = 50$': {
   'helib': 16,
   'lattigo': 251,
   'palisade': 175,
+  'palisade-1t': 206.923,
   'seal': 193 },
 'Int $n = 100$': {
   'helib': 24,
   'lattigo': 75.3,
   'palisade': 40.4,
+  'palisade-1t': 35.626,
   'seal': 21.6 },
 'FP $n = 100$': {
   'helib': 26.8,
   'lattigo': 502,
   'palisade': 372,
+  'palisade-1t': 413.054,
   'seal': 386 },
 'Int $n = 150$': {
   'helib': 38.314,
   'lattigo': 107.401,
   'palisade': 56.891,
+  'palisade-1t': 54.029,
   'seal': 30.484 },
 'FP $n = 150$': {
   'helib': 44.568,
   'lattigo': 756.000,
   'palisade': 578.062,
+  'palisade-1t': 619.029,
   'seal': 598.460 }
 }
 
 helib = []
 lattigo = []
 palisade = []
+palisade_1t = []
 seal = []
 
 x_axis_label = []
@@ -51,6 +59,7 @@ for k,val in data.items():
   helib.append(val['helib'])
   lattigo.append(val['lattigo'])
   palisade.append(val['palisade'])
+  palisade_1t.append(val['palisade-1t'])
   seal.append(val['seal'])
 
 N = len(palisade)
@@ -64,10 +73,12 @@ rects1 = ax.bar(index - width, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
 rects2 = ax.bar(index, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
+rects3_1t = ax.bar(index + width, palisade_1t, width,
+                color='xkcd:ecru', edgecolor='black', linewidth=1, alpha=transp)
 rects3 = ax.bar(index + width, palisade, width,
-                color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
+                color='xkcd:ecru', hatch='..', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 2*width, seal, width,
-                color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
+                color='xkcd:very light green', hatch='--', edgecolor='black', linewidth=1)
 ax.set_axisbelow(True)
 ax.grid(True, axis='y', which="major", linewidth = "0.3", linestyle='--')
 ax.set_yscale('log')

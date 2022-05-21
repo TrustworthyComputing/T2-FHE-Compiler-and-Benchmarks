@@ -55,9 +55,9 @@ rects1 = ax.bar(index - 3*width/2, helib, width,
 rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
 rects3 = ax.bar(index + width/2, palisade, width,
-                color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
+                color='xkcd:ecru', hatch='..', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 3*width/2, seal, width,
-                color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
+                color='xkcd:very light green', hatch='--', edgecolor='black', linewidth=1)
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 

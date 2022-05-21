@@ -5,6 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
+transp = 0.5
 
 # Milliseconds
 data = {
@@ -12,24 +13,28 @@ data = {
   'helib': 7440,
   'lattigo': 101,
   'palisade': 102,
+  'palisade-1t': 102,
   'seal': 41174,
   'tfhe': 5533 },
 'Binary $|v| = 4$' : {
   'helib': 27821,
   'lattigo': 300617.807603,
   'palisade': 96382,
+  'palisade-1t': 475191,
   'seal': 103,
   'tfhe': 3618 },
 'Integer $|v| = 8$' : {
   'helib': 14882,
   'lattigo': 101,
   'palisade': 102,
+  'palisade-1t': 102,
   'seal': 82346,
   'tfhe': 11073 },
 'Binary $|v| = 8$' : {
   'helib': 51405,
   'lattigo': 805777.32338,
   'palisade': 190134,
+  'palisade-1t': 947599,
   'seal': 103,
   'tfhe': 7259 },
 }
@@ -37,6 +42,7 @@ data = {
 helib = []
 lattigo = []
 palisade = []
+palisade_1t = []
 seal = []
 tfhe = []
 
@@ -46,6 +52,7 @@ for k,val in data.items():
   helib.append(val['helib'] / 1000)
   lattigo.append(val['lattigo'] / 1000)
   palisade.append(val['palisade'] / 1000)
+  palisade_1t.append(val['palisade-1t'] / 1000)
   seal.append(val['seal'] / 1000)
   tfhe.append(val['tfhe'] / 1000)
 
@@ -60,10 +67,12 @@ rects1 = ax.bar(index - 3*width/2, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
 rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
+rects3_1t = ax.bar(index + width/2, palisade_1t, width,
+                color='xkcd:ecru', edgecolor='black', linewidth=1, alpha=transp)
 rects3 = ax.bar(index + width/2, palisade, width,
-                color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
+                color='xkcd:ecru', hatch='..', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 3*width/2, seal, width,
-                color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
+                color='xkcd:very light green', hatch='--', edgecolor='black', linewidth=1)
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
@@ -81,7 +90,7 @@ ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
           ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
           fontsize=8, ncol=5, loc='upper left')
 
-def autolabel_above(rects):
+def autolabel_above(rects, opacity = 1.0):
   for rect in rects:
     height = rect.get_height()
     if height <= 3.0:
@@ -94,15 +103,16 @@ def autolabel_above(rects):
 
       # ax.text(rect.get_x() + rect.get_width()/2., 1.5*height, 'Noisy', ha='center', va='bottom', fontsize=7, rotation=90)
     elif height < 10:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7, alpha=opacity)
     elif height < 100:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7, alpha=opacity)
     else:
-      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7)
+      ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.0f' % (height), ha='center', va='bottom', fontsize=7, alpha=opacity)
 
 autolabel_above(rects1)
 autolabel_above(rects2)
 autolabel_above(rects3)
+autolabel_above(rects3_1t, transp)
 autolabel_above(rects4)
 autolabel_above(rects5)
 

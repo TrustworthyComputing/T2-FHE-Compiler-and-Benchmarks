@@ -5,6 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
+transp = 0.5
 
 # Milliseconds
 data = {
@@ -12,18 +13,21 @@ data = {
   'helib': 31,
   'lattigo': 1.3759,
   'palisade': 5,
+  'palisade-1t': 5,
   'seal': 2,
   'tfhe': 0.014 },
 '$|db| = 128$': {
   'helib': 31,
   'lattigo': 1.434,
   'palisade': 5,
+  'palisade-1t': 5,
   'seal': 2,
   'tfhe': 0.014 },
 '$|db| = 256$': {
   'helib': 31,
   'lattigo': 1.3944,
   'palisade': 5,
+  'palisade-1t': 5,
   'seal': 2,
   'tfhe': 0.014 }
 }
@@ -31,6 +35,7 @@ data = {
 helib = []
 lattigo = []
 palisade = []
+palisade_1t = []
 seal = []
 tfhe = []
 
@@ -40,6 +45,7 @@ for k,val in data.items():
   helib.append(val['helib'] / 1000)
   lattigo.append(val['lattigo'] / 1000)
   palisade.append(val['palisade'] / 1000)
+  palisade_1t.append(val['palisade-1t'] / 1000)
   seal.append(val['seal'] / 1000)
   tfhe.append(val['tfhe'] / 1000)
 
@@ -54,10 +60,12 @@ rects1 = ax.bar(index - 3*width/2, helib, width,
                 color='xkcd:light salmon', hatch='//', edgecolor='black', linewidth=1)
 rects2 = ax.bar(index - width/2, lattigo, width,
                 color='#ffddbf', hatch='xx', edgecolor='black', linewidth=1)
+rects3_1t = ax.bar(index + width/2, palisade_1t, width,
+                color='xkcd:ecru', edgecolor='black', linewidth=1, alpha=transp)
 rects3 = ax.bar(index + width/2, palisade, width,
-                color='xkcd:ecru', hatch='--', edgecolor='black', linewidth=1)
+                color='xkcd:ecru', hatch='..', edgecolor='black', linewidth=1)
 rects4 = ax.bar(index + 3*width/2, seal, width,
-                color='xkcd:very light green', hatch='..', edgecolor='black', linewidth=1)
+                color='xkcd:very light green', hatch='--', edgecolor='black', linewidth=1)
 rects5 = ax.bar(index + 5*width/2, tfhe, width,
                 color='xkcd:very light blue', hatch='\\\\', edgecolor='black', linewidth=1)
 
