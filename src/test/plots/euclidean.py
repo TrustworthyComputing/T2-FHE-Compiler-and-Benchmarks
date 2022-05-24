@@ -5,7 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
-transp = 0.5
+transp = 0.8
 
 # Milliseconds
 data = {
@@ -85,8 +85,8 @@ ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
+ax.legend((rects1[0], rects2[0], rects3[0], rects3_1t[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALIS.", "PAL. 1C", "SEAL", "TFHE"),
           fontsize=8, ncol=2, loc='upper center')
 
 def autolabel_above(rects):
@@ -94,6 +94,8 @@ def autolabel_above(rects):
     height = rect.get_height()
     if height*1000 == data['FP $|v| = 64$']['tfhe'] or height*1000 == data['FP $|v| = 128$']['tfhe']:
       ax.text(rect.get_x() + rect.get_width()/2., 0.4, 'N/A', color='black', bbox=dict(facecolor='none', color='xkcd:very light blue', linewidth=1, boxstyle='square'), ha='center', va='bottom', fontsize=8, rotation=90)
+    elif height < 0.25:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.9*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.1*height, '%2.1f' % (height), ha='center', va='bottom', fontsize=7)
     else:
