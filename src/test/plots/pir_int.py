@@ -5,7 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
-transp = 0.5
+transp = 0.8
 
 # Milliseconds
 data = {
@@ -78,15 +78,17 @@ ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Database Size")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-          ("HElib", "Lattigo", "PALIS.", "SEAL", "TFHE"),
-          fontsize=8, ncol=1, loc='center right', bbox_to_anchor=(1.21, 0.5))
+ax.legend((rects1[0], rects2[0], rects3[0], rects3_1t[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PALIS.", "PAL. 1C", "SEAL", "TFHE"),
+          fontsize=8, ncol=1, loc='center right', bbox_to_anchor=(1.22, 0.45))
 
 def autolabel_above(rects):
   for rect in rects:
     height = rect.get_height()
-    if height < 1:
-      ax.text(rect.get_x() + rect.get_width()/2., 2.0*height, '%0.3f' % (height), ha='center', va='bottom', fontsize=7, rotation=45)
+    if height*1000 == data['$|db| = 64$']['palisade'] or height*1000 == data['$|db| = 128$']['palisade'] or height*1000 == data['$|db| = 256$']['palisade']:
+      ax.text(rect.get_x() + rect.get_width()/2., 2.5*height, '%0.3f' % (height), ha='center', va='bottom', fontsize=7, rotation=45)
+    elif height < 1:
+      ax.text(rect.get_x() + rect.get_width()/2., 1.4*height, '%0.3f' % (height), ha='center', va='bottom', fontsize=7, rotation=45)
     elif height < 100:
       ax.text(rect.get_x() + rect.get_width()/2., 1.3*height, '%2.2f' % (height), ha='center', va='bottom', fontsize=7)
     else:

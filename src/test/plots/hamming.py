@@ -5,7 +5,7 @@ import numpy as np
 
 mydpi = 300
 pltsize = (6, 1.5)
-transp = 0.5
+transp = 0.8
 
 # Milliseconds
 data = {
@@ -85,9 +85,9 @@ ax.set_ylabel("Time (sec.)")
 # ax.set_xlabel("Encrypted Domain")
 ax.set_xticks(index + width / 2)
 ax.set_xticklabels(x_axis_label)
-ax.legend((rects1[0], rects2[0], rects3[0], rects4[0], rects5[0]),
-          ("HElib", "Lattigo", "PALISADE", "SEAL", "TFHE"),
-          fontsize=8, ncol=5, loc='upper left')
+ax.legend((rects1[0], rects2[0], rects3[0], rects3_1t[0], rects4[0], rects5[0]),
+          ("HElib", "Lattigo", "PAL.", "PAL. 1C", "SEAL", "TFHE"),
+          fontsize=8, ncol=6, loc='upper center')
 
 def autolabel_above(rects, opacity = 1.0):
   for rect in rects:
