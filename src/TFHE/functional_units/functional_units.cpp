@@ -650,6 +650,62 @@ void e_xor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
   }
 }
 
+void e_or(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk) {
+  size_t num_ops = std::min(a.size(), b.size());
+  result.resize(std::max(a.size(), b.size()));
+  for (int i = 0; i < num_ops; i++) {
+    for (int j = 0; j < nb_bits; j++) {
+    bootsOR(&result[i][j], &a[i][j], &b[i][j], bk);
+    }
+  }
+  // Copy results if necessary
+  if (a.size() != b.size()) {
+    if (a.size() < b.size()) {
+      for (int i = num_ops; i < b.size(); i++) {
+        for (int j = 0; j < nb_bits; j++) {
+            bootsCOPY(&result[i][j], &b[i][j], bk);
+        }
+      }
+    } else {
+      for (int i = num_ops; i < a.size(); i++) {
+        for (int j = 0; j < nb_bits; j++) {
+            bootsCOPY(&result[i][j], &a[i][j], bk);
+        }
+      }
+    }
+  }
+}
+
+void e_and(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk) {
+  size_t num_ops = std::min(a.size(), b.size());
+  result.resize(std::max(a.size(), b.size()));
+  for (int i = 0; i < num_ops; i++) {
+    for (int j = 0; j < nb_bits; j++) {
+    bootsAND(&result[i][j], &a[i][j], &b[i][j], bk);
+    }
+  }
+  // Copy results if necessary
+  if (a.size() != b.size()) {
+    if (a.size() < b.size()) {
+      for (int i = num_ops; i < b.size(); i++) {
+        for (int j = 0; j < nb_bits; j++) {
+            bootsCOPY(&result[i][j], &b[i][j], bk);
+        }
+      }
+    } else {
+      for (int i = num_ops; i < a.size(); i++) {
+        for (int j = 0; j < nb_bits; j++) {
+            bootsCOPY(&result[i][j], &a[i][j], bk);
+        }
+      }
+    }
+  }
+}
+
 void e_mux(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const std::vector<LweSample*>& b, const std::vector<LweSample*>& c,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk) {

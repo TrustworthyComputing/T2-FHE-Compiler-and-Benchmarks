@@ -319,6 +319,26 @@ func BinXor(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	return res
 }
 
+func BinOr(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	for i := 0; i < len(res); i++ {
+		receiver := (*evaluator_).MulNew(c1[i], c2[i])
+		tmp_ctxt := (*evaluator_).RelinearizeNew(receiver)
+		tmp_ctxt_2 := (*evaluator_).AddNew(c1[i], c2[i])
+		res[i] = (*evaluator_).SubNew(tmp_ctxt_2, tmp_ctxt)
+	}
+	return res
+}
+
+func BinAnd(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
+	res := make([]*bfv.Ciphertext, len(c1))
+	for i := 0; i < len(res); i++ {
+		receiver := (*evaluator_).MulNew(c1[i], c2[i])
+		res[i] = (*evaluator_).RelinearizeNew(receiver)
+	}
+	return res
+}
+
 func BinLt(c1, c2 []*bfv.Ciphertext) []*bfv.Ciphertext {
 	res := make([]*bfv.Ciphertext, word_sz_)
 	if len(c1) == 1 {

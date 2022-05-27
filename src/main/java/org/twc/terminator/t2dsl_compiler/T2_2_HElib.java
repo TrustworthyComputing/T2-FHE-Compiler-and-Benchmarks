@@ -917,6 +917,14 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append("xor_bin(public_key, tmp_, ").append(rhs.getName());
             this.asm_.append(", p);\n");
             break;
+          case "&":
+            this.asm_.append("and_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", p);\n");
+            break;
+          case "|":
+            this.asm_.append("or_bin(public_key, tmp_, ").append(rhs.getName());
+            this.asm_.append(", p);\n");
+            break;
           case "==":
             this.asm_.append("eq_bin(public_key, tmp_, ").append(rhs.getName());
             this.asm_.append(", unpackSlotEncoding, slots);\n");
@@ -959,6 +967,10 @@ public class T2_2_HElib extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             assign_to_all_slots("tmp", lhs.getName(), null);
             append_idx(res_);
@@ -1026,6 +1038,20 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append("xor_bin(public_key, ").append(lhs.getName());
             this.asm_.append(", tmp_, p);\n");
             break;
+          case "&":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
+            this.asm_.append("and_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, p);\n");
+            break;
+          case "|":
+            encrypt("tmp_", new String[]{rhs.getName()});
+            this.asm_.append(";\n");
+            append_idx(res_ + " = ");
+            this.asm_.append("or_bin(public_key, ").append(lhs.getName());
+            this.asm_.append(", tmp_, p);\n");
+            break;
           case "==":
             encrypt("tmp_", new String[]{rhs.getName()});
             this.asm_.append(";\n");
@@ -1090,6 +1116,10 @@ public class T2_2_HElib extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("OR over encrypted integers is not possible");
           case "==":
             assign_to_all_slots("tmp", rhs.getName(), null);
             append_idx(res_ + " = eq_plain(public_key, ");
@@ -1146,6 +1176,16 @@ public class T2_2_HElib extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", p);\n");
             break;
+          case "&":
+            this.asm_.append("and_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", p);\n");
+            break;
+          case "|":
+            this.asm_.append("or_bin(public_key, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", p);\n");
+            break;
           case "==":
             this.asm_.append("eq_bin(public_key, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
@@ -1182,6 +1222,10 @@ public class T2_2_HElib extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(public_key, ").append(lhs.getName());

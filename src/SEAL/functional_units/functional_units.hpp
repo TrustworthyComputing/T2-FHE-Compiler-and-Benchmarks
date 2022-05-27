@@ -29,6 +29,17 @@ seal::Ciphertext exor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
                            seal::Encryptor& encryptor,
                            const seal::RelinKeys& relinKeys);
 
+seal::Ciphertext eor(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
+                           seal::Evaluator& evaluator,
+                           seal::Encryptor& encryptor,
+                           const seal::RelinKeys& relinKeys);
+
+seal::Ciphertext eand(seal::Ciphertext& ctxt_1, seal::Ciphertext& ctxt_2,
+                           seal::Evaluator& evaluator,
+                           seal::Encryptor& encryptor,
+                           const seal::RelinKeys& relinKeys);
+
+
 seal::Ciphertext mux(seal::Evaluator& evaluator, 
                      seal::RelinKeys& relin_keys, seal::Ciphertext& sel, 
                      seal::Ciphertext& ctxt_1,  seal::Ciphertext& ctxt_2,
@@ -95,6 +106,20 @@ std::vector<seal::Ciphertext> shift_left_bin(seal::Encryptor& encryptor,
 
 
 std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
+                                      seal::Encryptor& encryptor,
+                                      seal::RelinKeys& relinKeys, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t ptxt_mod);
+
+std::vector<seal::Ciphertext> and_bin(seal::Evaluator& evaluator,
+                                      seal::Encryptor& encryptor,
+                                      seal::RelinKeys& relinKeys, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t ptxt_mod);
+
+std::vector<seal::Ciphertext> or_bin(seal::Evaluator& evaluator,
                                       seal::Encryptor& encryptor,
                                       seal::RelinKeys& relinKeys, 
                                       std::vector<seal::Ciphertext>& ctxt_1, 

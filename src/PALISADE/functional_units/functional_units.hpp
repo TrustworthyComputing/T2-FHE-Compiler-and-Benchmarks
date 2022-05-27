@@ -42,6 +42,24 @@ Ciphertext<T> exor(CryptoContext<T>& cc, Ciphertext<T>& c1,
 }
 
 template <typename T>
+Ciphertext<T> eor(CryptoContext<T>& cc, Ciphertext<T>& c1,
+                        Ciphertext<T>& c2) {
+  Ciphertext<T> res_, tmp_1, tmp_2;
+  tmp_1 = cc->EvalAdd(c1, c2);
+  tmp_2 = cc->EvalMultAndRelinearize(c1, c2);
+  res_ = cc->EvalSub(tmp_1, tmp_2);
+  return res_;
+}
+
+template <typename T>
+Ciphertext<T> eand(CryptoContext<T>& cc, Ciphertext<T>& c1,
+                        Ciphertext<T>& c2) {
+  Ciphertext<T> res_;
+  res_ = cc->EvalMultAndRelinearize(c1, c2);
+  return res_;
+}
+
+template <typename T>
 Ciphertext<T> mux(CryptoContext<T>& cc, Ciphertext<T>& sel,
                   Ciphertext<T>& c1, Ciphertext<T>& c2) {
   Ciphertext<T> not_sel = cc->EvalNegate(sel);
@@ -178,6 +196,33 @@ std::vector<Ciphertext<T>> xor_bin(CryptoContext<T>& cc,
     for (size_t i = 0; i < res_.size(); i++) {
       res_[i] = cc->EvalAdd(c1[i], c2[i]);
     }
+  }
+  return res_;
+}
+
+template <typename T>
+std::vector<Ciphertext<T>> or_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
+                                   size_t ptxt_mod) {
+  Ciphertext<T> tmp_1, tmp_2;
+  std::vector<Ciphertext<T>> res_(c1.size());
+  for (size_t i = 0; i < res_.size(); i++) {
+    tmp_1 = cc->EvalAdd(c1[i], c2[i]);
+    tmp_2 = cc->EvalMultAndRelinearize(c1[i], c2[i]);
+    res_[i] = cc->EvalSub(tmp_1, tmp_2);
+  }
+  return res_;
+}
+
+template <typename T>
+std::vector<Ciphertext<T>> and_bin(CryptoContext<T>& cc,
+                                   std::vector<Ciphertext<T>>& c1,
+                                   std::vector<Ciphertext<T>>& c2,
+                                   size_t ptxt_mod) {
+  std::vector<Ciphertext<T>> res_(c1.size());
+  for (size_t i = 0; i < res_.size(); i++) {
+    res_[i] = cc->EvalMultAndRelinearize(c1[i], c2[i]);
   }
   return res_;
 }

@@ -172,6 +172,50 @@ std::vector<seal::Ciphertext> xor_bin(seal::Evaluator& evaluator,
   return res_;
 }
 
+std::vector<seal::Ciphertext> and_bin(seal::Evaluator& evaluator,
+                                      seal::Encryptor& encryptor,
+                                      seal::RelinKeys& relinKeys, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t ptxt_mod) {
+  assert(ctxt_1.size() == ctxt_2.size());
+  std::vector<seal::Ciphertext> res_(ctxt_1.size());
+  // avoid transparent ciphertext warning
+  seal::Ciphertext tmp;
+  seal::Plaintext zero("0");
+  for (int i = 0; i < res_.size(); i++) {
+    encryptor.encrypt(zero, tmp);
+    evaluator.add(tmp, ctxt_2[i], tmp);
+    // https://stackoverflow.com/a/46674398
+    evaluator.multiply(ctxt_1[i], tmp, res_[i]);
+    evaluator.relinearize_inplace(res_[i], relinKeys);
+  }
+  return res_;
+}
+
+std::vector<seal::Ciphertext> or_bin(seal::Evaluator& evaluator,
+                                      seal::Encryptor& encryptor,
+                                      seal::RelinKeys& relinKeys, 
+                                      std::vector<seal::Ciphertext>& ctxt_1, 
+                                      std::vector<seal::Ciphertext>& ctxt_2,
+                                      size_t ptxt_mod) {
+  assert(ctxt_1.size() == ctxt_2.size());
+  std::vector<seal::Ciphertext> res_(ctxt_1.size());
+  // avoid transparent ciphertext warning
+  seal::Ciphertext tmp, tmp2;
+  seal::Plaintext zero("0");
+  for (int i = 0; i < res_.size(); i++) {
+    encryptor.encrypt(zero, tmp);
+    evaluator.add(tmp, ctxt_2[i], tmp);
+    // https://stackoverflow.com/a/46674398
+    evaluator.multiply(ctxt_1[i], tmp, tmp2);
+    evaluator.relinearize_inplace(tmp2, relinKeys);
+    evaluator.add(tmp, ctxt_1[i], tmp);
+    evaluator.sub(tmp, tmp2, res_[i]);
+  }
+  return res_;
+}
+
 std::vector<seal::Ciphertext> mux_bin(seal::Evaluator& evaluator,
                                       seal::BatchEncoder& batch_encoder,
                                       seal::RelinKeys& relin_keys, 

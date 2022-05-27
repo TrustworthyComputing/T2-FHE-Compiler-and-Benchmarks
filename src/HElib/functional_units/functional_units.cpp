@@ -20,6 +20,26 @@ helib::Ctxt exor(helib::PubKey& public_key, helib::Ctxt& ctxt_1,
   return result;
 }
 
+helib::Ctxt eor(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+                 helib::Ctxt& ctxt_2) {
+  helib::Ctxt result(public_key);
+  helib::Ctxt tmp_ct(public_key);
+  tmp_ct = ctxt_1;
+  tmp_ct.multiplyBy(ctxt_2);
+  result = ctxt_1;
+  result += ctxt_2;
+  result -= tmp_ct;
+  return result;
+}
+
+helib::Ctxt eand(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+                 helib::Ctxt& ctxt_2) {
+  helib::Ctxt result(public_key);
+  result = ctxt_1;
+  result.multiplyBy(ctxt_2);
+  return result;
+}
+
 helib::Ctxt mux(helib::PubKey& public_key, helib::Ctxt& sel, helib::Ctxt& ctxt_1,
                 helib::Ctxt& ctxt_2) {
   helib::Ctxt res(public_key), not_sel(public_key), tmp(public_key);
@@ -133,6 +153,37 @@ std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key,
   }
   return res_;
 }
+
+std::vector<helib::Ctxt> or_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& c1, 
+                                 std::vector<helib::Ctxt>& c2, 
+                                 size_t ptxt_mod) {
+  assert(c1.size() == c2.size());
+  helib::Ctxt tmp_ct(public_key);
+  std::vector<helib::Ctxt> res_(c1.size(), tmp_ct);
+  for (int i = 0; i < res_.size(); i++) {
+    tmp_ct = c1[i];
+    tmp_ct.multiplyBy(c2[i]);
+    res_[i] = c1[i];
+    res_[i] += c2[i];
+    res_[i] -= tmp_ct;
+  }
+  return res_;
+}
+
+std::vector<helib::Ctxt> and_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& c1, 
+                                 std::vector<helib::Ctxt>& c2, 
+                                 size_t ptxt_mod) {
+  helib::Ctxt tmp_ct(public_key);
+  std::vector<helib::Ctxt> res_(c1.size(), tmp_ct);
+  for (int i = 0; i < res_.size(); i++) {
+    res_[i] = c1[i];
+    res_[i].multiplyBy(c2[i]);
+  }
+  return res_;
+}
+
 
 std::vector<helib::Ctxt> mux_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& sel, 

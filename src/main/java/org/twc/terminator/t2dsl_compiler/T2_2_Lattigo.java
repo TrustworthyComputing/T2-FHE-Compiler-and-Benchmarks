@@ -1096,6 +1096,14 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.BinXor(tmp_, ");
             this.asm_.append(rhs.getName()).append(")\n");
             break;
+          case "&":
+            append_idx(res_ + " := funits.BinAnd(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
+          case "|":
+            append_idx(res_ + " := funits.BinOr(tmp_, ");
+            this.asm_.append(rhs.getName()).append(")\n");
+            break;
           case "==":
             append_idx(res_ + " := funits.BinEq(tmp_, ");
             this.asm_.append(rhs.getName()).append(", word_sz)\n");
@@ -1131,6 +1139,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(tmp_, ");
             this.asm_.append(rhs.getName()).append(")\n");
@@ -1174,6 +1186,14 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "^":
             append_idx(res_ + " := funits.BinXor(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "&":
+            append_idx(res_ + " := funits.BinAnd(");
+            this.asm_.append(lhs.getName()).append(", tmp_)\n");
+            break;
+          case "|":
+            append_idx(res_ + " := funits.BinOr(");
             this.asm_.append(lhs.getName()).append(", tmp_)\n");
             break;
           case "==":
@@ -1223,6 +1243,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(");
             this.asm_.append(lhs.getName()).append(", tmp_)\n");
@@ -1266,6 +1290,14 @@ public class T2_2_Lattigo extends T2_Compiler {
             append_idx(res_ + " := funits.BinXor(" + lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(")\n");
             break;
+          case "&":
+            append_idx(res_ + " := funits.BinAnd(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
+          case "|":
+            append_idx(res_ + " := funits.BinOr(" + lhs.getName());
+            this.asm_.append(", ").append(rhs.getName()).append(")\n");
+            break;
           case "==":
             append_idx(res_ + " := funits.BinEq(" + lhs.getName());
             this.asm_.append(", ").append(rhs.getName()).append(", word_sz)\n");
@@ -1302,6 +1334,10 @@ public class T2_2_Lattigo extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_ + " := funits.Eq(");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName()).append(")\n");

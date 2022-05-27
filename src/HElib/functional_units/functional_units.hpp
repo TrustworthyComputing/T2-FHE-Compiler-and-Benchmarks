@@ -27,6 +27,12 @@
 helib::Ctxt exor(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
     helib::Ctxt& ctxt_2);
 
+helib::Ctxt eand(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+    helib::Ctxt& ctxt_2);
+
+helib::Ctxt eor(helib::PubKey& public_key, helib::Ctxt& ctxt_1, 
+    helib::Ctxt& ctxt_2);
+
 helib::Ctxt mux(helib::PubKey& public_key, helib::Ctxt& sel, helib::Ctxt& ctxt_1,
                 helib::Ctxt& ctxt_2);
 
@@ -46,6 +52,16 @@ std::vector<helib::Ctxt> not_bin(helib::PubKey& public_key,
                                  std::vector<helib::Ctxt>& ct);
                                  
 std::vector<helib::Ctxt> xor_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& c1, 
+                                 std::vector<helib::Ctxt>& c2, 
+                                 size_t ptxt_mod);
+
+std::vector<helib::Ctxt> or_bin(helib::PubKey& public_key, 
+                                 std::vector<helib::Ctxt>& c1, 
+                                 std::vector<helib::Ctxt>& c2, 
+                                 size_t ptxt_mod);
+
+std::vector<helib::Ctxt> and_bin(helib::PubKey& public_key, 
                                  std::vector<helib::Ctxt>& c1, 
                                  std::vector<helib::Ctxt>& c2, 
                                  size_t ptxt_mod);

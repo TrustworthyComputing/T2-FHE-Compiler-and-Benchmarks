@@ -862,6 +862,14 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, tmp_, ");
             this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
             break;
+          case "&":
+            this.asm_.append("and_bin(evaluator, encryptor, relin_keys, tmp_, ");
+            this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+            break;
+          case "|":
+            this.asm_.append("or_bin(evaluator, encryptor, relin_keys, tmp_, ");
+            this.asm_.append(rhs.getName()).append(", plaintext_modulus);\n");
+            break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, tmp_, ").append(rhs.getName());
@@ -903,6 +911,10 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
@@ -964,6 +976,14 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append("xor_bin(evaluator, encryptor, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", tmp_, plaintext_modulus);\n");
             break;
+          case "&":
+            this.asm_.append("and_bin(evaluator, encryptor, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, plaintext_modulus);\n");
+            break;
+          case "|":
+            this.asm_.append("or_bin(evaluator, encryptor, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", tmp_, plaintext_modulus);\n");
+            break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, ");
             this.asm_.append("relin_keys, ").append(lhs.getName());
@@ -1019,6 +1039,10 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq_plain(encryptor, evaluator, ");
@@ -1077,6 +1101,16 @@ public class T2_2_SEAL extends T2_Compiler {
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
             this.asm_.append(", plaintext_modulus);\n");
             break;
+          case "&":
+            this.asm_.append("and_bin(evaluator, encryptor, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", plaintext_modulus);\n");
+            break;
+          case "|":
+            this.asm_.append("or_bin(evaluator, encryptor, relin_keys, ");
+            this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
+            this.asm_.append(", plaintext_modulus);\n");
+            break;
           case "==":
             this.asm_.append("eq_bin(evaluator, encryptor, batch_encoder, relin_keys, ");
             this.asm_.append(lhs.getName()).append(", ").append(rhs.getName());
@@ -1121,6 +1155,10 @@ public class T2_2_SEAL extends T2_Compiler {
             break;
           case "^":
             throw new Exception("XOR over encrypted integers is not possible");
+          case "&":
+            throw new Exception("Bitwise AND over encrypted integers is not possible");
+          case "|":
+            throw new Exception("Bitwise OR over encrypted integers is not possible");
           case "==":
             append_idx(res_);
             this.asm_.append(" = eq(encryptor, evaluator, ");

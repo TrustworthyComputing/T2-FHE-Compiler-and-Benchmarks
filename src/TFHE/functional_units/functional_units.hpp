@@ -113,6 +113,14 @@ void e_xor(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const std::vector<LweSample*>& b, const size_t nb_bits,
            const TFheGateBootstrappingCloudKeySet* bk);
 
+void e_or(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk);
+
+void e_and(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
+           const std::vector<LweSample*>& b, const size_t nb_bits,
+           const TFheGateBootstrappingCloudKeySet* bk);
+
 void e_mux(std::vector<LweSample*>& result, const std::vector<LweSample*>& a,
            const std::vector<LweSample*>& b, const std::vector<LweSample*>& c,
            const size_t nb_bits, const TFheGateBootstrappingCloudKeySet* bk);
