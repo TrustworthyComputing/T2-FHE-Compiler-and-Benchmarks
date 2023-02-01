@@ -1,4 +1,4 @@
-<h1 align="center">Terminator Suite 2: Homomorphic Day <a href="https://github.com/TrustworthyComputing/Zilch/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
+<h1 align="center">Terminator Suite 2: Homomorphic Day <a href="https://github.com/TrustworthyComputing/T2-HomomorphicDay/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
 
 <p align="center">
     <img src="./logos/t2-logo.png" height="20%" width="20%">
@@ -34,13 +34,40 @@ original benchmarks as well as adding new additions.
 
 
 ### How to cite this work
-The journal article describing the Terminator suite can be accessed [here](https://ieeexplore.ieee.org/document/8307166), while the authors' version is available [here](https://jimouris.github.io/publications/mouris2018terminator.pdf).
-You can cite this article as follows:
+The SoK outlining this framework will appear in [PoPETS
+2023](https://petsymposium.org/popets/2023/) (the preprint can be accessed
+[here](https://eprint.iacr.org/2022/425.pdf)). The journal article describing
+the original Terminator suite can be accessed
+[here](https://ieeexplore.ieee.org/document/8307166), while the authors' version
+is available [here](https://jimouris.github.io/publications/mouris2018terminator.pdf).
+You can cite these articles as follows: 
 
 ```
-D. Mouris, N. G. Tsoutsos and M. Maniatakos,
-"TERMinator Suite: Benchmarking Privacy-Preserving Architectures."
-IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
+@Article{PoPETS:GouMouTso23,
+  author =       "Charles Gouert and
+                  Dimitris Mouris and
+                  Nektarios Georgios Tsoutsos",
+  title =        "{SoK}: New Insights into Fully Homomorphic Encryption Libraries via Standardized Benchmarks",
+  volume =       2023,
+  month =        jul,
+  year =         2023,
+  journal =      "{Proceedings on Privacy Enhancing Technologies}",
+  number =       3,
+  pages =        "1--20",
+}
+
+@Article{IEEECAL:MouTsoMan18,
+  author  =     "Dimitris Mouris and
+                 Nektarios Georgios Tsoutsos and
+                 Michail Maniatakos",
+  title   =     "{TERMinator} Suite: Benchmarking Privacy-Preserving Architectures",
+  journal =     "IEEE Computer Architecture Letters",
+  year    =     "2018",
+  volume  =     "17",
+  number  =     "2",
+  pages   =     "122-125",
+  doi     =     "10.1109/LCA.2018.281281"}
+}
 ```
 
 ## Supported Homomorphic Encryption Libraries
@@ -48,13 +75,13 @@ IEEE Computer Architecture Letters, Volume: 17, Issue: 2, July-December 2018.
 <div style="background-color:#FFFF; color:#1A2067; border: solid #718096 4px; border-radius: 4px;">
 <p>
   <img src="./logos/t2-compiler.png" align="right" height="40%" width="40%" padding=10em>
-  <a href="https://github.com/tuneinsight/lattigo">Lattigo</a> v3.0.2 <a href="https://github.com/tuneinsight/lattigo/commit/27fee8bebbb5ee600d69086f0b5a8ff9a6c8e24e">27fee8b</a>
+  <a href="https://github.com/tuneinsight/lattigo">Lattigo</a> v4.1.0 <a href="https://github.com/tuneinsight/lattigo/commit/adf762375670e412bab261cd7ffff9ca03777ad5">adf7623</a>
   <br>
-  <a href="https://github.com/homenc/HElib">HElib</a> v2.2.1 <a href="https://github.com/homenc/HElib/commit/f0e3e010009c592cd411ba96baa8376eb485247a">f0e3e01</a>
+  <a href="https://github.com/homenc/HElib">HElib</a> v2.2.2 <a href="https://github.com/homenc/HElib/commit/d7be6f0dca6fa6cad2b2a0923d024ac27ce2e445">d7be6f0</a>
   <br>
-  <a href="https://gitlab.com/palisade/palisade-release/">PALISADE</a> v1.11.6 <a href="https://gitlab.com/palisade/palisade-release/-/commit/0860127401ab794591f931fa2c61426c7b56ee2d">08601274</a>
+  <a href="https://gitlab.com/palisade/palisade-release/">PALISADE</a> v1.11.9 <a href="https://gitlab.com/palisade/palisade-release/-/commit/3d1f9a3f9fd389df1f8f27f286511f4f5871258b">3d1f9a3f</a>
   <br>
-  <a href="https://github.com/microsoft/SEAL">Microsoft SEAL</a> v4.0.0 <a href="https://github.com/microsoft/SEAL/commit/a0fc0b732f44fa5242593ab488c8b2b3076a5f76">a0fc0b7</a>
+  <a href="https://github.com/microsoft/SEAL">Microsoft SEAL</a> v4.1.1 <a href="https://github.com/microsoft/SEAL/commit/206648d0e4634e5c61dcf9370676630268290b59">206648d</a>
   <br>
   <a href="https://github.com/tfhe/tfhe">TFHE</a> v1.0.1 <a href="https://github.com/tfhe/tfhe/commit/6297bc72d9294e6e635738deb2e8dc7e4ff8bc61">6297bc7</a>
   <br>

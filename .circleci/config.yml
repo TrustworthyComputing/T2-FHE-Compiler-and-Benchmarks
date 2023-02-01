@@ -51,27 +51,27 @@ jobs:
           key: deps-{{ checksum ".circleci/build_libs.sh" }}-{{ checksum "pom.xml" }}-{{ .Branch }}
 
       - run:
-          name: Install HElib v2.2.1
+          name: Install HElib v2.2.2
           command: >
             sudo make install &&
             sudo ln -sf /usr/local/lib/libntl.so.44 /usr/lib/libntl.so.44
           working_directory: HElib/build
 
       - run:
-          name: Install PALISADE v1.11.6
+          name: Install PALISADE v1.11.9
           command: >
             sudo make install &&
             sudo ln -sf /usr/local/lib/libPALISADEcore.so.1 /usr/lib/libPALISADEcore.so.1
           working_directory: palisade-release/build
 
       - run:
-          name: Install SEAL 4.0.0
+          name: Install SEAL 4.1.1
           command: >
             sudo cmake --install build
           working_directory: SEAL
 
       - run:
-          name: Install TFHE 1.1
+          name: Install TFHE 1.0.1
           command: >
             sudo make install &&
             sudo ln -sf /usr/local/lib/libtfhe-nayuki-avx.so /usr/lib/libtfhe-nayuki-avx.so &&

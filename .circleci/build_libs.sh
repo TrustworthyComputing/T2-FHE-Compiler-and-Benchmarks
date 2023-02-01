@@ -2,10 +2,10 @@
 
 set -exo pipefail
 
-echo "Build HElib v2.2.1"
+echo "Build HElib v2.2.2"
 if [ ! -d "HElib/build" ] ; then
     cd ./HElib
-    git reset --hard f0e3e01
+    git reset --hard d7be6f0
     mkdir -p build && cd build
     cmake -DPACKAGE_BUILD=ON -DCMAKE_INSTALL_PREFIX=/opt/helib_install ..
     make -j2
@@ -16,10 +16,10 @@ else
     echo "Found in cache"
 fi
 
-echo "Build PALISADE v1.11.6"
+echo "Build PALISADE v1.11.9"
 if [ ! -d "palisade-release/build" ] ; then
     cd ./palisade-release
-    git reset --hard 0860127401ab794591f931fa2c61426c7b56ee2d
+    git reset --hard 3d1f9a3f
     mkdir -p build && cd build
     cmake ..
     make -j2
@@ -30,10 +30,10 @@ else
     echo "Found in cache"
 fi
 
-echo "Build SEAL v4.0.0"
+echo "Build SEAL v4.1.1"
 if [ ! -d "SEAL/build" ] ; then
     cd ./SEAL
-    git reset --hard a0fc0b732f44fa5242593ab488c8b2b3076a5f76
+    git reset --hard 206648d0e4634e5c61dcf9370676630268290b59
     cmake -S . -B build
     cmake --build build
     sudo cmake --install build
@@ -42,7 +42,7 @@ else
     echo "Found in cache"
 fi
 
-echo "Build TFHE v1.1"
+echo "Build TFHE v1.0.1"
 if [ ! -d "tfhe/build" ] ; then
     cd ./tfhe
     make -j2 && sudo make install
@@ -54,3 +54,5 @@ if [ ! -d "tfhe/build" ] ; then
 else
     echo "Found in cache"
 fi
+
+echo "Lattigo version is defined in src/Lattigo/go.mod"

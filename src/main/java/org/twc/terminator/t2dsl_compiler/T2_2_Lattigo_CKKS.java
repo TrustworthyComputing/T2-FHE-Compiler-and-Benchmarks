@@ -14,8 +14,8 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     this.st_.backend_types.put("scheme", "ckks");
     this.st_.backend_types.put("double", "float64");
     this.st_.backend_types.put("double[]", "[]float64");
-    this.st_.backend_types.put("EncDouble", "*ckks.Ciphertext");
-    this.st_.backend_types.put("EncDouble[]", "[]*ckks.Ciphertext");
+    this.st_.backend_types.put("EncDouble", "*rlwe.Ciphertext");
+    this.st_.backend_types.put("EncDouble[]", "[]*rlwe.Ciphertext");
   }
 
   protected void append_keygen() {
@@ -42,7 +42,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
     append_idx("_ = rots\n");
     append_idx("rotkey := kgen.GenRotationKeysForRotations(rots, true, clientSk)\n");
     append_idx("evaluator := ckks.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk, Rtks: rotkey})\n");
-    append_idx("var ptxt *ckks.Plaintext\n");
+    append_idx("var ptxt *rlwe.Plaintext\n");
     append_idx("tmp := make([]complex128, slots)\n");
     append_idx("ptxt = encoder.EncodeNew(tmp, params.MaxLevel(), params.DefaultScale(), slots)\n");
     append_idx("tmp_ := encryptorPk.EncryptNew(ptxt)\n");
@@ -74,7 +74,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
       tmp_cnt_++;
       String tmp_i = "i_" + tmp_cnt_;
       append_idx(lhs.getName());
-      this.asm_.append(" = make([]*ckks.Ciphertext, len(").append(rhs_name);
+      this.asm_.append(" = make([]*rlwe.Ciphertext, len(").append(rhs_name);
       this.asm_.append("))\n");
       append_idx("for ");
       this.asm_.append(tmp_i).append(" := 0; ").append(tmp_i).append(" < len(");
@@ -392,7 +392,7 @@ public class T2_2_Lattigo_CKKS extends T2_2_Lattigo {
           }
         }
         append_idx(id.getName());
-        this.asm_.append(" = []*ckks.Ciphertext{ ").append(exp_var);
+        this.asm_.append(" = []*rlwe.Ciphertext{ ").append(exp_var);
         for (String init : inits) {
           this.asm_.append(", ").append(init);
         }

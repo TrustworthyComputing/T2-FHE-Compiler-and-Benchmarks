@@ -17,11 +17,11 @@ public class T2_2_Lattigo extends T2_Compiler {
     this.st_.backend_types.put("int", "int64");
     this.st_.backend_types.put("int[]", "[]int64");
     if (this.is_binary_) {
-      this.st_.backend_types.put("EncInt", "[]*bfv.Ciphertext");
-      this.st_.backend_types.put("EncInt[]", "[][]*bfv.Ciphertext");
+      this.st_.backend_types.put("EncInt", "[]*rlwe.Ciphertext");
+      this.st_.backend_types.put("EncInt[]", "[][]*rlwe.Ciphertext");
     } else {
-      this.st_.backend_types.put("EncInt", "*bfv.Ciphertext");
-      this.st_.backend_types.put("EncInt[]", "[]*bfv.Ciphertext");
+      this.st_.backend_types.put("EncInt", "*rlwe.Ciphertext");
+      this.st_.backend_types.put("EncInt[]", "[]*rlwe.Ciphertext");
     }
   }
 
@@ -81,9 +81,9 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("evaluator := bfv.NewEvaluator(params, rlwe.EvaluationKey{Rlk: rlk, Rtks: rotkey})\n");
     append_idx("funits.FunitsInit(&encryptorPk, &encoder, &evaluator, " +
                    "&params, int(paramDef.T), slots, word_sz)\n");
-    append_idx("ptxt := bfv.NewPlaintext(params)\n");
+    append_idx("ptxt := bfv.NewPlaintext(params, params.MaxLevel())\n");
     append_idx("tmp := make([]int64, slots)\n");
-    append_idx("encoder.EncodeInt(tmp, ptxt)\n");
+    append_idx("encoder.Encode(tmp, ptxt)\n");
     if (this.is_binary_) {
       append_idx("tmp_ := make(" + this.st_.backend_types.get("EncInt"));
       this.asm_.append(", word_sz)").append("\n");
@@ -145,7 +145,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
       for (int i = 0; i < this.word_sz_; i++) {
-        append_idx("encoder.EncodeInt(" + tmp_vec + "[" + i + "], ptxt)\n");
+        append_idx("encoder.Encode(" + tmp_vec + "[" + i + "], ptxt)\n");
         append_idx(dst + "[" + i + "] = encryptorSk.EncryptNew(ptxt)");
         if (i < this.word_sz_ - 1) this.asm_.append("\n");
       }
@@ -153,7 +153,7 @@ public class T2_2_Lattigo extends T2_Compiler {
       if (src_lst.length != 1)
         throw new RuntimeException("encrypt: list length");
       assign_to_all_slots("tmp", src_lst[0], null);
-      append_idx("encoder.EncodeInt(tmp, ptxt)\n");
+      append_idx("encoder.Encode(tmp, ptxt)\n");
       append_idx(dst + " = encryptorSk.EncryptNew(ptxt)");
     }
   }
@@ -177,8 +177,8 @@ public class T2_2_Lattigo extends T2_Compiler {
     append_idx("import (\n");
     append_idx("  \"fmt\"\n");
     append_idx("  \"time\"\n");
-    append_idx("  \"github.com/tuneinsight/lattigo/v3/rlwe\"\n");
-    append_idx("  \"github.com/tuneinsight/lattigo/v3/" + this.st_.backend_types.get("scheme")+ "\"\n");
+    append_idx("  \"github.com/tuneinsight/lattigo/v4/rlwe\"\n");
+    append_idx("  \"github.com/tuneinsight/lattigo/v4/" + this.st_.backend_types.get("scheme")+ "\"\n");
     append_idx("  funits \"Lattigo/functional_units\"\n");
     append_idx(")\n\n");
     append_idx("func main() {\n");
@@ -299,12 +299,12 @@ public class T2_2_Lattigo extends T2_Compiler {
           }
         } else {
           if (lhs_type.equals("EncInt")) {
-            append_idx(lhs.getName() + " = make([]*bfv.Ciphertext, word_sz)\n");
+            append_idx(lhs.getName() + " = make([]*rlwe.Ciphertext, word_sz)\n");
             append_idx("copy(" + lhs.getName() + ", " + rhs_name + ")\n");
           } else if (lhs_type.equals("EncInt[]")) {
-            append_idx(lhs.getName() + " = make([][]*bfv.Ciphertext, len(" + lhs.getName() + "))\n");
+            append_idx(lhs.getName() + " = make([][]*rlwe.Ciphertext, len(" + lhs.getName() + "))\n");
             append_idx("for i := 0; i < len(" + lhs.getName() + "); i++ {\n");
-            append_idx("  " + lhs.getName() + "[i] = make([]*bfv.Ciphertext, word_sz)\n");
+            append_idx("  " + lhs.getName() + "[i] = make([]*rlwe.Ciphertext, word_sz)\n");
             append_idx("  copy(" + lhs.getName() + "[i], " + rhs_name + "[i])\n");
             append_idx("}\n");
           } else {
@@ -698,7 +698,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             }
           }
           this.asm_.append(" }\n");
-          append_idx("encoder.EncodeInt(" + tmp_vec + ", ptxt)\n");
+          append_idx("encoder.Encode(" + tmp_vec + ", ptxt)\n");
           append_idx(id.getName() + " = encryptorSk.EncryptNew(ptxt)\n");
         }
         break;
@@ -706,15 +706,15 @@ public class T2_2_Lattigo extends T2_Compiler {
         String exp_var = "tmp_" + (++tmp_cnt_) + "_";
         if (exp_type.equals("int")) {
           if (this.is_binary_) {
-            append_idx(exp_var + " := make([]*bfv.Ciphertext, word_sz)\n");
+            append_idx(exp_var + " := make([]*rlwe.Ciphertext, word_sz)\n");
           } else {
-            append_idx("var " + exp_var + " *bfv.Ciphertext\n");
+            append_idx("var " + exp_var + " *rlwe.Ciphertext\n");
           }
           encrypt(exp_var, new String[]{exp.getName()});
           this.asm_.append("\n");
         } else { // exp type is EncInt
           if (this.is_binary_) {
-            append_idx(exp_var + " := make([]*bfv.Ciphertext, word_sz)\n");
+            append_idx(exp_var + " := make([]*rlwe.Ciphertext, word_sz)\n");
             append_idx("copy(" + exp_var + ", " + exp.getName() + ")\n");
           } else {
             exp_var = exp.getName();
@@ -728,9 +728,9 @@ public class T2_2_Lattigo extends T2_Compiler {
             if (v_type.equals("int") || isNumeric(init)) {
               String tmp_ = "tmp_" + (++tmp_cnt_) + "_";
               if (this.is_binary_) {
-                append_idx(tmp_ + " := make([]*bfv.Ciphertext, word_sz)\n");
+                append_idx(tmp_ + " := make([]*rlwe.Ciphertext, word_sz)\n");
               } else {
-                append_idx("var " + tmp_ + " *bfv.Ciphertext\n");
+                append_idx("var " + tmp_ + " *rlwe.Ciphertext\n");
               }
               encrypt(tmp_, new String[]{init});
               this.asm_.append("\n");
@@ -738,7 +738,7 @@ public class T2_2_Lattigo extends T2_Compiler {
             } else { // exp type is EncInt
               if (this.is_binary_) {
                 String tmp_ = "tmp_" + (++tmp_cnt_) + "_";
-                append_idx(tmp_ + " := make([]*bfv.Ciphertext, word_sz)\n");
+                append_idx(tmp_ + " := make([]*rlwe.Ciphertext, word_sz)\n");
                 append_idx("copy(" + tmp_ + ", " + init + ")\n");
                 inits.add(tmp_);
               } else {
@@ -797,7 +797,7 @@ public class T2_2_Lattigo extends T2_Compiler {
         }
       }
       this.asm_.append(" }\n");
-      append_idx("encoder.EncodeInt(" + tmp_vec + ", ptxt)\n");
+      append_idx("encoder.Encode(" + tmp_vec + ", ptxt)\n");
       append_idx(id.getName() + "[" + index.getName() + "] = encryptorSk.EncryptNew(ptxt)\n");
     }
     return null;
