@@ -9,7 +9,10 @@ jobs:
           username: $DOCKER_LOGIN
           password: $DOCKER_PASSWORD
     steps:
-      - checkout # change this from "checkout" to "*localCheckout" when running CircleCI locally
+#       - checkout # change this from "checkout" to "*localCheckout" when running CircleCI locally
+      -  run:
+          name: Checkout code
+          command: git clone https://github.com/TrustworthyComputing/T2-FHE-Compiler-and-Benchmarks.git .
       - restore_cache:
           keys:
             - deps-{{ checksum ".circleci/build_libs.sh" }}-{{ checksum "pom.xml" }}-{{ .Branch }}
