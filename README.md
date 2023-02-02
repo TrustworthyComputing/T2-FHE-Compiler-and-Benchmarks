@@ -1,13 +1,12 @@
-<h1 align="center">Terminator Suite 2: Homomorphic Day <a href="https://github.com/TrustworthyComputing/T2-HomomorphicDay/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
+<h1 align="center">T2: A cross compiler and standardized benchmarks for FHE computation <a href="https://github.com/TrustworthyComputing/T2-FHE-Compiler-and-Benchmarks/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a> </h1>
 
 <p align="center">
     <img src="./logos/t2-logo.png" height="20%" width="20%">
 </p>
-<h3 align="center">Data-Oblivious Benchmarks for Encrypted Data Computation</h3>
 
 
 ## Overview
-T2 is an extensible compiler and benchmark suite enabling comparisons between
+T2 is an *extensible cross compiler* and *standardized benchmark suite* enabling comparisons between
 fully-homomorphic encryption (FHE) libraries. The T2 repository comprises the
 T2 DSL and the T2 compiler from T2 DSL to state-of-the-art FHE back-ends.
 
@@ -36,31 +35,31 @@ original benchmarks as well as adding new additions.
 ### How to cite this work
 The SoK outlining this framework will appear in [PoPETS
 2023](https://petsymposium.org/popets/2023/) (the preprint can be accessed
-[here](https://eprint.iacr.org/2022/425.pdf)). The journal article describing
+[here](https://eprint.iacr.org/2022/425.pdf)). An earlier journal article describing
 the original Terminator suite can be accessed
 [here](https://ieeexplore.ieee.org/document/8307166), while the authors' version
 is available [here](https://jimouris.github.io/publications/mouris2018terminator.pdf).
-You can cite these articles as follows: 
+You can cite these articles as follows:
 
 ```
-@Article{PoPETS:GouMouTso23,
+@Article{PoPETS:Gouert23sok,
   author =       "Charles Gouert and
                   Dimitris Mouris and
                   Nektarios Georgios Tsoutsos",
-  title =        "{SoK}: New Insights into Fully Homomorphic Encryption Libraries via Standardized Benchmarks",
+  title =        "{SoK: New Insights into Fully Homomorphic Encryption Libraries via Standardized Benchmarks}",
   volume =       2023,
-  month =        jul,
+  month =        Jul,
   year =         2023,
   journal =      "{Proceedings on Privacy Enhancing Technologies}",
   number =       3,
   pages =        "1--20",
 }
 
-@Article{IEEECAL:MouTsoMan18,
+@Article{IEEECAL:Mouris18terminator,
   author  =     "Dimitris Mouris and
                  Nektarios Georgios Tsoutsos and
                  Michail Maniatakos",
-  title   =     "{TERMinator} Suite: Benchmarking Privacy-Preserving Architectures",
+  title   =     "{TERMinator Suite: Benchmarking Privacy-Preserving Architectures}",
   journal =     "IEEE Computer Architecture Letters",
   year    =     "2018",
   volume  =     "17",
