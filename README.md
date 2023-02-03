@@ -90,7 +90,19 @@ You can cite these articles as follows:
 
 
 ## Build and Run Instructions
-### Dependencies
+
+### Building with Docker
+* Build the Docker image:
+  ```powershell
+  docker build -t t2 .
+  ```
+* Run the Docker container: 
+  ```powershell
+  docker run --rm -i -t t2 bash
+  ```
+
+### Building from Scratch
+#### Dependencies
 *
   ```powershell
   apt install cmake make build-essential g++ clang autoconf javacc patchelf openjdk-8-jdk maven m4 tar lzip libfftw3-dev
@@ -99,7 +111,7 @@ You can cite these articles as follows:
 * Follow and modify [clone_libs.sh](./.circleci/clone_libs.sh) and
   [build_libs.sh](./.circleci/build_libs.sh) scripts to install the FHE libraries in your custom destinations.
 
-### Compile the T2 compiler
+#### Compile the T2 compiler
 ```powershell
 mvn initialize package
 ```
@@ -109,7 +121,7 @@ To skip running the test when compiling the T2 compiler run:
 mvn package -Dmaven.test.skip
 ```
 
-### Compile T2 programs
+## Compile T2 programs
 To compile a T2 program type:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar <path_to_t2_file> [--debug] <LIB> [--w word_size]
