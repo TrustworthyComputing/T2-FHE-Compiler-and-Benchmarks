@@ -102,6 +102,8 @@ You can cite these articles as follows:
   ```
 
 ### Building from Scratch
+Tested on Ubuntu 22.04 LTS with Java 8, 9, and 11, and for Lattigo go version 1.17.6 and 1.18.1.
+
 #### Dependencies
 *
   ```powershell
@@ -127,10 +129,14 @@ To compile a T2 program type:
 java -jar target/terminator-compiler-1.0.jar <path_to_t2_file> [--debug] <LIB> [--w word_size]
 ```
 where `<LIB>` can be one of `HElib`, `Lattigo`, `SEAL`, `PALISADE`, and `TFHE`. For instance:
+
+### Example of compiling a T2 program for SEAL:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/arithmetic.t2 --seal
 ```
-will use `SEAL` as the back-end over the integers, whereas:
+will use `SEAL` as the back-end over the integers.
+
+### Example of compiling a T2 program for Lattigo in the binary domain:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/bin_test.t2 --lattigo --w 6
 ```
@@ -138,7 +144,8 @@ will use `Lattigo` as the back-end in the binary domain. The T2 compiler
 automatically detects the appropriate scheme (i.e., `BFV/BGV` or `CKKS`) based
 on the type of the encrypted variables that the T2 program uses (i.e.,
 `EncInt` or `EncDouble`).
-For example:
+
+### Example of compiling a T2 program for SEAL in the floating-point domain:
 ```powershell
 java -jar target/terminator-compiler-1.0.jar src/test/resources/tests/ckks_test.t2 --seal
 ```
