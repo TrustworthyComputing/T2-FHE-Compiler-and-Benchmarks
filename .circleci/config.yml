@@ -1,10 +1,10 @@
 version: 2.1
 
 jobs:
-  openjdk-11:
+  openjdk-19:
     description: A template for running T2 tests on the CircleCI OpenJDK VM
     docker:
-      - image: cimg/openjdk:11.0
+      - image: cimg/openjdk:19.0
         auth:
           username: $DOCKER_LOGIN
           password: $DOCKER_PASSWORD
@@ -116,5 +116,5 @@ workflows:
   version: 2.1
   build:
     jobs:
-      - openjdk-11:
-          name: openjdk-11
+      - openjdk-19:
+          name: openjdk-19

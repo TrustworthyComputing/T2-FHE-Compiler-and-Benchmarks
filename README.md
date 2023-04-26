@@ -102,7 +102,7 @@ You can cite these articles as follows:
   ```
 
 ### Building from Scratch
-Tested on Ubuntu 22.04 LTS with Java 8, 9, and 11, and for Lattigo go version 1.17.6 and 1.18.1.
+Tested on Ubuntu 22.04 LTS with Java 8, 9, and 19. For Lattigo, we used go version 1.17.6 and 1.18.1.
 
 #### Dependencies
 *
