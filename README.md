@@ -33,8 +33,8 @@ original benchmarks as well as adding new additions.
 
 
 ### How to cite this work
-The SoK outlining this framework will appear in [PoPETS
-2023](https://petsymposium.org/popets/2023/) (the preprint can be accessed
+The SoK outlining this framework appears in [PoPETS
+2023](https://petsymposium.org/popets/2023/popets-2023-0075.php) (the preprint can be accessed
 [here](https://eprint.iacr.org/2022/425.pdf)). An earlier journal article describing
 the original Terminator suite can be accessed
 [here](https://ieeexplore.ieee.org/document/8307166), while the authors' version
@@ -50,9 +50,11 @@ You can cite these articles as follows:
   volume =       2023,
   month =        Jul,
   year =         2023,
+  publisher =    sciendo,
   journal =      "{Proceedings on Privacy Enhancing Technologies}",
   number =       3,
-  pages =        "1--20",
+  pages =        "154–172",
+  doi =          "10.56553/popets-2023-0075",
 }
 
 @Article{IEEECAL:Mouris18terminator,
